@@ -208,7 +208,8 @@ def insert_venda(data, valor_final, comentario, produtos): # a variável "produt
 		VALUES ({id_venda}, ?, ?);
 		'''
 		cursor.executemany(sql, produtos)
-	
+
+# Testes inserts	
 '''
 
 # ------------------------ TESTES 
@@ -233,6 +234,54 @@ def insert_venda(data, valor_final, comentario, produtos): # a variável "produt
 #
 # ----------- SELECTS
 #
+
+### Produtos
+
+'''
+Acho que daria pra usar um match case?
+
+match LALALA
+	case NAO SEI QUE
+		SELECT lili FROM NAO SEI QUE?
+'''
+
+
+
+def select_produtos(nome):
+	sql_select_produtos = f'''
+	SELECT *
+	FROM produtos
+	WHERE nome = ?
+'''
+	
+	with sqlite3.connect('nize_database.db') as conexao:
+		cursor = conexao.execute(sql_select_produtos, (nome,))
+		print(cursor.fetchall())
+
+# def select_produtos(valor_venda):
+# 	pass
+
+# def select_produtos(quantidade):
+# 	pass
+
+# def select_produtos(encomenda):
+# 	pass
+
+
+def select_vendas(data):
+	pass
+
+def select_produto_vendido(produto):
+	pass
+
+	
+# def select_encomendas(data):
+# 	pass
+
+# def select_encomendas(prazo):
+# 	pass
+
+
 
 
 
