@@ -32,7 +32,6 @@ sql_table_encomendas = '''
 CREATE TABLE IF NOT EXISTS encomendas (
 	id_encomenda INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
 	prazo TEXT NULL,
-	quantidade INTEGER NULL,
 	comentario TEXT NULL
 );
 '''
@@ -47,6 +46,7 @@ CREATE TABLE IF NOT EXISTS vendas (
 '''
 
 # Tabelas relacionais
+
 sql_table_encomenda_produto = '''
 CREATE TABLE IF NOT EXISTS encomenda_produto (
     encomenda INTEGER NOT NULL,
@@ -73,9 +73,7 @@ CREATE TABLE IF NOT EXISTS venda_produto (
 );
 '''
 
-#
 # ----------- Inserção de tabelas no banco
-#
 
 with sqlite3.connect('nize_database.db') as conexao:
     conexao.execute(sql_table_vendedor)
@@ -94,192 +92,119 @@ INSERT INTO vendedor (login, senha, nome, nome_loja)
 	VALUES (?, ?, ?, ?)
 '''
 
-def insert_produto(nome, valor_venda, quantidade=0, imagem='', encomenda=0, descricao='', valor_custo=0):
 
-	valores=['?', '?']
-	lista_colunas = ['nome', 'valor_venda']
-	lista_valores = [nome, valor_venda]
+def insert_produto(nome, valor_venda, quantidade=None, imagem=None, encomenda=0, descricao=None, valor_custo=None):
 
-	if (quantidade>0):
-		lista_colunas.append('quantidade')
-		valores.append('?')
-		lista_valores.append(quantidade)
+    sql = f'''INSERT INTO produtos (nome, valor_venda, quantidade, imagem, encomenda, descricao, valor_custo) 
+	VALUES (?, ?, ?, ?, ?, ?, ?)
+	'''
+    sql_values_produtos = [nome, valor_venda, quantidade,
+                           imagem, encomenda, descricao, valor_custo]
 
-	if (len(imagem)>0):
-		lista_colunas.append(imagem)
-		valores.append('?')
-		lista_valores.append(imagem)
-	
-	if (encomenda>0):
-		lista_colunas.append('encomenda')
-		valores.append('?')
-		lista_valores.append(encomenda)
-    
-	if (len(descricao)>0):
-		lista_colunas.append('descricao')
-		valores.append('?')
-		lista_valores.append(descricao)
-	
-	if (valor_custo>0):
-		lista_colunas.append('valor_custo')
-		valores.append('?')
-		lista_valores.append(valor_custo)
+    with sqlite3.connect('nize_database.db') as conexao:
+        conexao.execute(sql, sql_values_produtos)
 
-	colunas = ','.join(lista_colunas)
 
-	sql = f'INSERT INTO produtos ({colunas}) VALUES ({','.join(valores)})'
+# a variável "produtos" vai ter que ser passada pelo controller
+def insert_encomenda(prazo=None, comentario=None, produtos=[]):
 
-	with sqlite3.connect('nize_database.db') as conexao:
-		conexao.execute(sql, tuple(lista_valores))
-
-sql_insert_encomenda = '''
-INSERT INTO encomendas (prazo, quantidade, comentario)
-	VALUES (?, ?, ?)
-'''
-
-def insert_encomenda(prazo, quantidade, comentario, produtos): # a variável "produtos" vai ter que ser passada pelo controller
-
-	valores = []
-	lista_colunas = []
-	lista_valores = []
-
-	if(len(prazo)>0):
-		valores.append('?')
-		lista_colunas.append('prazo')
-		lista_valores.append(prazo)
-
-	if (quantidade>0):
-		valores.append('?')
-		lista_colunas.append('quantidade')
-		lista_valores.append(quantidade)
-
-	if (len(comentario)>0):
-		valores.append('?')
-		lista_colunas.append('comentario')
-		lista_valores.append(comentario)
-
-	colunas = ','.join(lista_colunas)
-
-	sql = f'''INSERT INTO encomendas ({colunas}) 
-			VALUES ({','.join(valores)})
+    sql = '''INSERT INTO encomendas (prazo, comentario) 
+			VALUES (?, ?)
 			RETURNING id_encomenda
 			'''
-	
-	with sqlite3.connect('nize_database.db') as conexao:
-		cursor = conexao.execute(sql, tuple(lista_valores))
-		id_encomenda = cursor.fetchone()[0]
 
-		sql = f'''
+    sql_values_encomenda = [prazo, comentario]
+
+    with sqlite3.connect('nize_database.db') as conexao:
+        cursor = conexao.execute(sql, sql_values_encomenda)
+        id_encomenda = cursor.fetchone()[0]
+
+        sql = f'''
 		INSERT INTO encomenda_produto (encomenda, produto, quantidade)
 		VALUES ({id_encomenda}, ?, ?);
 		'''
 
-		cursor.executemany(sql, produtos)
+        cursor.executemany(sql, tuple(produtos))
 
-def insert_venda(data, valor_final, comentario, produtos): # a variável "produtos" vai ter que ser passada pelo controller
 
-	valores = ['?']
-	lista_colunas = ['data']
-	lista_valores = [data]
-
-	if(valor_final>0):
-		valores.append('?')
-		lista_colunas.append('valor_final')
-		lista_valores.append(valor_final)
-
-	if (len(comentario)>0):
-		valores.append('?')
-		lista_colunas.append('comentario')
-		lista_valores.append(comentario)
-
-	colunas = ','.join(lista_colunas)
-
-	sql = f'''INSERT INTO vendas ({colunas})
-			VALUES ({','.join(valores)})
+# a variável "produtos" vai ter que ser passada pelo controller
+def insert_venda(data, valor_final, comentario=None, produtos=[]):
+    sql = '''INSERT INTO vendas (data, valor_final, comentario)
+			VALUES (?, ?, ?)
 			RETURNING id_venda;
 			'''
 
-	with sqlite3.connect('nize_database.db') as conexao:
-		cursor = conexao.execute(sql, tuple(lista_valores))
-		id_venda = cursor.fetchone()[0] # pegamos o id_venda da nova venda inserida
+    sql_values_venda = [data, valor_final, comentario]
 
-		sql = f'''
+    with sqlite3.connect('nize_database.db') as conexao:
+        cursor = conexao.execute(sql, sql_values_venda)
+        id_venda = cursor.fetchone()[0]
+
+        sql = f'''
 		INSERT INTO venda_produto (venda, produto, quantidade)
 		VALUES ({id_venda}, ?, ?);
 		'''
-		cursor.executemany(sql, produtos)
-
-# Testes inserts	
-'''
-
-# ------------------------ TESTES 
-
-
-# Controller faz esta chamada
-
-# insert_venda('2025-09-12', 20.5, 'primeira venda', [
-# 	(1, 20),
-# 	(2, 5)
-# ])
-
-# insert_encomenda(prazo='dias', quantidade=10, comentario='fazer isso', produtos=[
-# 	(1, 5),
-# 	(2, 10)
-# ])
-
-# insert_produto('folha', 10.0, descricao='uma folha', valor_custo=5.00)
-# insert_produto('croche', 25.00, quantidade=12, encomenda=1, descricao='croche bonito', valor_custo=12.00)
-'''
+        cursor.executemany(sql, tuple(produtos))
 
 #
 # ----------- SELECTS
 #
 
-### Produtos
+# Produtos
 
-'''
-Acho que daria pra usar um match case?
-
-match LALALA
-	case NAO SEI QUE
-		SELECT lili FROM NAO SEI QUE?
-'''
-
-
-
-def select_produtos(nome):
-	sql_select_produtos = f'''
+def select_all(tabela):
+    sql_select_all = f'''
 	SELECT *
-	FROM produtos
-	WHERE nome = ?
-'''
-	
+	FROM {tabela};
+	'''
+
+    with sqlite3.connect('nize_database.db') as conexao:
+        cursor = conexao.execute(sql_select_all)
+        select_all = cursor.fetchall()
+
+        match tabela:
+            case 'produtos':
+                for _id, nome, valor_venda, quantidade, _imagem, encomenda, descricao, valor_custo in select_all:
+                    print(f'''
+Nome: {nome} | Custo: {valor_custo} | Valor final: {valor_venda}
+Quantidade: {quantidade} | Aceita encomenda: {encomenda} | Descrição: {descricao}''')
+
+            case 'encomendas':
+                for _id, prazo, comentario in select_all:
+                    print(f'Prazo: {prazo} | Comentário:{comentario}')
+
+            case 'vendas':
+                for _id, data, valor_final, comentario in select_all:
+                    print(f'''
+Data da venda: {data} | Valor: {valor_final} | Comentário: {comentario}''')
+
+def select_pesquisa(tabela, pesquisa):
+	sql_select_pesquisa = f'''
+	SELECT *
+	FROM {tabela}
+	WHERE {pesquisa} = ?;
+	'''
+    
 	with sqlite3.connect('nize_database.db') as conexao:
-		cursor = conexao.execute(sql_select_produtos, (nome,))
-		print(cursor.fetchall())
+		cursor = conexao.execute(sql_select_pesquisa, (pesquisa,))
+		select_all = cursor.fetchall()
+        
+	match tabela:
+            case 'produtos':
+                for _id, nome, valor_venda, quantidade, _imagem, encomenda, descricao, valor_custo in select_all:
+                    print(f'''
+Nome: {nome} | Custo: {valor_custo} | Valor final: {valor_venda}
+Quantidade: {quantidade} | Aceita encomenda: {encomenda} | Descrição: {descricao}''')
 
-# def select_produtos(valor_venda):
-# 	pass
+            case 'encomendas':
+                for _id, prazo, comentario in select_all:
+                    print(f'Prazo: {prazo} | Comentário:{comentario}')
 
-# def select_produtos(quantidade):
-# 	pass
+            case 'vendas':
+                for _id, data, valor_final, comentario in select_all:
+                    print(f'''
+Data da venda: {data} | Valor: {valor_final} | Comentário: {comentario}''')
 
-# def select_produtos(encomenda):
-# 	pass
-
-
-def select_vendas(data):
-	pass
-
-def select_produto_vendido(produto):
-	pass
-
-	
-# def select_encomendas(data):
-# 	pass
-
-# def select_encomendas(prazo):
-# 	pass
 
 
 
@@ -288,7 +213,6 @@ def select_produto_vendido(produto):
 #
 # ----------- UPDATES
 #
-
 
 
 #
