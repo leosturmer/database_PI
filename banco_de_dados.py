@@ -5,74 +5,74 @@ import sqlite3
 #
 
 sql_table_vendedor = '''
-CREATE TABLE IF NOT EXISTS vendedor (
-        id_vendedor INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-        login TEXT NOT NULL,
-        senha TEXT NOT NULL,
-        nome TEXT NOT NULL,
-        nome_loja TEXT NULL
-);
-'''
+    CREATE TABLE IF NOT EXISTS vendedor (
+            id_vendedor INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+            login TEXT NOT NULL,
+            senha TEXT NOT NULL,
+            nome TEXT NOT NULL,
+            nome_loja TEXT NULL
+    );
+    '''
 
 sql_table_produtos = '''
-CREATE TABLE IF NOT EXISTS produtos (
-        id_produto INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-        nome TEXT NOT NULL,
-        valor_unitario REAL NOT NULL,
+    CREATE TABLE IF NOT EXISTS produtos (
+            id_produto INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+            nome TEXT NOT NULL,
+            valor_unitario REAL NOT NULL,
 
-        quantidade INTEGER NULL,
-        imagem TEXT NULL,
-        encomenda INTEGER NULL,
-        descricao TEXT NULL,
-        valor_custo REAL NULL
-);
-'''
+            quantidade INTEGER NULL,
+            imagem TEXT NULL,
+            encomenda INTEGER NULL,
+            descricao TEXT NULL,
+            valor_custo REAL NULL
+    );
+    '''
 
 sql_table_encomendas = '''
-CREATE TABLE IF NOT EXISTS encomendas (
-        id_encomenda INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-        prazo TEXT NULL,
-        comentario TEXT NULL
-);
-'''
+    CREATE TABLE IF NOT EXISTS encomendas (
+            id_encomenda INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+            prazo TEXT NULL,
+            comentario TEXT NULL
+    );
+    '''
 
 sql_table_vendas = '''
-CREATE TABLE IF NOT EXISTS vendas (
-        id_venda INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-        data TEXT NOT NULL,
-        valor_final REAL NOT NULL,
-        comentario TEXT NULL
-);
-'''
+    CREATE TABLE IF NOT EXISTS vendas (
+            id_venda INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+            data TEXT NOT NULL,
+            valor_final REAL NOT NULL,
+            comentario TEXT NULL
+    );
+    '''
 
 # Tabelas relacionais
 
 sql_table_encomenda_produto = '''
-CREATE TABLE IF NOT EXISTS encomenda_produto (
-    encomenda INTEGER NOT NULL,
-    produto INTEGER NOT NULL,
-        quantidade INTEGER NULL,
+    CREATE TABLE IF NOT EXISTS encomenda_produto (
+        encomenda INTEGER NOT NULL,
+        produto INTEGER NOT NULL,
+            quantidade INTEGER NULL,
 
-        FOREIGN KEY (encomenda)
-                REFERENCES encomendas (id_encomenda)
-        FOREIGN KEY (produto)
-                REFERENCES produtos (id_produto)
-);
-'''
+            FOREIGN KEY (encomenda)
+                    REFERENCES encomendas (id_encomenda)
+            FOREIGN KEY (produto)
+                    REFERENCES produtos (id_produto)
+    );
+    '''
 
 sql_table_venda_produtos = '''
-CREATE TABLE IF NOT EXISTS venda_produto (
-    venda INTEGER NOT NULL,
-    produto INTEGER NOT NULL,
-    quantidade INTEGER NOT NULL,
-    valor_unitario REAL NOT NULL,
+    CREATE TABLE IF NOT EXISTS venda_produto (
+        venda INTEGER NOT NULL,
+        produto INTEGER NOT NULL,
+        quantidade INTEGER NOT NULL,
+        valor_unitario REAL NOT NULL,
 
-    FOREIGN KEY (venda)
-        REFERENCES vendas (id_venda)
-    FOREIGN KEY (produto)
-        REFERENCES produtos (id_produto)
-);
-'''
+        FOREIGN KEY (venda)
+            REFERENCES vendas (id_venda)
+        FOREIGN KEY (produto)
+            REFERENCES produtos (id_produto)
+    );
+    '''
 
 # ----------- Inserção de tabelas no banco
 
@@ -89,9 +89,9 @@ with sqlite3.connect('nize_database.db') as conexao:
 #
 
 sql_insert_vendedor = '''
-INSERT INTO vendedor (login, senha, nome, nome_loja)
-        VALUES (?, ?, ?, ?)
-'''
+    INSERT INTO vendedor (login, senha, nome, nome_loja)
+            VALUES (?, ?, ?, ?)
+    '''
 
 
 def insert_produto(nome, valor_unitario, quantidade=None, imagem=None, encomenda=0, descricao=None, valor_custo=None):
@@ -204,8 +204,8 @@ def listar_produtos():
 
     for nome, valor_unitario, quantidade, _imagem, encomenda, descricao, valor_custo in select_all:
         print(f'''
-Nome: {nome} | Custo: {valor_custo} | Valor unitário: {valor_unitario}
-Quantidade: {quantidade} | Aceita encomenda: {encomenda} | Descrição: {descricao}''')
+    Nome: {nome} | Custo: {valor_custo} | Valor unitário: {valor_unitario}
+    Quantidade: {quantidade} | Aceita encomenda: {encomenda} | Descrição: {descricao}''')
 
 
 def listar_encomendas():
@@ -238,9 +238,9 @@ def listar_encomendas():
                 quantidade_produto = quantidade
 
             print(f"""
-Encomenda id {encomenda}:
-Produtos: {nome_produto} | Quantidade: {quantidade_produto}
-Prazo de entrega: {detalhes['prazo']} | Comentário: {detalhes['comentario']}""")
+    Encomenda id {encomenda}:
+    Produtos: {nome_produto} | Quantidade: {quantidade_produto}
+    Prazo de entrega: {detalhes['prazo']} | Comentário: {detalhes['comentario']}""")
 
 
 def listar_vendas():
@@ -251,7 +251,7 @@ def listar_vendas():
 
     INNER JOIN vendas, produtos
     WHERE (vendas.id_venda = venda_produto.venda) AND (venda_produto.produto = produtos.id_produto);
-'''
+    '''
     vendas_dict = dict()
 
     with sqlite3.connect('nize_database.db') as conexao:
@@ -276,14 +276,11 @@ def listar_vendas():
                 valor_un_produto = valor_unitario
 
             print(f'''
-Venda id {venda}:
-Produto: {nome_produtos} | Quantidade: {quantidade_produtos}
-Valor unitário: {valor_un_produto} | Valor final: {valor_final} 
-Data da venda: {data} | Comentários: {comentario}
-''')
-
-
-listar_vendas()
+    Venda id {venda}:
+    Produto: {nome_produtos} | Quantidade: {quantidade_produtos}
+    Valor unitário: {valor_un_produto} | Valor final: {valor_final} 
+    Data da venda: {data} | Comentários: {comentario}
+    ''')
 
 # Selects específicos
 
@@ -293,7 +290,7 @@ def select_produto_nome(nome_do_produto):
     SELECT nome, quantidade, valor_unitario, quantidade, descricao, valor_custo 
     FROM produtos
     WHERE nome LIKE ?;
-'''
+    '''
 
     with sqlite3.connect('nize_database.db') as conexao:
         cursor = conexao.execute(sql, (f'%{nome_do_produto}%',))
@@ -309,7 +306,7 @@ def select_produto_valor(valor_produto):
     SELECT nome, quantidade, valor_unitario, quantidade, descricao, valor_custo 
     FROM produtos
     WHERE valor_unitario LIKE ?;
-'''
+    '''
     # valor_produto = float(valor_produto)
 
     with sqlite3.connect('nize_database.db') as conexao:
@@ -326,7 +323,7 @@ def select_produto_quantidade(quantidade_produto):
     SELECT nome, quantidade, valor_unitario, quantidade, descricao, valor_custo 
     FROM produtos
     WHERE quantidade LIKE ?;
-'''
+    '''
 
     with sqlite3.connect('nize_database.db') as conexao:
         cursor = conexao.execute(sql, (f'%{quantidade_produto}%',))
@@ -342,7 +339,7 @@ def select_produto_descricao(descricao_produto):
     SELECT nome, quantidade, valor_unitario, quantidade, descricao, valor_custo 
     FROM produtos
     WHERE descricao LIKE ?;
-'''
+    '''
     with sqlite3.connect('nize_database.db') as conexao:
         cursor = conexao.execute(sql, (f'%{descricao_produto}%',))
         select_all = cursor.fetchall()
@@ -370,9 +367,25 @@ def select_encomenda_produto(nome_produto):
             print(nome, quantidade, prazo, comentario)
 
 
-def select_encomenda_prazo():
-    pass
+def select_encomenda_prazo(prazo_encomenda):
+    sql = '''
+    SELECT DISTINCT produtos.nome, encomenda_produto.quantidade, encomendas.prazo, encomendas.comentario
 
+    FROM encomenda_produto, produtos
+
+    INNER JOIN encomendas
+    WHERE encomendas.id_encomenda = encomenda_produto.encomenda
+    AND encomendas.prazo LIKE ?;
+    '''
+
+    with sqlite3.connect('nize_database.db') as conexao:
+        cursor = conexao.execute(sql, (f'%{prazo_encomenda}%',))
+        select_all = cursor.fetchall()
+
+        for nome, quantidade, prazo, comentario in select_all:
+            print(nome, quantidade, prazo, comentario)
+
+select_encomenda_prazo('dias')
 
 def select_venda_data():
     pass
