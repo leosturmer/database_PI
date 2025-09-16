@@ -252,10 +252,38 @@ Valor unitário: {valor_unitario} | Valor final: {valor_final}
 Data da venda: {data} | Comentários: {comentario}
 ''')
 
+# Selects específicos
+
+def select_produto_nome():
+    pass 
+
+def select_produto_valor():
+    pass
+
+def select_produto_quantidade():
+    pass 
+
+def select_produto_encomenda():
+    pass
+
+def select_encomenda_produto():
+    pass 
+
+def select_encomenda_prazo():
+    pass 
+
+def select_venda_data():
+    pass
+
+def select_venda_produto():
+    pass
 
 #
 # ----------- UPDATES
 #
+
+
+
 
 #
 # ----------- DELETES
