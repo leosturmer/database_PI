@@ -229,42 +229,64 @@ def listar_encomendas():
                     'prazo': prazo,
                     'comentario': comentario
                 }
-                
+
             encomendas_dict[encomenda]['produtos'].append((nome, quantidade))
 
         for encomenda, detalhes in encomendas_dict.items():
             for nome, quantidade in detalhes['produtos']:
-                produtos_str = ', '.join([f"{nome} ({quantidade})" ])
+                nome_produto = nome
+                quantidade_produto = quantidade
 
             print(f"""
 Encomenda id {encomenda}:
-Produtos: {produtos_str}
+Produtos: {nome_produto} | Quantidade: {quantidade_produto}
 Prazo de entrega: {detalhes['prazo']} | Comentário: {detalhes['comentario']}""")
 
-listar_encomendas()
 
 def listar_vendas():
     sql = '''
-	SELECT venda_produto.venda, venda_produto.produto, venda_produto.quantidade, vendas.data, vendas.valor_final, vendas.comentario, produtos.nome, produtos.valor_unitario
+	SELECT venda_produto.venda, venda_produto.quantidade, vendas.data, vendas.valor_final, vendas.comentario, produtos.nome, venda_produto.valor_unitario
+  
     FROM venda_produto
 
     INNER JOIN vendas, produtos
     WHERE (vendas.id_venda = venda_produto.venda) AND (venda_produto.produto = produtos.id_produto);
 '''
+    vendas_dict = dict()
 
     with sqlite3.connect('nize_database.db') as conexao:
         cursor = conexao.execute(sql)
         select_all = cursor.fetchall()
 
-        for venda, _produto, quantidade, data, valor_final, comentario, nome, valor_unitario in select_all:
+        for venda, quantidade, data, valor_final, comentario, nome, valor_unitario in select_all:
+            if venda not in vendas_dict:
+                vendas_dict[venda] = {
+                    'produtos': [],
+                    'data': data,
+                    'valor_final': valor_final,
+                    'comentario': comentario
+                }
+            vendas_dict[venda]['produtos'].append(
+                (nome, quantidade, valor_unitario))
+
+        for venda, detalhes in vendas_dict.items():
+            for nome, quantidade, valor_unitario in detalhes['produtos']:
+                nome_produtos = nome
+                quantidade_produtos = quantidade
+                valor_un_produto = valor_unitario
+
             print(f'''
 Venda id {venda}:
-Produto: {nome} | Quantidade: {quantidade}
-Valor unitário: {valor_unitario} | Valor final: {valor_final} 
+Produto: {nome_produtos} | Quantidade: {quantidade_produtos}
+Valor unitário: {valor_un_produto} | Valor final: {valor_final} 
 Data da venda: {data} | Comentários: {comentario}
 ''')
 
+
+listar_vendas()
+
 # Selects específicos
+
 
 def select_produto_nome(nome_do_produto):
     sql = '''
@@ -272,13 +294,14 @@ def select_produto_nome(nome_do_produto):
     FROM produtos
     WHERE nome LIKE ?;
 '''
-    
+
     with sqlite3.connect('nize_database.db') as conexao:
         cursor = conexao.execute(sql, (f'%{nome_do_produto}%',))
-        select_all = cursor.fetchall() 
+        select_all = cursor.fetchall()
 
         for nome, quantidade, valor_unitario, quantidade, descricao, valor_custo in select_all:
-            print(nome, quantidade, valor_unitario, quantidade, descricao, valor_custo )
+            print(nome, quantidade, valor_unitario,
+                  quantidade, descricao, valor_custo)
 
 
 def select_produto_valor(valor_produto):
@@ -291,24 +314,27 @@ def select_produto_valor(valor_produto):
 
     with sqlite3.connect('nize_database.db') as conexao:
         cursor = conexao.execute(sql, (f'%{valor_produto}%',))
-        select_all = cursor.fetchall() 
+        select_all = cursor.fetchall()
 
         for nome, quantidade, valor_unitario, quantidade, descricao, valor_custo in select_all:
-            print(nome, quantidade, valor_unitario, quantidade, descricao, valor_custo )
+            print(nome, quantidade, valor_unitario,
+                  quantidade, descricao, valor_custo)
+
 
 def select_produto_quantidade(quantidade_produto):
     sql = '''
     SELECT nome, quantidade, valor_unitario, quantidade, descricao, valor_custo 
     FROM produtos
     WHERE quantidade LIKE ?;
-''' 
+'''
 
     with sqlite3.connect('nize_database.db') as conexao:
         cursor = conexao.execute(sql, (f'%{quantidade_produto}%',))
-        select_all = cursor.fetchall() 
+        select_all = cursor.fetchall()
 
         for nome, quantidade, valor_unitario, quantidade, descricao, valor_custo in select_all:
-            print(nome, quantidade, valor_unitario, quantidade, descricao, valor_custo )
+            print(nome, quantidade, valor_unitario,
+                  quantidade, descricao, valor_custo)
 
 
 def select_produto_descricao(descricao_produto):
@@ -319,10 +345,11 @@ def select_produto_descricao(descricao_produto):
 '''
     with sqlite3.connect('nize_database.db') as conexao:
         cursor = conexao.execute(sql, (f'%{descricao_produto}%',))
-        select_all = cursor.fetchall() 
+        select_all = cursor.fetchall()
 
         for nome, quantidade, valor_unitario, quantidade, descricao, valor_custo in select_all:
-            print(nome, quantidade, valor_unitario, quantidade, descricao, valor_custo)
+            print(nome, quantidade, valor_unitario,
+                  quantidade, descricao, valor_custo)
 
 
 def select_encomenda_produto(nome_produto):
@@ -334,7 +361,7 @@ def select_encomenda_produto(nome_produto):
     INNER JOIN encomendas
     WHERE encomendas.id_encomenda = encomenda_produto.encomenda
     AND produtos.nome LIKE ?;
-''' 
+'''
     with sqlite3.connect('nize_database.db') as conexao:
         cursor = conexao.execute(sql, (f'%{nome_produto}%',))
         select_all = cursor.fetchall()
@@ -344,10 +371,12 @@ def select_encomenda_produto(nome_produto):
 
 
 def select_encomenda_prazo():
-    pass 
+    pass
+
 
 def select_venda_data():
     pass
+
 
 def select_venda_produto():
     pass
@@ -355,8 +384,6 @@ def select_venda_produto():
 #
 # ----------- UPDATES
 #
-
-
 
 
 #

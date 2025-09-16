@@ -10,7 +10,7 @@ from banco_de_dados import (insert_produto, insert_encomenda, insert_venda, list
 
 # inserindo encomendas
 
-insert_encomenda(prazo='10', comentario='foi encomendado', produtos=[(2,1), (1,2)])
+# insert_encomenda(prazo='10', comentario='foi encomendado', produtos=[(2,1), (1,2)])
 # insert_encomenda(produtos=[(7, 10), (6, 6)])
 # insert_encomenda(prazo='dias', comentario='fazer isso', produtos=[
 # 	(1, 5),
