@@ -486,6 +486,49 @@ def select_venda_produto(nome_produto):  # Não deu certo o SQL
 # ----------- UPDATES
 #
 
+def update_produtos(id_produto, nome=None, valor_unitario=None, quantidade=None, imagem=None, encomenda=0, descricao=None, valor_custo=None):
+    
+    consulta_valores = []
+    valores = []    
+    
+    if nome is not None:
+        consulta_valores.append('nome = ?')
+        valores.append(nome)
+
+    if valor_unitario is not None:
+        consulta_valores.append('valor_unitario = ?')
+        valores.append(valor_unitario)
+
+    if quantidade is not None:
+        consulta_valores.append('quantidade = ?')
+        valores.append(quantidade)
+
+    if imagem is not None:
+        consulta_valores.append('imagem = ?')
+        valores.append(imagem)
+
+    if encomenda is not None:
+        consulta_valores.append('encomenda = ?')
+        valores.append(encomenda)
+
+    if descricao is not None:
+        consulta_valores.append('descricao = ?')
+        valores.append(descricao)
+
+    if valor_custo is not None:
+        consulta_valores.append('valor_custo = ?')
+        valores.append(valor_custo)
+
+    sql = f'''
+    UPDATE produtos
+
+    SET {', '.join(consulta_valores)}
+
+    WHERE id_produto = {id_produto}
+    '''
+
+    with sqlite3.connect('nize_database.db') as conexao:
+        conexao.execute(sql, valores)
 
 #
 # ----------- DELETES
