@@ -38,7 +38,7 @@ from banco_de_dados import (insert_vendedor, insert_produto, insert_encomenda, i
 ### Teste selects
 
 # listar_produtos()
-listar_encomendas()
+# listar_encomendas()
 # listar_vendas()
 
 # Selects específicos
