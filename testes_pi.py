@@ -1,6 +1,9 @@
-from banco_de_dados import (insert_produto, insert_encomenda, insert_venda, listar_produtos, listar_encomendas, listar_vendas, select_encomenda_prazo, select_encomenda_produto, select_produto_descricao, select_produto_nome, select_produto_quantidade, select_produto_valor, select_venda_data, select_venda_produto)
+from banco_de_dados import (insert_vendedor, insert_produto, insert_encomenda, insert_venda, listar_produtos, listar_encomendas, listar_vendas, select_encomenda_prazo, select_encomenda_produto, select_produto_descricao, select_produto_nome, select_produto_quantidade, select_produto_valor, select_venda_data, select_venda_produto, update_encomendas, update_produtos, update_vendas, update_vendedor)
 
-# Inserindo produtos
+# ## Inserindo vendedor
+# insert_vendedor('email@email.com', 'abc123', 'Vendedor')
+
+# ## Inserindo produtos
 
 # insert_produto('carrinho', valor_unitario=10.50, quantidade=10, encomenda=12, descricao='legal')
 # insert_produto('coração', valor_unitario=20, )
@@ -32,7 +35,7 @@ from banco_de_dados import (insert_produto, insert_encomenda, insert_venda, list
 
 
 
-# Teste selects
+### Teste selects
 
 # listar_produtos()
 # listar_encomendas()
@@ -47,6 +50,15 @@ from banco_de_dados import (insert_produto, insert_encomenda, insert_venda, list
 # select_encomenda_prazo('10')
 # select_venda_data('24')
 # select_venda_produto('o')
+
+### Updates
+
+# update_produtos(id_produto=2, quantidade=15)
+
+# update_vendedor(1, senha='123abc')
+# update_vendas(3, data='2025-09-18')
+# update_encomendas(2, comentario='entrega presencial')
+
 
 
 

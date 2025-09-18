@@ -117,15 +117,21 @@ with sqlite3.connect('nize_database.db') as conexao:
 # ----------- INSERTS
 #
 
-sql_insert_vendedor = '''
+def insert_vendedor(login, senha, nome, nome_loja=None):
+    sql = '''
     INSERT INTO vendedor (login, senha, nome, nome_loja)
-            VALUES (?, ?, ?, ?)
+        VALUES (?, ?, ?, ?)
     '''
+
+    sql_values_vendedor = [login, senha, nome, nome_loja]
+    
+    with sqlite3.connect('nize_database.db') as conexao:
+        conexao.execute(sql, sql_values_vendedor)
 
 
 def insert_produto(nome, valor_unitario, quantidade=None, imagem=None, encomenda=0, descricao=None, valor_custo=None):
 
-    sql = f'''INSERT INTO produtos (nome, valor_unitario, quantidade, imagem, encomenda, descricao, valor_custo) 
+    sql = '''INSERT INTO produtos (nome, valor_unitario, quantidade, imagem, encomenda, descricao, valor_custo) 
         VALUES (?, ?, ?, ?, ?, ?, ?)
         '''
     sql_values_produtos = [nome, valor_unitario, quantidade,
@@ -486,6 +492,38 @@ def select_venda_produto(nome_produto):  # Não deu certo o SQL
 # ----------- UPDATES
 #
 
+def update_vendedor(id_vendedor, login=None, senha=None, nome=None, nome_loja=None):
+    consulta_valores = []
+    valores = []    
+
+    if login is not None:
+        consulta_valores.append('login = ?')
+        valores.append(login)
+
+    if senha is not None:
+        consulta_valores.append('senha = ?')
+        valores.append(senha)
+
+    if nome is not None:
+        consulta_valores.append('nome = ?')
+        valores.append(nome)
+
+    if nome_loja is not None:
+        consulta_valores.append('nome_loja = ?')
+        valores.append(nome_loja)
+
+    sql = f'''
+    UPDATE vendedor
+
+    SET {', '.join(consulta_valores)}
+
+    WHERE id_vendedor = {id_vendedor}
+    '''
+
+    with sqlite3.connect('nize_database.db') as conexao:
+        conexao.execute(sql, valores)
+
+
 def update_produtos(id_produto, nome=None, valor_unitario=None, quantidade=None, imagem=None, encomenda=0, descricao=None, valor_custo=None):
     
     consulta_valores = []
@@ -525,6 +563,52 @@ def update_produtos(id_produto, nome=None, valor_unitario=None, quantidade=None,
     SET {', '.join(consulta_valores)}
 
     WHERE id_produto = {id_produto}
+    '''
+
+    with sqlite3.connect('nize_database.db') as conexao:
+        conexao.execute(sql, valores)
+
+def update_vendas(id_venda=None, data=None, comentario=None): # Ver se coloco STATUS na venda
+    consulta_valores = []
+    valores = []  
+
+    if data is not None:
+        consulta_valores.append('data = ?')
+        valores.append(data)
+
+    if comentario is not None:
+        consulta_valores.append('comentario = ?')
+        valores.append(comentario)    
+
+    sql = f'''  
+    UPDATE vendas
+
+    SET {', '.join(consulta_valores)}
+
+    WHERE id_venda = {id_venda}
+    '''
+
+    with sqlite3.connect('nize_database.db') as conexao:
+        conexao.execute(sql, valores)
+
+def update_encomendas(id_encomenda, prazo=None, comentario=None):
+    consulta_valores = []
+    valores = []  
+
+    if prazo is not None:
+        consulta_valores.append('prazo = ?')
+        valores.append(prazo)  
+
+    if comentario is not None:
+        consulta_valores.append('comentario = ?')
+        valores.append(comentario)    
+
+    sql = f'''  
+    UPDATE encomendas
+
+    SET {', '.join(consulta_valores)}
+
+    WHERE id_encomenda = {id_encomenda}
     '''
 
     with sqlite3.connect('nize_database.db') as conexao:
