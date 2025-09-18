@@ -22,7 +22,7 @@ sql_table_produtos = '''
 
             quantidade INTEGER NULL,
             imagem TEXT NULL,
-            encomenda INTEGER NULL,
+            aceita_encomenda INTEGER NULL,
             descricao TEXT NULL,
             valor_custo REAL NULL
     );
@@ -30,11 +30,11 @@ sql_table_produtos = '''
 
 sql_table_encomendas = '''
     CREATE TABLE IF NOT EXISTS encomendas (
-            id_encomenda INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-            prazo TEXT NULL,
-            status NOT NULL,
-            comentario TEXT NULL
-    );
+        id_encomenda INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+        prazo TEXT NULL,
+        status NOT NULL,
+        comentario TEXT NULL
+        );
     '''
 
 sql_table_vendas = '''
@@ -80,13 +80,13 @@ sql_table_venda_produtos = '''
 
 sql_view_produtos = '''
     CREATE VIEW IF NOT EXISTS view_produtos AS
-        SELECT nome, valor_unitario, quantidade, imagem, encomenda, descricao, valor_custo
+        SELECT nome, quantidade, valor_unitario, valor_custo, aceita_encomenda, descricao, imagem
         FROM produtos;
     '''
 
 sql_view_encomendas = '''
     CREATE VIEW IF NOT EXISTS view_encomendas AS
-        SELECT encomendas.id_encomenda, encomendas.prazo, produtos.nome, encomenda_produto.quantidade, encomendas.status, encomendas.comentario
+        SELECT encomendas.id_encomenda, produtos.nome, encomenda_produto.quantidade, encomendas.prazo,  encomendas.status, encomendas.comentario
 
         FROM encomendas
 
@@ -97,12 +97,75 @@ sql_view_encomendas = '''
 
 sql_view_vendas = '''
     CREATE VIEW IF NOT EXISTS view_vendas AS 
-        SELECT vendas.id_venda, venda_produto.venda, venda_produto.quantidade, vendas.data, vendas.valor_final, vendas.comentario, produtos.nome, vendas.status, venda_produto.valor_unitario
+        SELECT vendas.id_venda, produtos.nome, venda_produto.quantidade, vendas.data,  venda_produto.valor_unitario, vendas.valor_final, vendas.status, vendas.comentario
 
         FROM vendas
 
         INNER JOIN venda_produto ON vendas.id_venda = venda_produto.venda
         INNER JOIN produtos ON venda_produto.produto = produtos.id_produto;
+    '''
+
+
+#### Tabelas DELETED
+
+
+sql_table_deleted_produtos = '''
+    CREATE TABLE IF NOT EXISTS deleted_produtos (
+            id_produto INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+            nome TEXT NOT NULL,
+            valor_unitario REAL NOT NULL,
+
+            quantidade INTEGER NULL,
+            imagem TEXT NULL,
+            aceita_encomenda INTEGER NULL,
+            descricao TEXT NULL,
+            valor_custo REAL NULL
+    );
+    '''
+
+sql_table_deleted_encomendas = '''
+    CREATE TABLE IF NOT EXISTS deleted_encomendas(
+        id_encomenda INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+        prazo TEXT NULL,
+        status NOT NULL,
+        comentario TEXT NULL
+        );
+    '''
+sql_table_deleted_vendas = '''
+    CREATE TABLE IF NOT EXISTS deleted_vendas (
+            id_venda INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+            data TEXT NOT NULL,
+            valor_final REAL NOT NULL,
+            status NOT NULL,
+            comentario TEXT NULL
+    );
+    '''
+
+sql_table_deleted_encomenda_produto = '''
+    CREATE TABLE IF NOT EXISTS deleted_encomenda_produto (
+        encomenda INTEGER NOT NULL,
+        produto INTEGER NOT NULL,
+            quantidade INTEGER NULL,
+
+            FOREIGN KEY (encomenda)
+                    REFERENCES encomendas (id_encomenda)
+            FOREIGN KEY (produto)
+                    REFERENCES produtos (id_produto)
+    );
+    '''
+
+sql_table_deleted_venda_produtos = '''
+    CREATE TABLE IF NOT EXISTS deleted_venda_produto (
+        venda INTEGER NOT NULL,
+        produto INTEGER NOT NULL,
+        quantidade INTEGER NOT NULL,
+        valor_unitario REAL NOT NULL,
+
+        FOREIGN KEY (venda)
+            REFERENCES vendas (id_venda)
+        FOREIGN KEY (produto)
+            REFERENCES produtos (id_produto)
+    );
     '''
 
 # ----------- Inserção de tabelas no banco
@@ -117,6 +180,44 @@ with sqlite3.connect('nize_database.db') as conexao:
     conexao.execute(sql_view_produtos)
     conexao.execute(sql_view_encomendas)
     conexao.execute(sql_view_vendas)
+
+    conexao.execute(sql_table_deleted_encomendas)
+    conexao.execute(sql_table_deleted_produtos)
+    conexao.execute(sql_table_deleted_vendas)
+    conexao.execute(sql_table_deleted_encomenda_produto)
+    conexao.execute(sql_table_deleted_venda_produtos)
+
+
+def delete_produto(id_produto):
+    sql_insert = '''
+    INSERT INTO deleted_produtos (id_produto, nome, valor_unitario, quantidade, imagem, aceita_encomenda, descricao, valor_custo)
+
+    SELECT (id_produto, nome, valor_unitario, quantidade, imagem, aceita_encomenda, descricao, valor_custo)
+        FROM Produtos
+    
+    WHERE id_produto = ?;
+    '''
+
+    sql_delete = '''
+    DELETE FROM produtos
+    WHERE id_produto = ?;
+    '''
+
+
+
+    with sqlite3.connect('nize_database.db') as conexao:
+        conexao.execute(sql_insert, (id_produto,))
+        conexao.execute(sql_delete, (id_produto,))
+
+
+def delete_venda():
+    pass
+
+def delete_encomenda():
+    pass
+
+
+
 
 #
 # ----------- INSERTS
@@ -145,6 +246,9 @@ def insert_produto(nome, valor_unitario, quantidade=None, imagem=None, encomenda
 
     with sqlite3.connect('nize_database.db') as conexao:
         conexao.execute(sql, sql_values_produtos)
+
+insert_produto(nome='teste delete', valor_unitario=10.00, descricao='vou deletar')
+
 
 # a variável "produtos" vai ter que ser passada pelo controller
 
