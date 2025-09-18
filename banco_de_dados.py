@@ -617,3 +617,5 @@ def update_encomendas(id_encomenda, prazo=None, comentario=None):
 #
 # ----------- DELETES
 #
+
+
