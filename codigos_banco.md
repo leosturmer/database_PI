@@ -56,15 +56,5 @@ REFERENCES produtos (id_produto)
 
 
 
-#### A DEFINIR
-
-- Status da venda? realizado, não realizado, etc 0123
-- Valor final? devo deixar salvo?
-- Deixar salvo registro de todas as vendas?
-
-
-#### OUTROS COMENTÁRIOS
-- O valor final da venda não vai no banco. Ele calcula pelos produtos adicionados na venda.
-- Estoque - view pela tabela produtos sem o estoque zerado
 
 
