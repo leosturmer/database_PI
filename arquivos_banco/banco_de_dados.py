@@ -80,7 +80,7 @@ sql_table_venda_produtos = '''
 
 sql_view_produtos = '''
     CREATE VIEW IF NOT EXISTS view_produtos AS
-        SELECT nome, quantidade, valor_unitario, valor_custo, aceita_encomenda, descricao, imagem
+        SELECT id_produto, nome, quantidade, valor_unitario, valor_custo, aceita_encomenda, descricao, imagem
         FROM produtos;
     '''
 
@@ -190,7 +190,7 @@ with sqlite3.connect('nize_database.db') as conexao:
 
 ### Colocar vendedor
 
-def insert_vendedor(self, login, senha, nome, nome_loja=None):
+def insert_vendedor(login, senha, nome, nome_loja=None):
     sql = '''
     INSERT INTO vendedor (login, senha, nome, nome_loja)
         VALUES (?, ?, ?, ?)
@@ -201,7 +201,7 @@ def insert_vendedor(self, login, senha, nome, nome_loja=None):
     with sqlite3.connect('nize_database.db') as conexao:
         conexao.execute(sql, sql_values_vendedor)
 
-def update_vendedor(self, id_vendedor, login=None, senha=None, nome=None, nome_loja=None):
+def update_vendedor(id_vendedor, login=None, senha=None, nome=None, nome_loja=None):
     consulta_valores = []
     valores = []
 
@@ -234,7 +234,7 @@ def update_vendedor(self, id_vendedor, login=None, senha=None, nome=None, nome_l
 
 ### Estoque
 
-def visualizar_estoque(self):
+def visualizar_estoque():
     
     sql = '''
     SELECT nome, valor_unitario, quantidade, imagem, descricao, valor_custo 
@@ -253,7 +253,11 @@ def visualizar_estoque(self):
         Valor de custo: {valor_custo} | Descrição: {descricao}
         ''')
 
-def visualizar_esgotados(self):
+# @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+# ESGOTADOS: não está buscando o que tem NULL
+# @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+def visualizar_esgotados():
     sql = '''
     SELECT nome, valor_unitario, quantidade, imagem, descricao, valor_custo 
     FROM view_produtos
@@ -274,7 +278,7 @@ def visualizar_esgotados(self):
 
 ### Cadastro de produtos: 
 
-def insert_produto(self, nome, valor_unitario, quantidade=None, imagem=None, aceita_encomenda=0, descricao=None, valor_custo=None):
+def insert_produto(nome, valor_unitario, quantidade=None, imagem=None, aceita_encomenda=0, descricao=None, valor_custo=None):
 
     sql = '''INSERT INTO produtos (nome, valor_unitario, quantidade, imagem, aceita_encomenda, descricao, valor_custo) 
         VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -288,9 +292,9 @@ def insert_produto(self, nome, valor_unitario, quantidade=None, imagem=None, ace
 
 ### Pesquisa de produtos:
 
-def listar_produtos(self): # Lista TODOS os produtos da loja
+def listar_produtos(): # Lista TODOS os produtos da loja
     sql = '''
-    SELECT nome, valor_unitario, quantidade, imagem, aceita_encomenda, descricao, valor_custo
+    SELECT id_produto, nome, valor_unitario, quantidade, imagem, aceita_encomenda, descricao, valor_custo
         FROM view_produtos;
     '''
 
@@ -298,15 +302,16 @@ def listar_produtos(self): # Lista TODOS os produtos da loja
         cursor = conexao.execute(sql)
         select_all = cursor.fetchall()
 
-    for nome, valor_unitario, quantidade, imagem, aceita_encomenda, descricao, valor_custo in select_all:
+    for id_produto, nome, valor_unitario, quantidade, imagem, aceita_encomenda, descricao, valor_custo in select_all:
         print(f'''
-    Nome: {nome} | Custo: {valor_custo} | Valor unitário: {valor_unitario}
+    Produto: {nome} | ID: {id_produto}
+    Valor de custo: {valor_custo} | Valor unitário: {valor_unitario}
     Quantidade: {quantidade} | Aceita encomenda: {aceita_encomenda} | Descrição: {descricao}
     Imagem: {imagem}''')
 
-def select_produto_nome(self, nome_do_produto): ### Pesquisa produto pelo nome
+def select_produto_nome(nome_do_produto): ### Pesquisa produto pelo nome
     sql = '''
-    SELECT nome, quantidade, valor_unitario, valor_custo, aceita_encomenda, descricao, imagem
+    SELECT id_produto, nome, quantidade, valor_unitario, valor_custo, aceita_encomenda, descricao, imagem
     FROM view_produtos
     WHERE nome LIKE ?;
     '''
@@ -315,16 +320,17 @@ def select_produto_nome(self, nome_do_produto): ### Pesquisa produto pelo nome
         cursor = conexao.execute(sql, (f'%{nome_do_produto}%',))
         select_all = cursor.fetchall()
 
-        for nome, quantidade, valor_unitario, valor_custo, aceita_encomenda, descricao, imagem in select_all:
+        for id_produto, nome, quantidade, valor_unitario, valor_custo, aceita_encomenda, descricao, imagem in select_all:
             print(f'''
+            Produto ID: {id_produto}
             Nome: {nome} | Quantidade: {quantidade}
             Valor unitário: {valor_unitario} | Valor custo: {valor_custo}
             Aceita encomenda: {aceita_encomenda} | Descrição: {descricao}
             ''')
 
-def select_produto_valor(self, valor_produto): ### Pesquisa produto pelo valor
+def select_produto_valor(valor_produto): ### Pesquisa produto pelo valor
     sql = '''
-    SELECT nome, quantidade, valor_unitario, valor_custo, aceita_encomenda, descricao, imagem 
+    SELECT id_produto, nome, quantidade, valor_unitario, valor_custo, aceita_encomenda, descricao, imagem 
     FROM view_produtos
     WHERE valor_unitario LIKE ?;
     '''
@@ -333,16 +339,17 @@ def select_produto_valor(self, valor_produto): ### Pesquisa produto pelo valor
         cursor = conexao.execute(sql, (f'%{valor_produto}%',))
         select_all = cursor.fetchall()
 
-        for nome, quantidade, valor_unitario, valor_custo, aceita_encomenda, descricao, imagem in select_all:
+        for id_produto, nome, quantidade, valor_unitario, valor_custo, aceita_encomenda, descricao, imagem in select_all:
             print(f'''
+            Produto ID: {id_produto}
             Nome: {nome} | Quantidade: {quantidade}
             Valor unitário: {valor_unitario} | Valor custo: {valor_custo}
             Aceita encomenda: {aceita_encomenda} | Descrição: {descricao}
             ''')
 
-def select_produto_quantidade(self, quantidade_produto): ### Pesquisa produto pela quantidade
+def select_produto_quantidade(quantidade_produto): ### Pesquisa produto pela quantidade
     sql = '''
-    SELECT nome, quantidade, valor_unitario, valor_custo, aceita_encomenda, descricao, imagem 
+    SELECT id_produto, nome, quantidade, valor_unitario, valor_custo, aceita_encomenda, descricao, imagem 
     FROM view_produtos
     WHERE quantidade LIKE ?;
     '''
@@ -351,16 +358,17 @@ def select_produto_quantidade(self, quantidade_produto): ### Pesquisa produto pe
         cursor = conexao.execute(sql, (f'%{quantidade_produto}%',))
         select_all = cursor.fetchall()
 
-        for nome, quantidade, valor_unitario, valor_custo, aceita_encomenda, descricao, imagem in select_all:
+        for id_produto, nome, quantidade, valor_unitario, valor_custo, aceita_encomenda, descricao, imagem in select_all:
             print(f'''
+            Produto ID: {id_produto}
             Nome: {nome} | Quantidade: {quantidade}
             Valor unitário: {valor_unitario} | Valor custo: {valor_custo}
             Aceita encomenda: {aceita_encomenda} | Descrição: {descricao}
             ''')
 
-def select_produto_descricao(self, descricao_produto): ### Pesquisa produto pela descrição
+def select_produto_descricao(descricao_produto): ### Pesquisa produto pela descrição
     sql = '''
-    SELECT nome, quantidade, valor_unitario, valor_custo, aceita_encomenda, descricao, imagem 
+    SELECT id_produto, nome, quantidade, valor_unitario, valor_custo, aceita_encomenda, descricao, imagem 
     FROM view_produtos
     WHERE descricao LIKE ?;
     '''
@@ -368,15 +376,16 @@ def select_produto_descricao(self, descricao_produto): ### Pesquisa produto pela
         cursor = conexao.execute(sql, (f'%{descricao_produto}%',))
         select_all = cursor.fetchall()
 
-        for nome, quantidade, valor_unitario, valor_custo, aceita_encomenda, descricao, imagem in select_all:
+        for id_produto, nome, quantidade, valor_unitario, valor_custo, aceita_encomenda, descricao, imagem in select_all:
             print(f'''
+            Produto ID: {id_produto}
             Nome: {nome} | Quantidade: {quantidade}
             Valor unitário: {valor_unitario} | Valor custo: {valor_custo}
             Aceita encomenda: {aceita_encomenda} | Descrição: {descricao}
             ''')
 
 ### Atualização de produtos
-def update_produtos(self, id_produto, nome=None, valor_unitario=None, quantidade=None, imagem=None, aceita_encomenda=0, descricao=None, valor_custo=None):
+def update_produtos(id_produto, nome=None, valor_unitario=None, quantidade=None, imagem=None, aceita_encomenda=0, descricao=None, valor_custo=None):
 
     consulta_valores = []
     valores = []
@@ -422,7 +431,7 @@ def update_produtos(self, id_produto, nome=None, valor_unitario=None, quantidade
 
 ### Remoção de produtos (FAZER)
 
-def delete_produto(self, id_produto):
+def delete_produto(id_produto):
     sql_insert = '''
     INSERT INTO deleted_produtos (id_produto, nome, valor_unitario, quantidade, imagem, aceita_encomenda, descricao, valor_custo)
 
@@ -445,7 +454,7 @@ def delete_produto(self, id_produto):
 
 ### Cadastro de encomenda
 
-def insert_encomenda(self, status, prazo=None, comentario=None, produtos=[]):
+def insert_encomenda(status, prazo=None, comentario=None, produtos=[]):
 
     sql = '''INSERT INTO encomendas (status, prazo, comentario) 
                         VALUES (?, ?, ?)
@@ -467,7 +476,7 @@ def insert_encomenda(self, status, prazo=None, comentario=None, produtos=[]):
 
 ### Pesquisa de encomenda
 
-def listar_encomendas(self):
+def listar_encomendas():
     sql = '''
     SELECT id_encomenda, prazo, nome, quantidade, comentario, status
 
@@ -501,13 +510,9 @@ def listar_encomendas(self):
     Produtos: {', '.join(nome_produtos)}
     Prazo de entrega: {detalhes['prazo']} | Status: {status} | Comentário: {detalhes['comentario']}""")
 
-# @@@@@@@@@@@@@@@@@@@@@@@@@@@@
-# NÃO ESTÁ FUNCIONANDO DIREITO
-# @@@@@@@@@@@@@@@@@@@@@@@@@@@@
-
-def select_encomenda_produto(self, nome_produto):
+def select_encomenda_produto(nome_produto):
     sql = '''
-    SELECT prazo, nome, quantidade, comentario, status
+    SELECT id_encomenda, prazo, nome, quantidade, comentario, status
 
     FROM view_encomendas
     WHERE nome LIKE ?;
@@ -516,17 +521,13 @@ def select_encomenda_produto(self, nome_produto):
         cursor = conexao.execute(sql, (f'%{nome_produto}%',))
         select_all = cursor.fetchall()
 
-        for nome, quantidade, prazo, comentario, status in select_all:
+        for id_encomenda, prazo, nome, quantidade, comentario, status in select_all:
             print(
-                f'Produto: {nome} | Quantidade: {quantidade} | Prazo: {prazo} | Status: {status} | Comentário: {comentario}')
+                f'ID: {id_encomenda} | Produto: {nome} | Quantidade: {quantidade} | Prazo: {prazo} | Status: {status} | Comentário: {comentario}')
 
-# @@@@@@@@@@@@@@@@@@@@@@@@@@@@
-# NÃO ESTÁ FUNCIONANDO DIREITO
-# @@@@@@@@@@@@@@@@@@@@@@@@@@@@
-
-def select_encomenda_prazo(self, prazo_encomenda):
+def select_encomenda_prazo(prazo_encomenda):
     sql = '''
-    SELECT prazo, nome, quantidade, comentario, status
+    SELECT id_encomenda, prazo, nome, quantidade, comentario, status
 
     FROM view_encomendas
     
@@ -537,13 +538,13 @@ def select_encomenda_prazo(self, prazo_encomenda):
         cursor = conexao.execute(sql, (f'%{prazo_encomenda}%',))
         select_all = cursor.fetchall()
 
-        for nome, quantidade, prazo, comentario, status in select_all:
+        for id_encomenda, prazo, nome, quantidade, comentario, status in select_all:
             print(
-                f'Nome: {nome} | Quantidade: {quantidade} | Prazo: {prazo} | Status: {status} | Comentário: {comentario}')
+                f'ID: {id_encomenda} | Nome: {nome} | Quantidade: {quantidade} | Prazo: {prazo} | Status: {status} | Comentário: {comentario}')
 
 ### Atualização de encomendas
 
-def update_encomendas(self, id_encomenda, prazo=None, comentario=None, status=None):
+def update_encomendas(id_encomenda, prazo=None, comentario=None, status=None):
     consulta_valores = []
     valores = []
 
@@ -572,7 +573,7 @@ def update_encomendas(self, id_encomenda, prazo=None, comentario=None, status=No
 
 ### Remoção de encomendas (FAZER)
 
-def delete_encomenda(self, id_encomenda):
+def delete_encomenda(id_encomenda):
     sql_insert_tabela = '''
     INSERT INTO deleted_encomendas (id_encomenda, prazo, status, comentario)
 
@@ -612,7 +613,7 @@ def delete_encomenda(self, id_encomenda):
 
 ### Cadastro de vendas
 
-def insert_venda(self, data, status, valor_final=0, comentario=None, produtos=[]):
+def insert_venda(data, status, valor_final=0, comentario=None, produtos=[]):
     sql = '''INSERT INTO vendas (data, status, valor_final, comentario)
         VALUES (?, ?, ?, ?)
         RETURNING id_venda;
@@ -663,7 +664,7 @@ def insert_venda(self, data, status, valor_final=0, comentario=None, produtos=[]
 ### Pesquisa de vendas
 
 
-def listar_vendas(self):  
+def listar_vendas():  
     sql = '''
     SELECT id_venda, quantidade, data, valor_final, comentario, nome, valor_unitario, status
 
@@ -703,7 +704,7 @@ def listar_vendas(self):
 # NÃO ESTÁ FUNCIONANDO DIREITO
 # @@@@@@@@@@@@@@@@@@@@@@@@@@@@         
     
-def select_venda_data(self, data_venda): 
+def select_venda_data(data_venda): 
     sql = '''
     SELECT id_venda, data, valor_final, comentario, nome, quantidade, valor_unitario, status
 
@@ -745,7 +746,7 @@ def select_venda_data(self, data_venda):
 # NÃO ESTÁ FUNCIONANDO DIREITO
 # @@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
-def select_venda_produto(self, nome_produto):
+def select_venda_produto(nome_produto):
     sql = '''
     SELECT id_venda, data, valor_final, comentario, nome, quantidade, valor_unitario, status
 
@@ -787,7 +788,7 @@ def select_venda_produto(self, nome_produto):
 
 ### Atualização de encomendas
 
-def update_vendas(self, id_venda=None, data=None, comentario=None, status=None):  # Ver se coloco STATUS na venda
+def update_vendas(id_venda=None, data=None, comentario=None, status=None):  # Ver se coloco STATUS na venda
     consulta_valores = []
     valores = []
 
@@ -816,7 +817,7 @@ def update_vendas(self, id_venda=None, data=None, comentario=None, status=None):
 
 ### Remoção de encomendas (FAZER)
 
-def delete_venda(self, id_venda):
+def delete_venda(id_venda):
     sql_insert_tabela = '''
     INSERT INTO deleted_vendas (id_venda, data, valor_final, status, comentario)
 
@@ -853,37 +854,3 @@ def delete_venda(self, id_venda):
         conexao.execute(sql_delete_relacao, (id_venda, ))
 
 
-
-
-
-
-# class Produto():
-#     def __init__(self):
-#         self.nome = ''
-#         self.quantidade = 0
-#         self.valor_venda = 0.0
-#         self.imagem = ''
-#         self.encomenda = ''
-#         self.descricao = ''
-#         self.valor_custo = 0.0
-
-
-# class Venda():
-#     def __init__(self):
-#         import datetime
-
-#         self.data_venda = datetime.datetime.now()
-#         self.valor_final = 0.0
-#         self.comentario = ''
-#         self.produtos = ''
-
-
-# class Encomenda():
-#     def __init__(self):
-#         import datetime
-
-#         self.prazo = datetime.timedelta()
-#         self.quantidade = 0
-#         self.comentario = ''
-#         self.produtos = ''
-#         self.status = 0
