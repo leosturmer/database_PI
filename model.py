@@ -266,16 +266,15 @@ def insert_vendedor(login, senha, nome, nome_loja=None):
         conexao.execute(sql, sql_values_vendedor)
 
 
-def insert_produto(nome, valor_unitario, quantidade=0, imagem=None, aceita_encomenda=0, descricao=None, valor_custo=None):
+def insert_produto(produto:Produto):
 
-    sql = '''INSERT INTO produtos (nome, valor_unitario, quantidade, imagem, aceita_encomenda, descricao, valor_custo) 
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-        '''
-    sql_values_produtos = [nome, valor_unitario, quantidade,
-                           imagem, aceita_encomenda, descricao, valor_custo]
+    sql = '''
+    INSERT INTO produtos (nome, valor_unitario, quantidade, imagem, aceita_encomenda, descricao, valor_custo) 
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+    '''
 
     with sqlite3.connect('nize_database.db') as conexao:
-        conexao.execute(sql, sql_values_produtos)
+        conexao.execute(sql, (produto.nome, produto.valor_unitario, produto.quantidade, produto.imagem, produto.aceita_encomenda, produto.descricao, produto.valor_custo))
 
 
 def insert_encomenda(status, prazo=None, comentario=None, produtos=[]):
