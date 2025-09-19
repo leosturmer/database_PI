@@ -13,7 +13,9 @@
 - Ver as questões de diferenciar maiúsculo e minúsculo
 
 
--
+- TEM QUE DIMINUIR DO ESTOQUE QUANDO REALIZAR UMA VENDAAAAAAA!!!!!!!!!!!!!
+
+
 ##### CONFERÊNCIAS
 
 - Só deixar inserir uma venda/encomenda se o produto existir;

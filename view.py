@@ -2,72 +2,101 @@ import controller
 
 from textual.app import (App, ComposeResult)
 from textual.widgets import (Button, Input, TextArea, Footer, Header,
-                             Label, Static, MaskedInput, OptionList, Select, SelectionList)
+                             Label, Static, MaskedInput, OptionList, Select, SelectionList, TabbedContent, TabPane)
 from textual.screen import (Screen)
 from textual.containers import (
     Container, VerticalGroup, HorizontalGroup, Grid, Center)
 
+class TelaInicial(Screen):
+    def compose(self):
+        yield Static("Nize", id="titulo_inicial")
+
+        with VerticalGroup(id="grupo_botoes_inicial"):
+            yield Button("Produtos", id="bt_produtos", classes="botoes_inicial", variant="primary")
+            yield Button("Encomendas", id="bt_encomendas", classes="botoes_inicial", variant="success")
+            yield Button("Vendas", id="bt_vendas", classes="botoes_inicial", variant="warning")
+            yield Button("Pesquisar", id="bt_pesquisa", classes="botoes_inicial", variant='error')
+            yield Button("Sair", id="bt_sair", classes="botoes_inicial")
+
+    def on_button_pressed(self, event: Button.Pressed):
+        match event.button.id:
+            case "bt_produtos":
+                self.app.switch_screen("tela_produtos")
+            case "bt_encomendas":
+                self.app.switch_screen("tela_encomendas")
+            case "bt_vendas":
+                self.app.switch_screen("tela_vendas")
+            case "bt_pesquisa":
+                self.app.switch_screen("tela_pesquisa")
+            case "bt_sair":
+                self.app.exit()
+
+    
 
 class TelaProdutos(Screen):
 
     def compose(self):
         yield Header(show_clock=True)
-        yield Static('Cadastro de produtos')
 
-        yield Input(
-            placeholder='Nome do produto*',
-            valid_empty=False,
-            type='text',
-            max_length=50,
-            id='input_nome'
-        )
-        yield Input(
-            placeholder='Quantidade*',
-            valid_empty=False,
-            type='integer',
-            max_length=4,
-            id='input_quantidade'
-        )
-        yield Input(
-            placeholder='Valor unitário',
-            valid_empty=True,
-            type='number',
-            max_length=7,
-            id='input_valor_unitario'
-        )
-        yield Input(
-            placeholder='Valor de custo',
-            valid_empty=True,
-            type='number',
-            max_length=7,
-            id='input_valor_custo'
-        )
-        yield Input(
-            placeholder='Imagem',
-            valid_empty=True,
-            type='text',
-            id='input_imagem'
-        )
-        with HorizontalGroup():
-            yield Label('Aceita encomendas?')
-            yield Select([
-                    ("Sim", 1),
-                    ("Não", 2)
-                ],
-                allow_blank=False, 
-                value=2,
-                id='select_encomenda'
-            )
+        with TabbedContent(initial='cadastro_produtos'):
+            with TabPane('Cadastro de produtos', id='cadastro_produtos'):
+                yield Input(
+                    placeholder='Nome do produto*',
+                    valid_empty=False,
+                    type='text',
+                    max_length=50,
+                    id='input_nome'
+                )
+                yield Input(
+                    placeholder='Quantidade*',
+                    valid_empty=False,
+                    type='integer',
+                    max_length=4,
+                    id='input_quantidade'
+                )
+                yield Input(
+                    placeholder='Valor unitário',
+                    valid_empty=True,
+                    type='number',
+                    max_length=7,
+                    id='input_valor_unitario'
+                )
+                yield Input(
+                    placeholder='Valor de custo',
+                    valid_empty=True,
+                    type='number',
+                    max_length=7,
+                    id='input_valor_custo'
+                )
+                yield Input(
+                    placeholder='Imagem',
+                    valid_empty=True,
+                    type='text',
+                    id='input_imagem'
+                )
+                with HorizontalGroup():
+                    yield Label('Aceita encomendas?')
+                    yield Select([
+                            ("Sim", 1),
+                            ("Não", 2)
+                        ],
+                        allow_blank=False, 
+                        value=2,
+                        id='select_encomenda'
+                    )
 
-        yield TextArea(
-            placeholder='Descrição',
-            compact=True,
-            id='text_descricao')
+                yield TextArea(
+                    placeholder='Descrição',
+                    compact=True,
+                    id='text_descricao')
 
-        with HorizontalGroup():
-            yield Button('Cadastrar',  id='bt_cadastrar')
-            yield Button('Limpar', id='bt_limpar')
-            yield Button('Voltar', id='bt_voltar')
+                with HorizontalGroup():
+                    yield Button('Cadastrar',  id='bt_cadastrar')
+                    yield Button('Limpar', id='bt_limpar')
+                    yield Button('Voltar', id='bt_voltar')
+
+
+
 
 
     def on_button_pressed(self, event: Button.Pressed):
@@ -86,34 +115,13 @@ class TelaProdutos(Screen):
             case 'bt_limpar':
                 pass
             case 'bt_voltar':
-                pass
+                self.app.switch_screen('tela_inicial')
 
+class TelaEncomendas(Screen):
+    pass 
 
-"""
-def insert_produto(nome, valor_unitario, quantidade=0, imagem=None, aceita_encomenda=0, descricao=None, valor_custo=None):
+class TelaVendas(Screen):
+    pass 
 
-    sql = '''INSERT INTO produtos (nome, valor_unitario, quantidade, imagem, aceita_encomenda, descricao, valor_custo) 
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-        '''
-    sql_values_produtos = [nome, valor_unitario, quantidade,
-                           imagem, aceita_encomenda, descricao, valor_custo]
-
-    with sqlite3.connect('nize_database.db') as conexao:
-        conexao.execute(sql, sql_values_produtos)
-"""
-
-
-# class TelaVendedor(Screen):
-#     def compose(self):
-#         yield Label('Usuário:')
-#         yield MaskedInput(valid_empty=False)
-#         yield Label('Senha:')
-#         yield MaskedInput(valid_empty=False)
-#         yield Label('Nome:')
-#         yield MaskedInput(valid_empty=False)
-#         yield Label('Nome da loja:')
-#         yield MaskedInput(valid_empty=True)
-
-
-# def insert_vendedor(login, senha, nome, nome_loja):
-#     pass
+class TelaPesquisa(Screen):
+    pass 
