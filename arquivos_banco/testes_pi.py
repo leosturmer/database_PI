@@ -6,7 +6,7 @@ from banco_de_dados import (insert_vendedor, insert_produto, insert_encomenda, i
 
 ##### INSERTS ######## 
 
-# Inserindo vendedor
+# ##### Inserindo vendedor
 # insert_vendedor('email@email.com', 'abc123', 'Vendedor')
 
 # # Inserindo produtos

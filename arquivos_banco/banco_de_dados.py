@@ -203,7 +203,7 @@ def insert_vendedor(login, senha, nome, nome_loja=None):
         conexao.execute(sql, sql_values_vendedor)
 
 
-def insert_produto(nome, valor_unitario, quantidade=None, imagem=None, aceita_encomenda=0, descricao=None, valor_custo=None):
+def insert_produto(nome, valor_unitario, quantidade=0, imagem=None, aceita_encomenda=0, descricao=None, valor_custo=None):
 
     sql = '''INSERT INTO produtos (nome, valor_unitario, quantidade, imagem, aceita_encomenda, descricao, valor_custo) 
         VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -308,11 +308,6 @@ def visualizar_estoque():
         Valor de custo: {valor_custo} | Descrição: {descricao}
         ''')
 
-# @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-# ESGOTADOS: não está buscando o que tem NULL
-# @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-
-
 def visualizar_esgotados():
     sql = '''
     SELECT nome, valor_unitario, quantidade, imagem, descricao, valor_custo 
@@ -391,7 +386,6 @@ def select_produto_valor(valor_produto):  # Pesquisa produto pelo valor
             ''')
 
 
-# Pesquisa produto pela quantidade
 def select_produto_quantidade(quantidade_produto):
     sql = '''
     SELECT id_produto, nome, quantidade, valor_unitario, valor_custo, aceita_encomenda, descricao, imagem 
@@ -412,7 +406,6 @@ def select_produto_quantidade(quantidade_produto):
             ''')
 
 
-# Pesquisa produto pela descrição
 def select_produto_descricao(descricao_produto):
     sql = '''
     SELECT id_produto, nome, quantidade, valor_unitario, valor_custo, aceita_encomenda, descricao, imagem 
