@@ -215,7 +215,8 @@ class Vendedor():
 
 
 class Produto():
-    def __init__(self, nome, valor_unitario, quantidade=0, imagem=None, aceita_encomenda=0, descricao=None, valor_custo=None):
+    def __init__(self, id_produto, nome, valor_unitario, quantidade=0, imagem=None, aceita_encomenda=0, descricao=None, valor_custo=None):
+        self.id_produto = id_produto
         self.nome = nome
         self.valor_unitario = valor_unitario
         self.quantidade = quantidade
@@ -425,7 +426,30 @@ def listar_produtos(estoque:Estoque):
 
 # print(listar_produtos())
 
-def select_produto_nome(nome_do_produto):  # Pesquisa produto pelo nome
+def select_produto_id(produto:Produto):
+    sql = '''
+    SELECT id_produto, nome, quantidade, valor_unitario, valor_custo, aceita_encomenda, descricao, imagem
+    FROM view_produtos
+    WHERE nome LIKE ?;
+    '''
+
+    with sqlite3.connect('nize_database.db') as conexao:
+        cursor = conexao.execute(sql, (produto.id_produto,))
+        select_all = cursor.fetchone()
+
+        for id_produto, nome, quantidade, valor_unitario, valor_custo, aceita_encomenda, descricao, imagem in select_all:
+            produto.id_produto = id_produto
+            produto.nome = nome
+            produto.valor_unitario = valor_unitario
+            produto.quantidade = quantidade
+            produto.imagem = imagem
+            produto.aceita_encomenda = aceita_encomenda
+            produto.descricao = descricao
+            produto.valor_custo = valor_custo
+
+    return produto
+
+def select_produto_nome(nome_do_produto):
     sql = '''
     SELECT id_produto, nome, quantidade, valor_unitario, valor_custo, aceita_encomenda, descricao, imagem
     FROM view_produtos

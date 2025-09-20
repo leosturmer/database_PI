@@ -19,3 +19,10 @@ def listar_produtos():
 
     return produtos
 
+def select_produto_id(id_produto):
+    
+    model.select_produto_id(id_produto)
+
+    produto = model.Produto()
+
+    return(produto)

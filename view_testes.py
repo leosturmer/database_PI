@@ -86,15 +86,9 @@ class WidgetAlteracao(Container):
                     compact=True,
                     id='text_descricao')
 
-class SelectProdutos(Select):
-    LISTA_DE_PRODUTOS = controller.listar_produtos()
-
-    def compose(self):
-        return super().compose()
-
-
 class TelaProdutos(Screen):
-   
+    LISTA_DE_PRODUTOS = controller.listar_produtos()
+    
     def compose(self):
         yield Header(show_clock=True)
 
@@ -111,9 +105,9 @@ class TelaProdutos(Screen):
             with TabPane('Alteração de produto', id='alteracao_produto'):
                 with HorizontalGroup():
                     yield Label('Selecione o produto')
-                    yield SelectProdutos(SelectProdutos.LISTA_DE_PRODUTOS,
+                    yield Select(TelaProdutos.LISTA_DE_PRODUTOS,
                         type_to_search=True,
-                        id='select_produto'
+                        id='select_produtos'
                     )             
 
                 yield WidgetAlteracao()
@@ -124,15 +118,16 @@ class TelaProdutos(Screen):
 
     def on_select_changed(self, event: Select.Changed):
         produto = self.query_one("#select_produtos", Select).value
-        
 
-        nome = self.query_one("#input_nome", Input).value
-        quantidade = self.query_one("#input_quantidade", Input).value
-        valor_unitario = self.query_one("#input_valor_unitario", Input).value
-        valor_custo = self.query_one("#input_valor_custo", Input).value
-        imagem = self.query_one("#input_imagem", Input).value
-        aceita_encomenda = self.query_one("#select_encomenda", Select).value
-        descricao = self.query_one("#text_descricao", TextArea).text
+        for nome, quantidade, valor_unitario, valor_custo, imagem, aceita_encomenda, descricao in produto:        
+
+            nome = self.query_one("#input_nome", Input).value
+            quantidade = self.query_one("#input_quantidade", Input).value
+            valor_unitario = self.query_one("#input_valor_unitario", Input).value
+            valor_custo = self.query_one("#input_valor_custo", Input).value
+            imagem = self.query_one("#input_imagem", Input).value
+            aceita_encomenda = self.query_one("#select_encomenda", Select).value
+            descricao = self.query_one("#text_descricao", TextArea).text
 
 
 
