@@ -201,7 +201,7 @@ class Loja():  # VER SE ESSA FICA?
     pass
 
 
-class Estoque():  # VER SE ESSA FICA?
+class Estoque():
     def __init__(self, produtos=[]):
         self.produtos = produtos
 
@@ -391,23 +391,39 @@ def visualizar_esgotados():
 # ---------- Produtos
 
 
-def listar_produtos():
+def listar_produtos(estoque:Estoque):
     sql = '''
     SELECT id_produto, nome, valor_unitario, quantidade, imagem, aceita_encomenda, descricao, valor_custo
         FROM view_produtos;
     '''
+    produtos_dict = dict()
+    lista_de_produtos = []
 
     with sqlite3.connect('nize_database.db') as conexao:
         cursor = conexao.execute(sql)
         select_all = cursor.fetchall()
 
     for id_produto, nome, valor_unitario, quantidade, imagem, aceita_encomenda, descricao, valor_custo in select_all:
-        print(f'''
-    Produto: {nome} | ID: {id_produto}
-    Valor de custo: {valor_custo} | Valor unitário: {valor_unitario}
-    Quantidade: {quantidade} | Aceita encomenda: {aceita_encomenda} | Descrição: {descricao}
-    Imagem: {imagem}''')
+        if id_produto not in produtos_dict:
+            produtos_dict[id_produto] = {
+                'nome': nome, 
+                'valor_unitario': valor_unitario,
+                'quantidade': quantidade,
+                'imagem': imagem,
+                'aceita_encomenda': aceita_encomenda,
+                'descricao': descricao,
+                'valor_custo': valor_custo
+            }
+            lista_de_produtos.append((nome, id_produto))
+            
+            estoque.produtos = lista_de_produtos
+            
+    return estoque.produtos
 
+    
+
+
+# print(listar_produtos())
 
 def select_produto_nome(nome_do_produto):  # Pesquisa produto pelo nome
     sql = '''

@@ -11,3 +11,13 @@ def insert_produto(nome, valor_unitario, quantidade, imagem, aceita_encomenda, d
     novo_produto = model.Produto(nome, valor_unitario, quantidade, imagem, aceita_encomenda, descricao, valor_custo)
 
     model.insert_produto(novo_produto)
+
+
+def listar_produtos():
+    estoque = model.Estoque()
+    produtos = model.listar_produtos(estoque)
+
+    return produtos
+
+
+print(listar_produtos())
