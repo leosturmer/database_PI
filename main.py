@@ -1,4 +1,4 @@
-from view import (TelaProdutos, TelaEncomendas, TelaInicial, TelaVendas, TelaPesquisa)
+from view_testes import (TelaProdutos, TelaEncomendas, TelaInicial, TelaVendas, TelaPesquisa)
 
 from textual.app import (App, ComposeResult)
 from textual.binding import (Binding)

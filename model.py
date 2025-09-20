@@ -81,7 +81,7 @@ sql_table_venda_produtos = '''
 
 sql_view_produtos = '''
     CREATE VIEW IF NOT EXISTS view_produtos AS
-        SELECT nome, quantidade, valor_unitario, valor_custo, aceita_encomenda, descricao, imagem
+        SELECT id_produto, nome, quantidade, valor_unitario, valor_custo, aceita_encomenda, descricao, imagem
         FROM produtos;
     '''
 

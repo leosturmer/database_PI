@@ -19,5 +19,3 @@ def listar_produtos():
 
     return produtos
 
-
-print(listar_produtos())

@@ -7,6 +7,7 @@ from textual.screen import (Screen)
 from textual.containers import (
     Container, VerticalGroup, HorizontalGroup, Grid, Center)
 from textual.widget import Widget
+from textual.reactive import reactive
 
 class TelaInicial(Screen):
     def compose(self):
@@ -85,64 +86,22 @@ class WidgetAlteracao(Container):
                     compact=True,
                     id='text_descricao')
 
-
-class TelaProdutos(Screen):
+class SelectProdutos(Select):
     LISTA_DE_PRODUTOS = controller.listar_produtos()
 
+    def compose(self):
+        return super().compose()
+
+
+class TelaProdutos(Screen):
+   
     def compose(self):
         yield Header(show_clock=True)
 
         with TabbedContent(initial='cadastro_produtos'):
             with TabPane('Cadastro de produtos', id='cadastro_produtos'):
-                yield Input(
-                    placeholder='Nome do produto*',
-                    valid_empty=False,
-                    type='text',
-                    max_length=50,
-                    id='input_nome'
-                )
-                yield Input(
-                    placeholder='Quantidade*',
-                    valid_empty=False,
-                    type='integer',
-                    max_length=4,
-                    id='input_quantidade'
-                )
-                yield Input(
-                    placeholder='Valor unitário',
-                    valid_empty=True,
-                    type='number',
-                    max_length=7,
-                    id='input_valor_unitario'
-                )
-                yield Input(
-                    placeholder='Valor de custo',
-                    valid_empty=True,
-                    type='number',
-                    max_length=7,
-                    id='input_valor_custo'
-                )
-                yield Input(
-                    placeholder='Imagem',
-                    valid_empty=True,
-                    type='text',
-                    id='input_imagem'
-                )
-                with HorizontalGroup():
-                    yield Label('Aceita encomendas?')
-                    yield Select([
-                            ("Sim", 1),
-                            ("Não", 2)
-                        ],
-                        allow_blank=False, 
-                        value=2,
-                        id='select_encomenda'
-                    )
 
-                yield TextArea(
-                    placeholder='Descrição',
-                    compact=True,
-                    id='text_descricao')
+                yield WidgetAlteracao()
 
                 with HorizontalGroup():
                     yield Button('Cadastrar',  id='bt_cadastrar')
@@ -152,7 +111,7 @@ class TelaProdutos(Screen):
             with TabPane('Alteração de produto', id='alteracao_produto'):
                 with HorizontalGroup():
                     yield Label('Selecione o produto')
-                    yield Select(TelaProdutos.LISTA_DE_PRODUTOS,
+                    yield SelectProdutos(SelectProdutos.LISTA_DE_PRODUTOS,
                         type_to_search=True,
                         id='select_produto'
                     )             
@@ -164,7 +123,17 @@ class TelaProdutos(Screen):
                     yield Button('Voltar', id='bt_voltar')
 
     def on_select_changed(self, event: Select.Changed):
-        pass
+        produto = self.query_one("#select_produtos", Select).value
+        
+
+        nome = self.query_one("#input_nome", Input).value
+        quantidade = self.query_one("#input_quantidade", Input).value
+        valor_unitario = self.query_one("#input_valor_unitario", Input).value
+        valor_custo = self.query_one("#input_valor_custo", Input).value
+        imagem = self.query_one("#input_imagem", Input).value
+        aceita_encomenda = self.query_one("#select_encomenda", Select).value
+        descricao = self.query_one("#text_descricao", TextArea).text
+
 
 
     def on_button_pressed(self, event: Button.Pressed):
@@ -179,6 +148,7 @@ class TelaProdutos(Screen):
                 descricao = self.query_one("#text_descricao", TextArea).text
 
                 controller.insert_produto(nome, quantidade, valor_unitario, valor_custo, imagem, aceita_encomenda, descricao)
+                
                 
 
             case 'bt_limpar':
