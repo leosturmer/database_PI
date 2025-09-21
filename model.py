@@ -270,12 +270,12 @@ def insert_vendedor(login, senha, nome, nome_loja=None):
 def insert_produto(produto:Produto):
 
     sql = '''
-    INSERT INTO produtos (nome, valor_unitario, quantidade, imagem, aceita_encomenda, descricao, valor_custo) 
-    VALUES (?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO produtos (id_produto, nome, valor_unitario, quantidade, imagem, aceita_encomenda, descricao, valor_custo) 
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     '''
 
     with sqlite3.connect('nize_database.db') as conexao:
-        conexao.execute(sql, (produto.nome, produto.valor_unitario, produto.quantidade, produto.imagem, produto.aceita_encomenda, produto.descricao, produto.valor_custo))
+        conexao.execute(sql, (produto.id_produto, produto.nome, produto.valor_unitario, produto.quantidade, produto.imagem, produto.aceita_encomenda, produto.descricao, produto.valor_custo))
 
 
 def insert_encomenda(status, prazo=None, comentario=None, produtos=[]):
@@ -437,8 +437,7 @@ def select_produto_id(produto:Produto):
         cursor = conexao.execute(sql, (produto.id_produto,))
         select_all = cursor.fetchone()
 
-        for id_produto, nome, quantidade, valor_unitario, valor_custo, aceita_encomenda, descricao, imagem in select_all:
-            produto.id_produto = id_produto
+        for nome, quantidade, valor_unitario, valor_custo, aceita_encomenda, descricao, imagem in select_all:
             produto.nome = nome
             produto.valor_unitario = valor_unitario
             produto.quantidade = quantidade

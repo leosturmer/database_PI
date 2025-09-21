@@ -119,23 +119,24 @@ class TelaProdutos(Screen):
     def on_select_changed(self, event: Select.Changed):
         id_produto = self.query_one("#select_produtos", Select).value
 
-        produto = controller.select_produto_id(id_produto)
+        # produto = controller.select_produto_id(id_produto)
 
-        for nome, quantidade, valor_unitario, valor_custo, imagem, aceita_encomenda, descricao in produto:        
+        # for nome, quantidade, valor_unitario, valor_custo, imagem, aceita_encomenda, descricao in produto:        
 
-            nome = self.query_one("#input_nome", Input).value
-            quantidade = self.query_one("#input_quantidade", Input).value
-            valor_unitario = self.query_one("#input_valor_unitario", Input).value
-            valor_custo = self.query_one("#input_valor_custo", Input).value
-            imagem = self.query_one("#input_imagem", Input).value
-            aceita_encomenda = self.query_one("#select_encomenda", Select).value
-            descricao = self.query_one("#text_descricao", TextArea).text
+        #     nome = self.query_one("#input_nome", Input).value
+        #     quantidade = self.query_one("#input_quantidade", Input).value
+        #     valor_unitario = self.query_one("#input_valor_unitario", Input).value
+        #     valor_custo = self.query_one("#input_valor_custo", Input).value
+        #     imagem = self.query_one("#input_imagem", Input).value
+        #     aceita_encomenda = self.query_one("#select_encomenda", Select).value
+        #     descricao = self.query_one("#text_descricao", TextArea).text
 
 
 
     def on_button_pressed(self, event: Button.Pressed):
         match event.button.id:
             case 'bt_cadastrar':
+                id_produto = None
                 nome = self.query_one("#input_nome", Input).value
                 quantidade = self.query_one("#input_quantidade", Input).value
                 valor_unitario = self.query_one("#input_valor_unitario", Input).value
@@ -144,7 +145,7 @@ class TelaProdutos(Screen):
                 aceita_encomenda = self.query_one("#select_encomenda", Select).value
                 descricao = self.query_one("#text_descricao", TextArea).text
 
-                controller.insert_produto(nome, quantidade, valor_unitario, valor_custo, imagem, aceita_encomenda, descricao)
+                controller.insert_produto(id_produto, nome, quantidade, valor_unitario, valor_custo, imagem, aceita_encomenda, descricao)
                 
                 
 
