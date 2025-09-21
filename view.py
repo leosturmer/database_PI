@@ -1,13 +1,16 @@
 import controller
 
+from textual import on
+
 from textual.app import (App, ComposeResult)
 from textual.widgets import (Button, Input, TextArea, Footer, Header,
-                             Label, Static, MaskedInput, OptionList, Select, SelectionList, TabbedContent, TabPane)
+                             Label, Static, MaskedInput, OptionList, Select, SelectionList, TabbedContent, TabPane, DataTable)
 from textual.screen import (Screen)
 from textual.containers import (
     Container, VerticalGroup, HorizontalGroup, Grid, Center)
 from textual.widget import Widget
 from textual.reactive import reactive
+from textual.message import Message
 
 class TelaInicial(Screen):
     def compose(self):
@@ -18,6 +21,7 @@ class TelaInicial(Screen):
             yield Button("Encomendas", id="bt_encomendas", classes="botoes_inicial", variant="success")
             yield Button("Vendas", id="bt_vendas", classes="botoes_inicial", variant="warning")
             yield Button("Pesquisar", id="bt_pesquisa", classes="botoes_inicial", variant='error')
+            yield Button("Estoque", id="bt_estoque")
             yield Button("Sair", id="bt_sair", classes="botoes_inicial")
 
     def on_button_pressed(self, event: Button.Pressed):
@@ -30,6 +34,8 @@ class TelaInicial(Screen):
                 self.app.switch_screen("tela_vendas")
             case "bt_pesquisa":
                 self.app.switch_screen("tela_pesquisa")
+            case "bt_estoque":
+                self.app.switch_screen("tela_estoque")
             case "bt_sair":
                 self.app.exit()
 
@@ -92,7 +98,7 @@ class TelaProdutos(Screen):
     def compose(self):
         yield Header(show_clock=True)
 
-        with TabbedContent(initial='cadastro_produtos'):
+        with TabbedContent(initial='cadastro_produtos',id='abas_produtos'):
             with TabPane('Cadastro de produtos', id='cadastro_produtos'):
 
                 yield WidgetAlteracao()
@@ -105,7 +111,7 @@ class TelaProdutos(Screen):
             with TabPane('Alteração de produto', id='alteracao_produto'):
                 with HorizontalGroup():
                     yield Label('Selecione o produto')
-                    yield Select(TelaProdutos.LISTA_DE_PRODUTOS,
+                    yield Select(self.LISTA_DE_PRODUTOS,
                         type_to_search=True,
                         id='select_produtos'
                     )             
@@ -116,24 +122,8 @@ class TelaProdutos(Screen):
                     yield Button('Alterar', id='bt_alterar')
                     yield Button('Voltar', id='bt_voltar')
 
-    def on_select_changed(self, event: Select.Changed):
-        id_produto = self.query_one("#select_produtos", Select).value
-
-        # produto = controller.select_produto_id(id_produto)
-
-        # for nome, quantidade, valor_unitario, valor_custo, imagem, aceita_encomenda, descricao in produto:        
-
-        #     nome = self.query_one("#input_nome", Input).value
-        #     quantidade = self.query_one("#input_quantidade", Input).value
-        #     valor_unitario = self.query_one("#input_valor_unitario", Input).value
-        #     valor_custo = self.query_one("#input_valor_custo", Input).value
-        #     imagem = self.query_one("#input_imagem", Input).value
-        #     aceita_encomenda = self.query_one("#select_encomenda", Select).value
-        #     descricao = self.query_one("#text_descricao", TextArea).text
-
-
-
-    def on_button_pressed(self, event: Button.Pressed):
+    @on(Button.Pressed)
+    async def on_button(self, event: Button.Pressed):
         match event.button.id:
             case 'bt_cadastrar':
                 id_produto = None
@@ -147,12 +137,33 @@ class TelaProdutos(Screen):
 
                 controller.insert_produto(id_produto, nome, quantidade, valor_unitario, valor_custo, imagem, aceita_encomenda, descricao)
                 
-                
+                self.atualizar() 
 
             case 'bt_limpar':
                 pass
             case 'bt_voltar':
                 self.app.switch_screen('tela_inicial')
+
+
+    def atualizar(self):
+        nova_lista_de_produtos = controller.listar_produtos()
+
+        if len(nova_lista_de_produtos) < len(self.LISTA_DE_PRODUTOS):
+            self.LISTA_DE_PRODUTOS = nova_lista_de_produtos
+        
+        return self.LISTA_DE_PRODUTOS
+
+class TelaEstoque(Screen):
+    
+    ROWS = [
+        ('id_produto', 'nome', 'valor_unitario', 'quantidade', 'imagem', 'aceita_encomenda', 'descricao', 'valor_custo')
+                ]
+
+    def compose(self):
+
+        yield Header()
+
+        yield DataTable()
 
 class TelaEncomendas(Screen):
     pass 

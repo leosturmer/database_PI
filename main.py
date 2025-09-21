@@ -1,4 +1,4 @@
-from view import (TelaProdutos, TelaEncomendas, TelaInicial, TelaVendas, TelaPesquisa)
+from view import (TelaProdutos, TelaEncomendas, TelaInicial, TelaVendas, TelaPesquisa, TelaEstoque)
 
 from textual.app import (App, ComposeResult)
 from textual.binding import (Binding)
@@ -10,6 +10,7 @@ class NizeApp(App):
         'tela_inicial': TelaInicial,
         'tela_produtos': TelaProdutos,
         'tela_encomendas': TelaEncomendas,
+        'tela_estoque': TelaEstoque,
         'tela_vendas': TelaVendas,
         'tela_pesquisa': TelaPesquisa
     }
