@@ -274,6 +274,19 @@ def insert_produto(produto: Produto):
     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     '''
 
+    if produto.imagem == '':
+        produto.imagem = None
+
+    if produto.aceita_encomenda == '':
+        produto.aceita_encomenda = 2
+
+    if produto.descricao == '':
+        produto.descricao = None
+
+    if produto.valor_custo == '':
+        produto.valor_custo = None
+
+
     with sqlite3.connect('nize_database.db') as conexao:
         conexao.execute(sql, (produto.id_produto, produto.nome, produto.valor_unitario, produto.quantidade,
                         produto.imagem, produto.aceita_encomenda, produto.descricao, produto.valor_custo))
