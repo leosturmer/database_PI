@@ -4,10 +4,10 @@ from textual import on
 
 from textual.app import (App, ComposeResult)
 from textual.widgets import (Button, Input, TextArea, Footer, Header,
-                             Label, Static, MaskedInput, OptionList, Select, SelectionList, TabbedContent, TabPane, DataTable, Collapsible, Switch)
+                             Label, Static, MaskedInput, OptionList, Select, SelectionList, TabbedContent, TabPane, DataTable, Collapsible, Switch, Placeholder)
 from textual.screen import (Screen)
 from textual.containers import (
-    Container, VerticalGroup, HorizontalGroup, Grid, Center, ScrollableContainer)
+    Container, VerticalGroup, HorizontalGroup, Grid, Center, ScrollableContainer, Horizontal, Vertical, CenterMiddle, ItemGrid)
 from textual.widget import Widget
 from textual.reactive import reactive
 from textual.message import Message
@@ -15,9 +15,8 @@ from textual.errors import (TextualError, RenderError, DuplicateKeyHandlers, NoW
 
 
 class TelaInicial(Screen):
-    def compose(self):
-        yield Static("Nize", id="titulo_inicial")
 
+    def compose(self):
         with VerticalGroup(id="grupo_botoes_inicial"):
             yield Button("Produtos", id="bt_produtos", classes="botoes_inicial", variant="primary")
             yield Button("Encomendas", id="bt_encomendas", classes="botoes_inicial", variant="success")
@@ -44,7 +43,7 @@ class TelaInicial(Screen):
 
 class ContainerProdutos(Container):
     def compose(self):
-        with HorizontalGroup():
+        with Horizontal():
             yield Label("Nome do produto:")
             yield Input(
                 placeholder='Nome do produto*',
@@ -53,26 +52,22 @@ class ContainerProdutos(Container):
                 id='input_nome',
 
             )
-
-        with HorizontalGroup():
             yield Label("Quantidade:")
             yield Input(
                 placeholder='Quantidade*',
                 type='integer',
                 max_length=4,
                 id='input_quantidade'
-            )
+            )            
 
-        with HorizontalGroup():
+        with Horizontal():
             yield Label("Valor unitário:")
             yield Input(
-                placeholder='Valor unitário',
+                placeholder='Valor unitário*',
                 type='number',
                 max_length=7,
                 id='input_valor_unitario'
             )
-
-        with HorizontalGroup():
 
             yield Label("Valor de custo:")
             yield Input(
@@ -82,19 +77,17 @@ class ContainerProdutos(Container):
                 id='input_valor_custo'
             )
 
-        with HorizontalGroup():
+        with Horizontal():
             yield Label('Imagem:')
             yield Input(
                 placeholder='Imagem',
                 type='text',
                 id='input_imagem'
             )
-
-        with HorizontalGroup():
             yield Label('Aceita encomendas?')
             yield Switch(value=False, id='select_encomenda')
 
-        with HorizontalGroup():
+        with Horizontal():
 
             yield Label("Descrição do produto:")
             yield TextArea(
@@ -110,25 +103,26 @@ class TelaProdutos(Screen):
     def compose(self):
         yield Header(show_clock=True)
 
-        yield Static("CADASTRO DE PRODUTOS")
+        with Container(id='tela_produtos'):
+            yield Static("CADASTRO DE PRODUTOS", id='stt_produtos')
 
-        with HorizontalGroup():
-            yield Label('Selecione o produto')
-            yield Select(self.LISTA_DE_PRODUTOS,
-                         type_to_search=True,
-                         id='select_produtos',
-                         allow_blank=True
-                         )
-            yield Button('OK', id='bt_select_produto')
+            with HorizontalGroup():
+                yield Label('Selecione o produto')
+                yield Select(self.LISTA_DE_PRODUTOS,
+                            type_to_search=True,
+                            id='select_produtos',
+                            allow_blank=True
+                            )
+                yield Button('OK', id='bt_select_produto')
 
-        yield ContainerProdutos(id='inputs_cadastro')
+            yield ContainerProdutos(id='inputs_cadastro')
 
-        with HorizontalGroup():
-            yield Button('Cadastrar',  id='bt_cadastrar')
-            yield Button("Alterar", id='bt_alterar')
-            yield Button('Limpar', id='bt_limpar')
-            yield Button('Deletar', id='bt_deletar')
-            yield Button('Voltar', id='bt_voltar')
+            with HorizontalGroup(id='bt_tela_produtos'):
+                yield Button('Cadastrar',  id='bt_cadastrar')
+                yield Button("Alterar", id='bt_alterar')
+                yield Button('Limpar', id='bt_limpar')
+                yield Button('Deletar', id='bt_deletar')
+                yield Button('Voltar', id='bt_voltar')
 
     def pegar_inputs_produtos(self):
         nome = self.query_one("#input_nome", Input)

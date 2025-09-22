@@ -1,0 +1,50 @@
+Screen {
+    # layout: vertical;
+}
+
+#tela_produtos {
+    align: center middle;
+}
+
+#grupo_botoes_inicial{
+    margin-top: 2;
+    align: center middle;
+}
+
+#bt_cadastrar, #bt_alterar, #bt_limpar, #bt_deletar, #bt_voltar {
+    margin-right: 1;
+    align: center middle;
+}
+
+#stt_produtos {
+#     row-span: 1;
+#     column-span: 1;
+}
+
+
+#bt_tela_produtos{
+    margin: 1;
+}
+
+
+Input {
+    width: 35;
+}
+
+Label {
+    width: 25;
+    text-align: center;
+    padding: 1;
+}
+
+Select {
+    width: 78;
+}
+
+TextArea {
+    width: 95;
+}
+
+Button {
+    margin-bottom: 1;
+}

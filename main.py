@@ -5,6 +5,8 @@ from textual.binding import (Binding)
 
 
 class NizeApp(App):
+
+    CSS_PATH = 'view.tcss'
     
     SCREENS = {
         'tela_inicial': TelaInicial,
