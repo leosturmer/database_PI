@@ -215,7 +215,7 @@ class Vendedor():
 
 
 class Produto():
-    def __init__(self, id_produto, nome, valor_unitario, quantidade=0, imagem=None, aceita_encomenda=0, descricao=None, valor_custo=None):
+    def __init__(self, id_produto, nome=None, valor_unitario=None, quantidade=0, imagem=None, aceita_encomenda=0, descricao=None, valor_custo=None):
         self.id_produto = id_produto
         self.nome = nome
         self.valor_unitario = valor_unitario
@@ -267,7 +267,7 @@ def insert_vendedor(login, senha, nome, nome_loja=None):
         conexao.execute(sql, sql_values_vendedor)
 
 
-def insert_produto(produto:Produto):
+def insert_produto(produto: Produto):
 
     sql = '''
     INSERT INTO produtos (id_produto, nome, valor_unitario, quantidade, imagem, aceita_encomenda, descricao, valor_custo) 
@@ -275,7 +275,8 @@ def insert_produto(produto:Produto):
     '''
 
     with sqlite3.connect('nize_database.db') as conexao:
-        conexao.execute(sql, (produto.id_produto, produto.nome, produto.valor_unitario, produto.quantidade, produto.imagem, produto.aceita_encomenda, produto.descricao, produto.valor_custo))
+        conexao.execute(sql, (produto.id_produto, produto.nome, produto.valor_unitario, produto.quantidade,
+                        produto.imagem, produto.aceita_encomenda, produto.descricao, produto.valor_custo))
 
 
 def insert_encomenda(status, prazo=None, comentario=None, produtos=[]):
@@ -392,7 +393,7 @@ def visualizar_esgotados():
 # ---------- Produtos
 
 
-def listar_produtos(estoque:Estoque):
+def listar_produtos(estoque: Estoque):
     sql = '''
     SELECT id_produto, nome, valor_unitario, quantidade, imagem, aceita_encomenda, descricao, valor_custo
         FROM view_produtos;
@@ -407,7 +408,7 @@ def listar_produtos(estoque:Estoque):
     for id_produto, nome, valor_unitario, quantidade, imagem, aceita_encomenda, descricao, valor_custo in select_all:
         if id_produto not in produtos_dict:
             produtos_dict[id_produto] = {
-                'nome': nome, 
+                'nome': nome,
                 'valor_unitario': valor_unitario,
                 'quantidade': quantidade,
                 'imagem': imagem,
@@ -416,37 +417,39 @@ def listar_produtos(estoque:Estoque):
                 'valor_custo': valor_custo
             }
             lista_de_produtos.append((nome, id_produto))
-            
-            estoque.produtos = lista_de_produtos
-            
-    return estoque.produtos
 
-    
+            estoque.produtos = lista_de_produtos
+
+    return estoque.produtos
 
 
 # print(listar_produtos())
 
-def select_produto_id(produto:Produto):
+def select_produto_id(produto: Produto):
+
     sql = '''
     SELECT id_produto, nome, quantidade, valor_unitario, valor_custo, aceita_encomenda, descricao, imagem
     FROM view_produtos
-    WHERE nome LIKE ?;
+    WHERE id_produto = ?;
     '''
 
     with sqlite3.connect('nize_database.db') as conexao:
         cursor = conexao.execute(sql, (produto.id_produto,))
-        select_all = cursor.fetchone()
+        # id_produto, nome, quantidade, valor_unitario, valor_custo, aceita_encomenda, descricao, imagem = cursor.fetchone()
+        return cursor.fetchone()
 
-        for nome, quantidade, valor_unitario, valor_custo, aceita_encomenda, descricao, imagem in select_all:
-            produto.nome = nome
-            produto.valor_unitario = valor_unitario
-            produto.quantidade = quantidade
-            produto.imagem = imagem
-            produto.aceita_encomenda = aceita_encomenda
-            produto.descricao = descricao
-            produto.valor_custo = valor_custo
+    #     for id_produto, nome, quantidade, valor_unitario, valor_custo, aceita_encomenda, descricao, imagem in select_all:
+    #         produto.id_produto = id_produto
+    #         produto.nome = nome
+    #         produto.valor_unitario = valor_unitario
+    #         produto.quantidade = quantidade
+    #         produto.imagem = imagem
+    #         produto.aceita_encomenda = aceita_encomenda
+    #         produto.descricao = descricao
+    #         produto.valor_custo = valor_custo
 
-    return produto
+    # return produto
+
 
 def select_produto_nome(nome_do_produto):
     sql = '''
