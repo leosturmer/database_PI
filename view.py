@@ -48,7 +48,6 @@ class ContainerProdutos(Container):
             yield Label("Nome do produto:")
             yield Input(
                 placeholder='Nome do produto*',
-                valid_empty=False,
                 type='text',
                 max_length=50,
                 id='input_nome',
@@ -59,7 +58,6 @@ class ContainerProdutos(Container):
             yield Label("Quantidade:")
             yield Input(
                 placeholder='Quantidade*',
-                valid_empty=False,
                 type='integer',
                 max_length=4,
                 id='input_quantidade'
@@ -69,7 +67,6 @@ class ContainerProdutos(Container):
             yield Label("Valor unitário:")
             yield Input(
                 placeholder='Valor unitário',
-                valid_empty=True,
                 type='number',
                 max_length=7,
                 id='input_valor_unitario'
@@ -89,7 +86,6 @@ class ContainerProdutos(Container):
             yield Label('Imagem:')
             yield Input(
                 placeholder='Imagem',
-                valid_empty=True,
                 type='text',
                 id='input_imagem'
             )
@@ -108,7 +104,7 @@ class ContainerProdutos(Container):
 
 
 class TelaProdutos(Screen):
-
+    
     LISTA_DE_PRODUTOS = controller.listar_produtos()
 
     def compose(self):
@@ -123,7 +119,7 @@ class TelaProdutos(Screen):
                          id='select_produtos',
                          allow_blank=True
                          )
-            yield Button('OK', id='bt_OK')
+            yield Button('OK', id='bt_select_produto')
 
         yield ContainerProdutos(id='inputs_cadastro')
 
@@ -131,6 +127,7 @@ class TelaProdutos(Screen):
             yield Button('Cadastrar',  id='bt_cadastrar')
             yield Button("Alterar", id='bt_alterar')
             yield Button('Limpar', id='bt_limpar')
+            yield Button('Deletar', id='bt_deletar')
             yield Button('Voltar', id='bt_voltar')
 
     def pegar_inputs_produtos(self):
@@ -181,7 +178,7 @@ class TelaProdutos(Screen):
                         id_produto, nome, valor_unitario, quantidade, imagem, aceita_encomenda, descricao, valor_custo)
                     self.notify(f"{nome} cadastrado com sucesso!")
 
-                self.atualizar()
+                self.atualizar_select_produtos()
 
             case 'bt_limpar':
                 self.limpar_inputs_produtos()
@@ -190,14 +187,12 @@ class TelaProdutos(Screen):
                 self.app.switch_screen('tela_inicial')
                 self.limpar_inputs_produtos()
 
-
-            case 'bt_OK':
+            case 'bt_select_produto':
                 try:
                     id_produto = self.query_one("#select_produtos", Select).value
 
-                    _, nome, valor_unitario, quantidade, imagem, aceita_encomenda, descricao, valor_custo = controller.select_produto_id(
+                    _, nome, quantidade, valor_unitario, valor_custo, aceita_encomenda, descricao, imagem = controller.select_produto_id(
                         id_produto)
-
                     input_nome, input_quantidade, input_valor_unitario, input_valor_custo, input_imagem, input_aceita_encomenda, input_descricao = self.pegar_inputs_produtos()
 
                     input_nome.value = str(nome)
@@ -210,14 +205,34 @@ class TelaProdutos(Screen):
                 except:
                     self.notify("Ops! Você precisa selecionar um produto") 
 
-
             case 'bt_alterar':
-                pass
+                try:
+                    id_produto = self.query_one("#select_produtos", Select).value
 
-    def action_atualizar_inputs(self):
-        pass
+                    nome, quantidade, valor_unitario, valor_custo, imagem, aceita_encomenda, descricao = self.pegar_valores_inputs()
 
-    def atualizar(self):
+                    controller.update_produto(id_produto, nome, valor_unitario, quantidade, imagem, aceita_encomenda, descricao, valor_custo)
+                    self.atualizar_select_produtos()
+
+
+                    self.notify(f"Produto {nome} alterado com sucesso!")
+                except:
+                    self.notify("Ops! Você precisa selecionar um produto!")
+
+            case 'bt_deletar':
+                try:
+                    id_produto = self.query_one("#select_produtos", Select).value
+
+                    controller.delete_produto(id_produto)
+                    self.atualizar_select_produtos()
+
+                    self.notify(f"Produto excluído!")
+
+                except:
+                    self.notify("Ops! Você precisa selecionar um produto!")
+
+
+    def atualizar_select_produtos(self):
         self.LISTA_DE_PRODUTOS = controller.listar_produtos()
 
         self.query_one(Select).set_options(self.LISTA_DE_PRODUTOS)

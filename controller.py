@@ -23,5 +23,17 @@ def select_produto_id(id_produto: int):
       
     return model.select_produto_id(model.Produto(id_produto))
 
+def update_produto(id_produto, nome, valor_unitario, quantidade, imagem, aceita_encomenda, descricao, valor_custo):
+    produto = model.Produto(id_produto, nome, valor_unitario, quantidade, imagem, aceita_encomenda, descricao, valor_custo)
+
+    model.update_produto(produto)
+
+    return produto
+
+def delete_produto(id_produto):
+    produto = model.Produto(id_produto)
+
+    return model.delete_produto(produto)
+
 
     
