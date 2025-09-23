@@ -7,7 +7,7 @@ from textual.widgets import (Button, Input, TextArea, Footer, Header,
                              Label, Static, MaskedInput, OptionList, Select, SelectionList, TabbedContent, TabPane, DataTable, Collapsible, Switch, Placeholder)
 from textual.screen import (Screen)
 from textual.containers import (
-    Container, VerticalGroup, HorizontalGroup, Grid, Center, ScrollableContainer, Horizontal, Vertical, CenterMiddle, ItemGrid)
+    Container, VerticalGroup, HorizontalGroup, Grid, Center, ScrollableContainer, Horizontal, Vertical, CenterMiddle, ItemGrid, )
 from textual.widget import Widget
 from textual.reactive import reactive
 from textual.message import Message
@@ -101,16 +101,13 @@ class ContainerEncomendas(Container):
                 id='text_descricao')
 
 
-    def atualizar_select_produtos(self):
-        self.LISTA_DE_PRODUTOS = controller.listar_produtos()
+    
+class SelectProduto(HorizontalGroup):
 
-        self.query_one(Select).set_options(self.LISTA_DE_PRODUTOS)
+    LISTA_DE_PRODUTOS = controller.listar_produtos()
 
-        return self.LISTA_DE_PRODUTOS
-
-class SelectProduto(ContainerEncomendas):
     def compose(self):
-        with HorizontalGroup():
+        with HorizontalGroup(id='class_select_produtos'):
             yield Label('Selecione o produto')
             yield Select(self.LISTA_DE_PRODUTOS,
                         type_to_search=True,
@@ -118,6 +115,14 @@ class SelectProduto(ContainerEncomendas):
                         allow_blank=True
                         )
             yield Button('OK', id='bt_select_produto')
+
+    def atualizar_select_produtos(self):
+        self.LISTA_DE_PRODUTOS = controller.listar_produtos()
+
+        self.query_one(Select).set_options(self.LISTA_DE_PRODUTOS)
+
+        return self.LISTA_DE_PRODUTOS
+
 
 # @@@@@@@@ TELAS DO SISTEMA
 
@@ -147,10 +152,7 @@ class TelaInicial(Screen):
             case "bt_sair":
                 self.app.exit()
 
-
 class TelaProdutos(Screen):
-    
-    LISTA_DE_PRODUTOS = controller.listar_produtos()
 
     def compose(self):
         yield Header(show_clock=True)
@@ -158,14 +160,7 @@ class TelaProdutos(Screen):
         with Container(id='tela_produtos'):
             yield Static("CADASTRO DE PRODUTOS", id='stt_produtos')
 
-            with HorizontalGroup():
-                yield Label('Selecione o produto')
-                yield Select(self.LISTA_DE_PRODUTOS,
-                            type_to_search=True,
-                            id='select_produtos',
-                            allow_blank=True
-                            )
-                yield Button('OK', id='bt_select_produto')
+            yield SelectProduto()               
 
             yield ContainerProdutos(id='inputs_cadastro')
 
@@ -210,6 +205,7 @@ class TelaProdutos(Screen):
         aceita_encomenda.value = False
         descricao.clear()
 
+
     @on(Button.Pressed)
     async def on_button(self, event: Button.Pressed):
         match event.button.id:
@@ -224,7 +220,7 @@ class TelaProdutos(Screen):
                         id_produto, nome, valor_unitario, quantidade, imagem, aceita_encomenda, descricao, valor_custo)
                     self.notify(f"{nome} cadastrado com sucesso!")
 
-                self.atualizar_select_produtos()
+                SelectProduto.atualizar_select_produtos()
 
             case 'bt_limpar':
                 self.limpar_inputs_produtos()
@@ -258,7 +254,7 @@ class TelaProdutos(Screen):
                     nome, quantidade, valor_unitario, valor_custo, imagem, aceita_encomenda, descricao = self.pegar_valores_inputs()
 
                     controller.update_produto(id_produto, nome, valor_unitario, quantidade, imagem, aceita_encomenda, descricao, valor_custo)
-                    self.atualizar_select_produtos()
+                    SelectProduto.atualizar_select_produtos()
 
 
                     self.notify(f"Produto {nome} alterado com sucesso!")
@@ -270,7 +266,7 @@ class TelaProdutos(Screen):
                     id_produto = self.query_one("#select_produtos", Select).value
 
                     controller.delete_produto(id_produto)
-                    self.atualizar_select_produtos()
+                    SelectProduto.atualizar_select_produtos()
 
                     self.notify(f"Produto excluído!")
 
@@ -279,22 +275,19 @@ class TelaProdutos(Screen):
 
 
     def atualizar_select_produtos(self):
-        self.LISTA_DE_PRODUTOS = controller.listar_produtos()
+        SelectProduto.LISTA_DE_PRODUTOS = controller.listar_produtos()
 
-        self.query_one(Select).set_options(self.LISTA_DE_PRODUTOS)
+        self.query_one(Select).set_options(SelectProduto.LISTA_DE_PRODUTOS)
 
-        return self.LISTA_DE_PRODUTOS
+        return SelectProduto.LISTA_DE_PRODUTOS
 
 class TelaEncomendas(Screen):
-
-    LISTA_DE_PRODUTOS = controller.listar_produtos()   
-
     def compose(self):
         yield Header(show_clock=True)
 
-        with Horizontal(id='cnt_select_produtos'):
+        with HorizontalGroup(id='cnt_select_produtos'):
             yield Label('Selecione o produto')
-            yield Select(self.LISTA_DE_PRODUTOS,
+            yield Select(SelectProduto.LISTA_DE_PRODUTOS,
                         type_to_search=True,
                         id='select_produtos',
                         allow_blank=True
@@ -318,6 +311,79 @@ class TelaEncomendas(Screen):
                 yield Button('Limpar', id='bt_limpar')
                 yield Button('Deletar', id='bt_deletar')
                 yield Button('Voltar', id='bt_voltar')
+        
+    @on(Button.Pressed)
+    async def on_button(self, event: Button.Pressed):
+        match event.button.id:
+            case 'bt_cadastrar':
+                pass
+                #     id_produto = None
+                #     nome, quantidade, valor_unitario, valor_custo, imagem, aceita_encomenda, descricao = self.pegar_valores_inputs()
+
+                #     if nome == '' or quantidade == '' or valor_unitario == '':
+                #         self.notify("Insira os dados obrigatórios")
+                #     else:
+                #         controller.insert_produto(
+                #             id_produto, nome, valor_unitario, quantidade, imagem, aceita_encomenda, descricao, valor_custo)
+                #         self.notify(f"{nome} cadastrado com sucesso!")
+
+                #     self.atualizar_select_produtos()
+
+            case 'bt_limpar':
+                pass
+                # self.limpar_inputs_produtos()
+
+            case 'bt_voltar':
+                self.app.switch_screen('tela_inicial')
+                # self.limpar_inputs_produtos()
+
+            case 'bt_select_produto':
+                pass
+                # try:
+                #     id_produto = self.query_one("#select_produtos", Select).value
+
+                #     _, nome, quantidade, valor_unitario, valor_custo, aceita_encomenda, descricao, imagem = controller.select_produto_id(
+                #         id_produto)
+                #     input_nome, input_quantidade, input_valor_unitario, input_valor_custo, input_imagem, input_aceita_encomenda, input_descricao = self.pegar_inputs_produtos()
+
+                #     input_nome.value = str(nome)
+                #     input_quantidade.value = str(quantidade)
+                #     input_valor_unitario.value = str(valor_unitario)
+                #     input_valor_custo.value = str(valor_custo)
+                #     input_imagem.value = str(imagem)
+                #     input_aceita_encomenda.value = aceita_encomenda
+                #     input_descricao.text = str(descricao)
+                # except:
+                #     self.notify("Ops! Você precisa selecionar um produto") 
+
+            case 'bt_alterar':
+                pass
+                # try:
+                #     id_produto = self.query_one("#select_produtos", Select).value
+
+                #     nome, quantidade, valor_unitario, valor_custo, imagem, aceita_encomenda, descricao = self.pegar_valores_inputs()
+
+                #     controller.update_produto(id_produto, nome, valor_unitario, quantidade, imagem, aceita_encomenda, descricao, valor_custo)
+                #     self.atualizar_select_produtos()
+
+
+                #     self.notify(f"Produto {nome} alterado com sucesso!")
+                # except:
+                #     self.notify("Ops! Você precisa selecionar um produto!")
+
+            case 'bt_deletar':
+                pass
+                # try:
+                #     id_produto = self.query_one("#select_produtos", Select).value
+
+                #     controller.delete_produto(id_produto)
+                #     self.atualizar_select_produtos()
+
+                #     self.notify(f"Produto excluído!")
+
+                # except:
+                #     self.notify("Ops! Você precisa selecionar um produto!")
+
 
 class TelaVendas(Screen):
     pass

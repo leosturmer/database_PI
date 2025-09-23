@@ -1,5 +1,5 @@
 Screen {
-    # layout: vertical;
+
 }
 
 #tela_produtos {
@@ -19,24 +19,36 @@ Screen {
 #stt_produtos {
 
 }
+SelectProduto {
+    margin: 0;
+}
 
 Horizontal {
     margin: 1;
 }
 
+#class_select_produtos {
+    content-align: center middle;
+    text-align: center;
+}
+
 #select_produtos {
-    margin-top: 1;
-    margin-bottom: 1;
+    # margin-top: 1;
+    # margin-bottom: 1;
 }
 
 #static_encomendas {
-    align: center middle;
     text-align: center;
     content-align: center middle;
     border: white;
+    width: 50;
+    padding: 1;
     
 }
 
+Static {
+    margin: 1;
+}
 
 #bt_tela_produtos{
     margin: 1;
@@ -45,12 +57,14 @@ Horizontal {
 
 Input {
     width: 35;
+    margin-top: 1;
 }
 
 Label {
     width: 25;
     text-align: center;
     padding: 1;
+    border: white;
 }
 
 Select {
@@ -63,4 +77,8 @@ TextArea {
 
 Button {
     margin-bottom: 1;
+}
+
+#bt_select_produto {
+    margin-top: 1;
 }
