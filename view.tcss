@@ -17,8 +17,24 @@ Screen {
 }
 
 #stt_produtos {
-#     row-span: 1;
-#     column-span: 1;
+
+}
+
+Horizontal {
+    margin: 1;
+}
+
+#select_produtos {
+    margin-top: 1;
+    margin-bottom: 1;
+}
+
+#static_encomendas {
+    align: center middle;
+    text-align: center;
+    content-align: center middle;
+    border: white;
+    
 }
 
 

@@ -13,38 +13,12 @@ from textual.reactive import reactive
 from textual.message import Message
 from textual.errors import (TextualError, RenderError, DuplicateKeyHandlers, NoWidget)
 
-
-class TelaInicial(Screen):
-
-    def compose(self):
-        with VerticalGroup(id="grupo_botoes_inicial"):
-            yield Button("Produtos", id="bt_produtos", classes="botoes_inicial", variant="primary")
-            yield Button("Encomendas", id="bt_encomendas", classes="botoes_inicial", variant="success")
-            yield Button("Vendas", id="bt_vendas", classes="botoes_inicial", variant="warning")
-            yield Button("Pesquisar", id="bt_pesquisa", classes="botoes_inicial", variant='error')
-            yield Button("Estoque", classes="botoes_inicial", id="bt_estoque")
-            yield Button("Sair", id="bt_sair", classes="botoes_inicial")
-
-    def on_button_pressed(self, event: Button.Pressed):
-        match event.button.id:
-            case "bt_produtos":
-                self.app.switch_screen("tela_produtos")
-            case "bt_encomendas":
-                self.app.switch_screen("tela_encomendas")
-            case "bt_vendas":
-                self.app.switch_screen("tela_vendas")
-            case "bt_pesquisa":
-                self.app.switch_screen("tela_pesquisa")
-            case "bt_estoque":
-                self.app.switch_screen("tela_estoque")
-            case "bt_sair":
-                self.app.exit()
-
+# @@@@@@@@@@@ CONTAINERS
 
 class ContainerProdutos(Container):
     def compose(self):
         with Horizontal():
-            yield Label("Nome do produto:")
+            yield Label("Nome do produto*:")
             yield Input(
                 placeholder='Nome do produto*',
                 type='text',
@@ -52,7 +26,7 @@ class ContainerProdutos(Container):
                 id='input_nome',
 
             )
-            yield Label("Quantidade:")
+            yield Label("Quantidade*:")
             yield Input(
                 placeholder='Quantidade*',
                 type='integer',
@@ -61,7 +35,7 @@ class ContainerProdutos(Container):
             )            
 
         with Horizontal():
-            yield Label("Valor unitário:")
+            yield Label("Valor unitário*:")
             yield Input(
                 placeholder='Valor unitário*',
                 type='number',
@@ -94,6 +68,84 @@ class ContainerProdutos(Container):
                 placeholder='Descrição',
                 compact=True,
                 id='text_descricao')
+
+class ContainerEncomendas(Container):
+    def compose(self):      
+        with Horizontal():        
+            yield Label("Quantidade*:")
+            yield Input(
+                placeholder='Quantidade*',
+                type='integer',
+                max_length=4,
+                id='input_quantidade'
+            )            
+            yield Label('Prazo de entrega*:')
+            yield MaskedInput(template='00/00/0000', placeholder='DD/MM/AAAA')
+
+        with Horizontal():
+            yield Label('Status da encomenda:')
+            yield Select([('Em produção', 1),
+                          ('Finalizada', 2),
+                          ('Vendida', 3),
+                          ('Cancelada', 4)],
+                        type_to_search=True,
+                        id='select_status',
+                        allow_blank=False
+                        )
+
+        with Horizontal():
+            yield Label("Comentários:")
+            yield TextArea(
+                placeholder='Detalhes da encomenda, dos produtos, da entrega, quem comprou, entre outros',
+                compact=True,
+                id='text_descricao')
+
+
+    def atualizar_select_produtos(self):
+        self.LISTA_DE_PRODUTOS = controller.listar_produtos()
+
+        self.query_one(Select).set_options(self.LISTA_DE_PRODUTOS)
+
+        return self.LISTA_DE_PRODUTOS
+
+class SelectProduto(ContainerEncomendas):
+    def compose(self):
+        with HorizontalGroup():
+            yield Label('Selecione o produto')
+            yield Select(self.LISTA_DE_PRODUTOS,
+                        type_to_search=True,
+                        id='select_produtos',
+                        allow_blank=True
+                        )
+            yield Button('OK', id='bt_select_produto')
+
+# @@@@@@@@ TELAS DO SISTEMA
+
+class TelaInicial(Screen):
+
+    def compose(self):
+        with VerticalGroup(id="grupo_botoes_inicial"):
+            yield Button("Produtos", id="bt_produtos", classes="botoes_inicial", variant="primary")
+            yield Button("Encomendas", id="bt_encomendas", classes="botoes_inicial", variant="success")
+            yield Button("Vendas", id="bt_vendas", classes="botoes_inicial", variant="warning")
+            yield Button("Pesquisar", id="bt_pesquisa", classes="botoes_inicial", variant='error')
+            yield Button("Estoque", classes="botoes_inicial", id="bt_estoque")
+            yield Button("Sair", id="bt_sair", classes="botoes_inicial")
+
+    def on_button_pressed(self, event: Button.Pressed):
+        match event.button.id:
+            case "bt_produtos":
+                self.app.switch_screen("tela_produtos")
+            case "bt_encomendas":
+                self.app.switch_screen("tela_encomendas")
+            case "bt_vendas":
+                self.app.switch_screen("tela_vendas")
+            case "bt_pesquisa":
+                self.app.switch_screen("tela_pesquisa")
+            case "bt_estoque":
+                self.app.switch_screen("tela_estoque")
+            case "bt_sair":
+                self.app.exit()
 
 
 class TelaProdutos(Screen):
@@ -233,6 +285,45 @@ class TelaProdutos(Screen):
 
         return self.LISTA_DE_PRODUTOS
 
+class TelaEncomendas(Screen):
+
+    LISTA_DE_PRODUTOS = controller.listar_produtos()   
+
+    def compose(self):
+        yield Header(show_clock=True)
+
+        with Horizontal(id='cnt_select_produtos'):
+            yield Label('Selecione o produto')
+            yield Select(self.LISTA_DE_PRODUTOS,
+                        type_to_search=True,
+                        id='select_produtos',
+                        allow_blank=True
+                        )
+            yield Button('OK', id='bt_select_produto')
+
+        with Container(id='tela_encomendas'):
+            yield Static(content='''
+            Informações do produto:
+            Nome do produto: {nome_do_produto}
+            Valor unitário: {valor_unitario}               
+            ''', id='static_encomendas', )
+
+
+
+            yield ContainerEncomendas(id='inputs_encomenda')
+
+            with HorizontalGroup(id='bt_tela_encomendas'):
+                yield Button('Cadastrar',  id='bt_cadastrar')
+                yield Button("Alterar", id='bt_alterar')
+                yield Button('Limpar', id='bt_limpar')
+                yield Button('Deletar', id='bt_deletar')
+                yield Button('Voltar', id='bt_voltar')
+
+class TelaVendas(Screen):
+    pass
+
+class TelaPesquisa(Screen):
+    pass
 
 class TelaEstoque(Screen):
 
@@ -247,14 +338,3 @@ class TelaEstoque(Screen):
 
         yield DataTable()
 
-
-class TelaEncomendas(Screen):
-    pass
-
-
-class TelaVendas(Screen):
-    pass
-
-
-class TelaPesquisa(Screen):
-    pass
