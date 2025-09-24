@@ -7,18 +7,19 @@ from textual.widgets import (Button, Input, TextArea, Footer, Header,
                              Label, Static, MaskedInput, OptionList, Select, SelectionList, TabbedContent, TabPane, DataTable, Collapsible, Switch, Placeholder)
 from textual.screen import (Screen)
 from textual.containers import (
-    Container, VerticalGroup, HorizontalGroup, Grid, Center, ScrollableContainer, Horizontal, Vertical, CenterMiddle, ItemGrid, )
+    Container, VerticalGroup, HorizontalGroup, Grid, Center, ScrollableContainer, Horizontal, Vertical, CenterMiddle, ItemGrid)
 from textual.widget import Widget
 from textual.reactive import reactive
 from textual.message import Message
 from textual.errors import (TextualError, RenderError, DuplicateKeyHandlers, NoWidget)
+from textual.scroll_view import ScrollView
 
 # @@@@@@@@@@@ CONTAINERS
 
 class ContainerProdutos(Container):
     def compose(self):
         with Horizontal():
-            yield Label("Nome do produto*:")
+            yield Label("Nome do produto[red]*[/red]:")
             yield Input(
                 placeholder='Nome do produto*',
                 type='text',
@@ -155,21 +156,27 @@ class TelaInicial(Screen):
 class TelaProdutos(Screen):
 
     def compose(self):
+
         yield Header(show_clock=True)
 
-        with Container(id='tela_produtos'):
-            yield Static("CADASTRO DE PRODUTOS", id='stt_produtos')
 
-            yield SelectProduto()               
+        with Grid():
+            with ScrollableContainer(id='tela_produtos'):
+                yield Static("CADASTRO DE PRODUTOS", id='stt_produtos')
 
-            yield ContainerProdutos(id='inputs_cadastro')
+                yield SelectProduto()               
 
-            with HorizontalGroup(id='bt_tela_produtos'):
-                yield Button('Cadastrar',  id='bt_cadastrar')
-                yield Button("Alterar", id='bt_alterar')
-                yield Button('Limpar', id='bt_limpar')
-                yield Button('Deletar', id='bt_deletar')
-                yield Button('Voltar', id='bt_voltar')
+                yield ContainerProdutos(id='inputs_cadastro')
+
+                with HorizontalGroup(id='bt_tela_produtos'):
+                    yield Button('Cadastrar',  id='bt_cadastrar')
+                    yield Button("Alterar", id='bt_alterar')
+                    yield Button('Limpar', id='bt_limpar')
+                    yield Button('Deletar', id='bt_deletar')
+                    yield Button('Voltar', id='bt_voltar')
+
+            yield Static("----------------------")
+
 
     def pegar_inputs_produtos(self):
         nome = self.query_one("#input_nome", Input)
@@ -283,35 +290,38 @@ class TelaProdutos(Screen):
 
 class TelaEncomendas(Screen):
     def compose(self):
-        yield Header(show_clock=True)
+        with ScrollableContainer():
+            yield Header(show_clock=True)
 
-        with HorizontalGroup(id='cnt_select_produtos'):
-            yield Label('Selecione o produto')
-            yield Select(SelectProduto.LISTA_DE_PRODUTOS,
-                        type_to_search=True,
-                        id='select_produtos',
-                        allow_blank=True
-                        )
-            yield Button('OK', id='bt_select_produto')
+            with HorizontalGroup(id='cnt_select_produtos'):
+                yield Label('Selecione o produto')
+                yield Select(SelectProduto.LISTA_DE_PRODUTOS,
+                            type_to_search=True,
+                            id='select_produtos',
+                            allow_blank=True
+                            )
+                yield Button('OK', id='bt_select_produto')
 
-        with Container(id='tela_encomendas'):
-            yield Static(content='''
-            Informações do produto:
-            Nome do produto: {nome_do_produto}
-            Valor unitário: {valor_unitario}               
-            ''', id='static_encomendas', )
+            with Container(id='tela_encomendas'):
+                yield Static(content='''
+                Informações do produto:
+                Nome do produto: {nome_do_produto}
+                Valor unitário: {valor_unitario}               
+                ''', id='static_encomendas', )
 
 
 
-            yield ContainerEncomendas(id='inputs_encomenda')
+                yield ContainerEncomendas(id='inputs_encomenda')
 
-            with HorizontalGroup(id='bt_tela_encomendas'):
-                yield Button('Cadastrar',  id='bt_cadastrar')
-                yield Button("Alterar", id='bt_alterar')
-                yield Button('Limpar', id='bt_limpar')
-                yield Button('Deletar', id='bt_deletar')
-                yield Button('Voltar', id='bt_voltar')
+                with HorizontalGroup(id='bt_tela_encomendas'):
+                    yield Button('Cadastrar',  id='bt_cadastrar')
+                    yield Button("Alterar", id='bt_alterar')
+                    yield Button('Limpar', id='bt_limpar')
+                    yield Button('Deletar', id='bt_deletar')
+                    yield Button('Voltar', id='bt_voltar')
         
+
+
     @on(Button.Pressed)
     async def on_button(self, event: Button.Pressed):
         match event.button.id:
