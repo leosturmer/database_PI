@@ -233,12 +233,12 @@ class TelaProdutos(Screen):
                 nome, quantidade, valor_unitario, valor_custo, imagem, aceita_encomenda, descricao = self.pegar_valores_inputs()
 
                 if nome == '' or quantidade == '' or valor_unitario == '':
-                    self.notify("Insira os dados obrigatórios")
+                    self.notify(title= "Ops!", message="Você precisa inserir os dados obrigatórios!", severity='warning')
                 else:
                     id_produto = None
                     controller.insert_produto(
                         id_produto, nome, valor_unitario, quantidade, imagem, aceita_encomenda, descricao, valor_custo)
-                    self.notify(f"{nome} cadastrado com sucesso!")
+                    self.notify(title='Feito!', message=f"{nome} cadastrado com sucesso!")
 
                     self.atualizar_select_produtos()
 
@@ -271,7 +271,7 @@ class TelaProdutos(Screen):
                     self.atualizar_texto_static()
 
                 except:
-                    self.notify("Ops! Você precisa selecionar um produto")
+                    self.notify(title="Ops!", message= "Você precisa selecionar um produto", severity='warning')
 
             case 'bt_alterar':
                 try:
@@ -286,7 +286,7 @@ class TelaProdutos(Screen):
 
                     self.notify(f"Produto {nome} alterado com sucesso!")
                 except:
-                    self.notify("Ops! Você precisa selecionar um produto!")
+                    self.notify("Ops! Você precisa selecionar um produto!", severity='warning')
 
             case 'bt_deletar':
                 try:
@@ -296,7 +296,7 @@ class TelaProdutos(Screen):
                     controller.delete_produto(id_produto)
                     self.atualizar_select_produtos()
 
-                    self.notify(f"Produto excluído!")
+                    self.notify(f"Produto excluído!", severity='error')
                     self.limpar_inputs_produtos()
                     self.limpar_texto_static()
 
