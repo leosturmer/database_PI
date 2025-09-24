@@ -105,11 +105,7 @@ class ContainerEncomendas(Widget):
 
 class ConfirmarDelete(ModalScreen):
 
-    def confirmar_delete(self):
-        return 1
-
-    def cancelar_delete(self):
-        return 0
+    deletar = 0
     
     def compose(self):
 
@@ -125,9 +121,13 @@ class ConfirmarDelete(ModalScreen):
     async def on_button(self, event: Button.Pressed):
         match event.button.id:
             case 'deletar_sim':
+                self.deletar = 1
                 self.exit_screen()
+                return self.deletar
             case 'deletar_nao':
+                self.deletar = 0
                 self.exit_screen()
+                return self.deletar
 
 
 
@@ -327,9 +327,11 @@ class TelaProdutos(Screen):
                     
                        self.app.push_screen(ConfirmarDelete(id='deletar'))
 
-                       deletar = self.query_one("#deletar", ConfirmarDelete)
+                       deletar = self.query_one("#deletar", ConfirmarDelete).deletar
 
-                    if deletar.confirmar_delete():
+                       self.app.pop_screen(ConfirmarDelete())
+
+                    if deletar == 1:
                         controller.delete_produto(id_produto)
                         self.atualizar_select_produtos()
 
