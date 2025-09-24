@@ -6,6 +6,8 @@ from textual.binding import (Binding)
 
 class NizeApp(App):
 
+    AUTO_FOCUS = None
+    
     CSS_PATH = 'view.tcss'
     
     SCREENS = {

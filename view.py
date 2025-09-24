@@ -5,7 +5,7 @@ from textual import on
 from textual.app import (App, ComposeResult)
 from textual.widgets import (Button, Input, TextArea, Footer, Header,
                              Label, Static, MaskedInput, OptionList, Select, SelectionList, TabbedContent, TabPane, DataTable, Collapsible, Switch, Placeholder)
-from textual.screen import (Screen)
+from textual.screen import (Screen, ModalScreen)
 from textual.containers import (
     Container, VerticalGroup, HorizontalGroup, Grid, Center, ScrollableContainer, Horizontal, Vertical, CenterMiddle, ItemGrid, VerticalScroll)
 from textual.widget import Widget
@@ -15,6 +15,7 @@ from textual.errors import (
     TextualError, RenderError, DuplicateKeyHandlers, NoWidget)
 from textual.scroll_view import ScrollView
 from textual.scrollbar import ScrollBar
+from textual.suggester import SuggestFromList
 
 
 # @@@@@@@@@@@ CONTAINERS
@@ -102,6 +103,34 @@ class ContainerEncomendas(Widget):
                 placeholder='Detalhes da encomenda, dos produtos, da entrega, quem comprou, entre outros',
                 id='text_descricao')
 
+class ConfirmarDelete(ModalScreen):
+
+    def confirmar_delete(self):
+        return 1
+
+    def cancelar_delete(self):
+        return 0
+    
+    def compose(self):
+
+        yield Label("Você deseja mesmo excluir o produto?")
+        yield Button("Sim", variant='success', id='deletar_sim')
+        yield Button("Não", variant='error', id='deletar_nao')
+
+    @on(Button.Pressed)
+    def exit_screen(self, event):
+        button_id = event.button.id
+        self.dismiss(button_id == 'yes')
+    
+    async def on_button(self, event: Button.Pressed):
+        match event.button.id:
+            case 'deletar_sim':
+                self.exit_screen()
+            case 'deletar_nao':
+                self.exit_screen()
+
+
+
 
 # @@@@@@@@ TELAS DO SISTEMA
 
@@ -143,17 +172,18 @@ class TelaProdutos(Screen):
         yield Header(show_clock=True)
 
         with VerticalGroup():
+            with Collapsible(title= "Selecionar um produto"):
+                with HorizontalGroup(id='class_select_produtos'):
+                    yield Label('Selecione o produto')
+                    yield Select(self.LISTA_DE_PRODUTOS,
+                                type_to_search=True,
+                                id='select_produtos',
+                                allow_blank=True
+                                )
+                    yield Button('OK', id='bt_select_produto')
 
-            with HorizontalGroup(id='class_select_produtos'):
-                yield Label('Selecione o produto')
-                yield Select(self.LISTA_DE_PRODUTOS,
-                            type_to_search=True,
-                            id='select_produtos',
-                            allow_blank=True
-                            )
-                yield Button('OK', id='bt_select_produto')
-
-            yield Static(f"Informações do produto:\n\nSelecione o produto\ne clique OK\npara visualizar", id='stt_info_produto')
+            with Collapsible(title='Ver informações do produto'):
+                yield Static(f"Informações do produto:\n\nSelecione o produto\ne clique OK\npara visualizar", id='stt_info_produto')
 
         with ScrollableContainer(id='tela_produtos'):
 
@@ -289,16 +319,23 @@ class TelaProdutos(Screen):
                     self.notify("Ops! Você precisa selecionar um produto!", severity='warning')
 
             case 'bt_deletar':
+
                 try:
-                    id_produto = self.query_one(
-                        "#select_produtos", Select).value
+                    id_produto = self.query_one("#select_produtos", Select).value
+                    
+                    if id_produto > 0:
+                    
+                       self.app.push_screen(ConfirmarDelete(id='deletar'))
 
-                    controller.delete_produto(id_produto)
-                    self.atualizar_select_produtos()
+                       deletar = self.query_one("#deletar", ConfirmarDelete)
 
-                    self.notify(f"Produto excluído!", severity='error')
-                    self.limpar_inputs_produtos()
-                    self.limpar_texto_static()
+                    if deletar.confirmar_delete():
+                        controller.delete_produto(id_produto)
+                        self.atualizar_select_produtos()
+
+                        self.notify(f"Produto excluído!", severity='error')
+                        self.limpar_inputs_produtos()
+                        self.limpar_texto_static()
 
                 except:
                     self.notify("Ops! Você precisa selecionar um produto!")
