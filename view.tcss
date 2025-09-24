@@ -32,11 +32,10 @@ Horizontal {
 #class_select_produtos {
     content-align: center middle;
     text-align: center;
+    margin-top: 1;
 }
 
 #select_produtos {
-    # margin-top: 1;
-    # margin-bottom: 1;
 }
 
 #static_encomendas {
@@ -45,14 +44,11 @@ Horizontal {
     border: white;
     width: 50;
     padding: 1;
-    
+    height: auto;
 }
 
-# Static {
-#     margin: 1;
-#     column-span: 1;
-#     width: 2%;
-# }
+Static {
+}
 
 #bt_tela_produtos{
     margin: 1;
@@ -66,13 +62,17 @@ Input {
 
 Grid {
     grid-size: 5;
+    grid-gutter: 1;
+    margin-right: 1;
 }
 
 Label {
     width: 25;
     text-align: center;
     padding: 1;
+    height: auto;
     border: white;
+    margin-bottom: 1;
 }
 
 Select {
@@ -89,4 +89,14 @@ Button {
 
 #bt_select_produto {
     margin-top: 1;
+}
+
+#text_descricao {
+    height: 100%;
+}
+
+#stt_info_produto {
+    border: grey;
+    padding-left: 1;
+    width: 120;
 }
