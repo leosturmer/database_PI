@@ -73,7 +73,8 @@ class ContainerProdutos(ScrollableContainer):
                 placeholder='Descrição',
                 id='text_descricao')
 
-class ContainerEncomendas(Widget):
+
+class ContainerEncomendas(ScrollableContainer):
     def compose(self):
         with Horizontal():
             yield Label("Quantidade[red]*[/red]")
@@ -103,33 +104,26 @@ class ContainerEncomendas(Widget):
                 placeholder='Detalhes da encomenda, dos produtos, da entrega, quem comprou, entre outros',
                 id='text_descricao')
 
-class ConfirmarDelete(ModalScreen):
 
-    deletar = 0
-    
+class YesOrNo(ModalScreen):
+    def __init__(self, question):
+        self.question = question
+        self.deletar = bool()
+        super().__init__()
+
     def compose(self):
-
-        yield Label("Você deseja mesmo excluir o produto?")
-        yield Button("Sim", variant='success', id='deletar_sim')
-        yield Button("Não", variant='error', id='deletar_nao')
+        with Container():
+            yield Label(self.question)
+    
+            with Horizontal():
+                yield Button("Sim", variant='success', id='deletar_sim')
+                yield Button("Não", variant='error', id='deletar_nao')
 
     @on(Button.Pressed)
-    def exit_screen(self, event):
-        button_id = event.button.id
-        self.dismiss(button_id == 'yes')
-    
-    async def on_button(self, event: Button.Pressed):
-        match event.button.id:
-            case 'deletar_sim':
-                self.deletar = 1
-                self.exit_screen()
-                return self.deletar
-            case 'deletar_nao':
-                self.deletar = 0
-                self.exit_screen()
-                return self.deletar
-
-
+    def on_button(self, event: Button.Pressed):
+        if event.button.id == 'deletar_sim':
+            self.deletar = True
+            self.dismiss()
 
 
 # @@@@@@@@ TELAS DO SISTEMA
@@ -173,19 +167,15 @@ class TelaProdutos(Screen):
 
         yield Header(show_clock=True)
 
-        # with VerticalGroup():
-            # with Collapsible(title= "Selecionar um produto"):
-                # with VerticalGroup():
-        with HorizontalGroup(id='class_select_produtos'):
-            yield Label('Selecione o produto')
-            yield Select(self.LISTA_DE_PRODUTOS,
-                        type_to_search=True,
-                        id='select_produtos',
-                        allow_blank=True
-                        )               
-            
-
         with ScrollableContainer(id='tela_produtos'):
+            with HorizontalGroup(id='class_select_produtos'):
+                yield Label('Selecione o produto')
+                yield Select(self.LISTA_DE_PRODUTOS,
+                             type_to_search=True,
+                             id='select_produtos',
+                             allow_blank=True
+                             )
+
             with HorizontalGroup():
                 yield Static(f"""Informações do produto:
                                  
@@ -193,7 +183,6 @@ class TelaProdutos(Screen):
                                      
         """, id='stt_info_produto')
                 yield Button('Preencher campos', variant='primary', id='bt_preencher_campos')
-                
 
             yield ContainerProdutos(id='inputs_cadastro')
 
@@ -242,16 +231,15 @@ class TelaProdutos(Screen):
         self.query_one("#bt_cadastrar", Button).disabled = True
         self.query_one("#bt_limpar", Button).disabled = True
         self.query_one("#bt_alterar", Button).disabled = True
-    
+
     def atualizar_texto_static(self):
 
         texto_static = self.query_one("#stt_info_produto", Static)
 
         id_produto = self.ID_PRODUTO
 
-        self.notify(f"{id_produto}")
-
-        id_produto, nome, quantidade, valor_unitario, valor_custo, aceita_encomenda, descricao, imagem = controller.select_produto_id(id_produto)
+        id_produto, nome, quantidade, valor_unitario, valor_custo, aceita_encomenda, descricao, imagem = controller.select_produto_id(
+            id_produto)
 
         if str(valor_custo) == 'None':
             valor_custo = 'Não informado'
@@ -270,7 +258,13 @@ class TelaProdutos(Screen):
 
     def limpar_texto_static(self):
         texto_static = self.query_one("#stt_info_produto", Static)
-        texto_static.update(f"Informações do produto:\n\nSelecione o produto\ne clique OK\npara visualizar")
+        texto_static.update(
+            f"Informações do produto:\n\nSelecione o produto\ne clique OK\npara visualizar")
+
+
+    def confirmar_deletar(self, confirmar):
+        if confirmar:
+            return True
 
     async def atualizar_select_produtos(self):
         self.LISTA_DE_PRODUTOS = controller.listar_produtos()
@@ -278,7 +272,7 @@ class TelaProdutos(Screen):
         self.query_one(Select).set_options(self.LISTA_DE_PRODUTOS)
 
         return self.LISTA_DE_PRODUTOS
-    
+
     @on(Input.Changed)
     async def on_input(self, event: Input.Changed):
         if event.input.value == '':
@@ -293,22 +287,21 @@ class TelaProdutos(Screen):
         self.ID_PRODUTO = self.query_one("#select_produtos", Select).value
         self.atualizar_texto_static()
 
-        self.notify(f"{self.ID_PRODUTO}")
-        
-
     @on(Button.Pressed)
     async def on_button(self, event: Button.Pressed):
         match event.button.id:
-            case 'bt_cadastrar':             
+            case 'bt_cadastrar':
                 nome, quantidade, valor_unitario, valor_custo, imagem, aceita_encomenda, descricao = self.pegar_valores_inputs()
 
                 if nome == '' or quantidade == '' or valor_unitario == '':
-                    self.notify(title= "Ops!", message="Você precisa inserir os dados obrigatórios!", severity='warning')
+                    self.notify(
+                        title="Ops!", message="Você precisa inserir os dados obrigatórios!", severity='warning')
                 else:
                     id_produto = None
                     controller.insert_produto(
                         id_produto, nome, valor_unitario, quantidade, imagem, aceita_encomenda, descricao, valor_custo)
-                    self.notify(title='Feito!', message=f"{nome} cadastrado com sucesso!")
+                    self.notify(title='Feito!',
+                                message=f"{nome} cadastrado com sucesso!")
 
                     self.atualizar_select_produtos()
                     self.limpar_inputs_produtos()
@@ -323,17 +316,17 @@ class TelaProdutos(Screen):
                 self.limpar_inputs_produtos()
                 self.limpar_texto_static()
 
-            case 'bt_preencher_campos':                  
+            case 'bt_preencher_campos':
 
                 try:
                     id_produto = self.query_one(
                         "#select_produtos", Select).value
-                    
+
                     self.id_produto = id_produto
 
                     _, nome, quantidade, valor_unitario, valor_custo, aceita_encomenda, descricao, imagem = controller.select_produto_id(
                         id_produto)
-                    
+
                     input_nome, input_quantidade, input_valor_unitario, input_valor_custo, input_imagem, input_aceita_encomenda, input_descricao = self.pegar_inputs_produtos()
 
                     input_nome.value = str(nome)
@@ -346,54 +339,52 @@ class TelaProdutos(Screen):
 
                     self.query_one("#bt_alterar", Button).disabled = False
                     self.query_one("#bt_deletar", Button).disabled = False
-                    
+
                 except:
-                    self.notify(title="Ops!", message= "Nenhum produto selecionado!", severity='warning')
+                    self.notify(
+                        title="Ops!", message="Nenhum produto selecionado!", severity='warning')
 
             case 'bt_alterar':
                 id_produto = self.query_one(
                     "#select_produtos", Select).value
-                
+
                 nome, quantidade, valor_unitario, valor_custo, imagem, aceita_encomenda, descricao = self.pegar_valores_inputs()
 
                 controller.update_produto(
                     id_produto, nome, valor_unitario, quantidade, imagem, aceita_encomenda, descricao, valor_custo)
-                
+
                 self.atualizar_select_produtos()
-                    
+
                 self.limpar_inputs_produtos()
                 self.limpar_texto_static()
-
-
 
                 self.notify(f"Produto {nome} alterado com sucesso!")
 
             case 'bt_deletar':
+                id_produto = self.query_one("#select_produtos", Select).value
 
-                try:
-                    id_produto = self.query_one("#select_produtos", Select).value
-                    
-                    if id_produto > 0:
-                    
-                       self.app.push_screen(ConfirmarDelete(id='deletar'))
+                if id_produto > 0:
 
-                       deletar = self.query_one("#deletar", ConfirmarDelete).deletar
+                    modal_deletar = YesOrNo(question="Você deseja deletar?")
+                    self.app.push_screen(modal_deletar)
+                    deletar = modal_deletar.deletar
 
-                       self.app.pop_screen(ConfirmarDelete())
+                    self.notify(f"Deletar: {deletar}, ID: {id_produto}")
 
-                    if deletar == 1:
-                        controller.delete_produto(id_produto)
-                        self.atualizar_select_produtos()
+                    match deletar:
+                        case 1:
+                            controller.delete_produto(id_produto)
+                            self.notify(f"Produto excluído!", severity='error')
 
-                        self.notify(f"Produto excluído!", severity='error')
-                        self.limpar_inputs_produtos()
-                        self.limpar_texto_static()
+                            self.atualizar_select_produtos()
+                            self.limpar_inputs_produtos()
+                            self.limpar_texto_static()
+                        # case 0:
+                        #     self.notify("Produto não deletado", severity='information')
 
-                except:
+
+                else:
                     self.notify("Ops! Você precisa selecionar um produto!")
-
-
-
 
 
 class TelaEncomendas(Screen):
