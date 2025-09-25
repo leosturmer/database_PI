@@ -98,5 +98,10 @@ Button {
 #stt_info_produto {
     border: grey;
     padding-left: 1;
-    width: 120;
+    margin-right: 1;
+    width: 102;
+}
+
+#bt_preencher_campos {
+    margin-left: 1;
 }
