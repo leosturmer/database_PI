@@ -133,3 +133,7 @@ Button {
 #bt_preencher_campos {
     margin-left: 1;
 }
+
+VerticalScroll {
+    height: 15; 
+}

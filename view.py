@@ -141,12 +141,12 @@ class TelaProdutos(Screen):
 
     TITLE = 'Produtos'
 
-    LISTA_DE_PRODUTOS = controller.listar_produtos()
+    def __init__(self, name = None, id = None, classes = None):
+        super().__init__(name, id, classes)
 
-    ID_PRODUTO = int()
+        self.LISTA_DE_PRODUTOS = controller.listar_produtos()
 
-    def on_mount(self, event):
-        self.atualizar_select_produtos()
+        self.ID_PRODUTO = int()
 
     def compose(self) -> ComposeResult:
 
@@ -365,47 +365,143 @@ class TelaProdutos(Screen):
 class TelaEncomendas(Screen):
     TITLE = 'Encomendas'
 
-    ID_PRODUTO = int()
+    def __init__(self, name = None, id = None, classes = None):
+        super().__init__(name, id, classes)
+ 
+        self.ID_PRODUTO = int()
+        self.LISTA_DE_PRODUTOS = controller.listar_produtos_dicionario()
+ 
+    def on_mount(self):
+        self.criar_lista_produtos()
 
-    LISTA_DE_PRODUTOS = controller.listar_produtos()
+    def on_screen_resume(self):
+        self.criar_lista_produtos()
 
-    # TUPLAS = controller.criar_tupla_produtos()
-    
-
-    # def on_mount(self):
-    #     self.query_one("#select_produtos", SelectionList).border_title = 'Selecione os produtos da encomenda'
+    def criar_lista_produtos(self):
+        scroll_produtos = self.query_one("#scroll_produtos", VerticalScroll)
+        
+        for produto in self.LISTA_DE_PRODUTOS:
+            scroll_produtos.mount(Checkbox(produto))
 
     def compose(self) -> ComposeResult:
         
         with ScrollableContainer():
             yield Header(show_clock=True)
-            # yield Static(self.TUPLAS)
 
             with HorizontalGroup(id='cnt_select_produtos'):
                 yield Label('Selecione o produto')
-                yield SelectionList[int]([tupla for tupla in self.LISTA_DE_PRODUTOS], id="select_produtos")
-
-                # for produto in self.LISTA_DE_PRODUTOS:
-                #     yield Checkbox(produto)
+                
+                with Collapsible(title='Selecionar produtos...'):
+                    yield VerticalScroll(id="scroll_produtos")
 
 
                 yield Button('OK', id='bt_select_produto')
 
-            # with Container(id='tela_encomendas'):
-            #     yield Static(content='''
-            #     Informações do produto:
-            #     Nome do produto: {nome_do_produto}
-            #     Valor unitário: {valor_unitario}               
-            #     ''', id='static_encomendas')
+            with Container(id='tela_encomendas'):
+                yield Static(content='''
+                Informações do produto:
+                Nome do produto: {nome_do_produto}
+                Valor unitário: {valor_unitario}               
+                ''', id='static_encomendas')
 
-            #     yield ContainerEncomendas(id='inputs_encomenda')
+                yield ContainerEncomendas(id='inputs_encomenda')
 
-            #     with HorizontalGroup(id='bt_tela_encomendas'):
-            #         yield Button('Cadastrar',  id='bt_cadastrar', disabled=True)
-            #         yield Button("Alterar", id='bt_alterar', disabled=True)
-            #         yield Button('Limpar', id='bt_limpar', disabled=True)
-            #         yield Button('Deletar', id='bt_deletar', disabled=True)
-            #         yield Button('Voltar', id='bt_voltar')
+                with HorizontalGroup(id='bt_tela_encomendas'):
+                    yield Button('Cadastrar',  id='bt_cadastrar', disabled=True)
+                    yield Button("Alterar", id='bt_alterar', disabled=True)
+                    yield Button('Limpar', id='bt_limpar', disabled=True)
+                    yield Button('Deletar', id='bt_deletar', disabled=True)
+                    yield Button('Voltar', id='bt_voltar')
+
+    @on(Button.Pressed)
+    async def on_button(self, event: Button.Pressed):
+        match event.button.id:
+            case 'bt_voltar':
+                self.app.switch_screen('tela_inicial')
+                # self.limpar_inputs_produtos()
+                # self.limpar_texto_static()
+        
+            # case 'bt_cadastrar':
+            #     nome, quantidade, valor_unitario, valor_custo, imagem, aceita_encomenda, descricao = self.pegar_valores_inputs()
+
+            #     if nome == '' or quantidade == '' or valor_unitario == '':
+            #         self.notify(
+            #             title="Ops!", message="Você precisa inserir os dados obrigatórios!", severity='warning')
+            #     else:
+            #         id_produto = None
+            #         controller.insert_produto(
+            #             id_produto, nome, valor_unitario, quantidade, imagem, aceita_encomenda, descricao, valor_custo)
+            #         self.notify(title='Feito!',
+            #                     message=f"{nome} cadastrado com sucesso!")
+
+            #         self.atualizar_select_produtos()
+
+            #         self.limpar_inputs_produtos()
+            #         self.limpar_texto_static()
+
+            # case 'bt_limpar':
+            #     self.limpar_inputs_produtos()
+            #     self.limpar_texto_static()
+
+
+
+            # case 'bt_preencher_campos':
+
+            #     try:
+            #         id_produto = self.query_one(
+            #             "#select_produtos", Select).value
+
+            #         self.id_produto = id_produto
+
+            #         _, nome, quantidade, valor_unitario, valor_custo, aceita_encomenda, descricao, imagem = controller.select_produto_id(
+            #             id_produto)
+
+            #         input_nome, input_quantidade, input_valor_unitario, input_valor_custo, input_imagem, input_aceita_encomenda, input_descricao = self.pegar_inputs_produtos()
+
+            #         input_nome.value = str(nome)
+            #         input_quantidade.value = str(quantidade)
+            #         input_valor_unitario.value = str(valor_unitario)
+            #         input_valor_custo.value = str(valor_custo)
+            #         input_imagem.value = str(imagem)
+            #         input_aceita_encomenda.value = aceita_encomenda
+            #         input_descricao.text = str(descricao)
+
+            #         self.query_one("#bt_alterar", Button).disabled = False
+            #         self.query_one("#bt_deletar", Button).disabled = False
+
+            #     except:
+            #         self.notify(
+            #             title="Ops!", message="Nenhum produto selecionado!", severity='warning')
+
+            # case 'bt_alterar':
+            #     id_produto = self.query_one(
+            #         "#select_produtos", Select).value
+
+            #     nome, quantidade, valor_unitario, valor_custo, imagem, aceita_encomenda, descricao = self.pegar_valores_inputs()
+
+            #     controller.update_produto(
+            #         id_produto, nome, valor_unitario, quantidade, imagem, aceita_encomenda, descricao, valor_custo)
+
+            #     self.atualizar_select_produtos()
+
+            #     self.limpar_inputs_produtos()
+            #     self.limpar_texto_static()
+
+            #     self.notify(f"Produto {nome} alterado com sucesso!")
+
+            # case 'bt_deletar':
+            #     id_produto = self.ID_PRODUTO
+
+            #     if id_produto > 0:
+            #         controller.delete_produto(id_produto)
+            #         self.notify(f"Produto excluído!", severity='error')
+
+            #         self.atualizar_select_produtos()
+            #         self.limpar_inputs_produtos()
+            #         self.limpar_texto_static()
+
+            #     else:
+            #         self.notify("Ops! Você precisa selecionar um produto!")
 
 
 
