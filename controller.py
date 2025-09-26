@@ -19,6 +19,14 @@ def listar_produtos():
 
     return produtos
 
+def listar_produtos_dicionario():
+    estoque = model.Estoque()
+    produtos = model.listar_produtos_dicionario(estoque)
+
+    return produtos
+
+
+
 def select_produto_id(id_produto: int):
       
     return model.select_produto_id(model.Produto(id_produto))
@@ -36,4 +44,15 @@ def delete_produto(id_produto):
     return model.delete_produto(produto)
 
 
+def criar_tupla_produtos():
+    dict_produtos = listar_produtos_dicionario()
+
+    lista_produtos = []
     
+    for chave, valor in dict_produtos.items():
+        lista_produtos.append((chave, valor))
+
+    tuplas_str = [str(tupla) for tupla in lista_produtos]
+    tupla_produtos = ', '.join(tuplas_str)
+
+    return tupla_produtos

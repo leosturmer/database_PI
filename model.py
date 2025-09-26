@@ -309,6 +309,36 @@ def listar_produtos(estoque: Estoque):
     return estoque.produtos
 
 
+def listar_produtos_dicionario(estoque: Estoque):
+    sql = '''
+    SELECT id_produto, nome, valor_unitario, quantidade, imagem, aceita_encomenda, descricao, valor_custo
+        FROM view_produtos;
+    '''
+    produtos_dict = dict()
+    lista_de_produtos = dict()
+
+    with sqlite3.connect('nize_database.db') as conexao:
+        cursor = conexao.execute(sql)
+        select_all = cursor.fetchall()
+
+    for id_produto, nome, valor_unitario, quantidade, imagem, aceita_encomenda, descricao, valor_custo in select_all:
+        if id_produto not in produtos_dict:
+            produtos_dict[id_produto] = {
+                'nome': nome,
+                'valor_unitario': valor_unitario,
+                'quantidade': quantidade,
+                'imagem': imagem,
+                'aceita_encomenda': aceita_encomenda,
+                'descricao': descricao,
+                'valor_custo': valor_custo
+            }
+            lista_de_produtos[nome] = id_produto
+
+            estoque.produtos = lista_de_produtos
+
+    return estoque.produtos
+
+
 def select_produto_id(produto: Produto):
 
     sql = '''
