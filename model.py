@@ -515,14 +515,14 @@ def insert_vendedor(login, senha, nome, nome_loja=None):
 
 
 
-def insert_encomenda(status, prazo=None, comentario=None, produtos=[]):
+def insert_encomenda(encomenda:Encomenda):
 
     sql = '''INSERT INTO encomendas (status, prazo, comentario) 
                         VALUES (?, ?, ?)
                         RETURNING id_encomenda
                         '''
 
-    sql_values_encomenda = [status, prazo, comentario]
+    sql_values_encomenda = [encomenda.status, encomenda.prazo, encomenda.comentario]
 
     with sqlite3.connect('nize_database.db') as conexao:
         cursor = conexao.execute(sql, sql_values_encomenda)
@@ -533,7 +533,7 @@ def insert_encomenda(status, prazo=None, comentario=None, produtos=[]):
                 VALUES ({id_encomenda}, ?, ?);
                 '''
 
-        cursor.executemany(sql, tuple(produtos))
+        cursor.executemany(sql, tuple(encomenda.produtos))
 
 
 def insert_venda(data, status, valor_final=0, comentario=None, produtos=[]):

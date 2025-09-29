@@ -5,7 +5,6 @@ from textual import on
 from textual.app import (App, ComposeResult)
 from textual.widgets import (Button, Input, TextArea, Footer, Header,
                              Label, Static, MaskedInput, OptionList, Select, SelectionList, TabbedContent, TabPane, DataTable, Collapsible, Switch, Placeholder, Checkbox)
-from textual.widgets.selection_list import Selection
 from textual.screen import (Screen, ModalScreen)
 from textual.containers import (
     Container, VerticalGroup, HorizontalGroup, Grid, Center, ScrollableContainer, Horizontal, Vertical, CenterMiddle, ItemGrid, VerticalScroll)
@@ -78,24 +77,17 @@ class ContainerProdutos(ScrollableContainer):
 class ContainerEncomendas(ScrollableContainer):
     def compose(self):
         with Horizontal():
-            yield Label("Quantidade[red]*[/red]")
-            yield Input(
-                placeholder='Quantidade*',
-                type='integer',
-                max_length=4,
-                id='input_quantidade'
-            )
-            yield Label('Prazo de entrega[red]*[/red]')
-            yield MaskedInput(template='00/00/0000', placeholder='DD/MM/AAAA')
 
-        with Horizontal():
+            yield Label('Prazo de entrega[red]*[/red]')
+            yield MaskedInput(template='00/00/0000', placeholder='DD/MM/AAAA', id="prazo_encomenda")
+
             yield Label('Status da encomenda[red]*[/red]')
             yield Select([('Em produção', 1),
                           ('Finalizada', 2),
                           ('Vendida', 3),
                           ('Cancelada', 4)],
                          type_to_search=True,
-                         id='select_status',
+                         id='select_status_encomenda',
                          allow_blank=False
                          )
 
@@ -103,7 +95,7 @@ class ContainerEncomendas(ScrollableContainer):
             yield Label("Comentários")
             yield TextArea(
                 placeholder='Detalhes da encomenda, dos produtos, da entrega, quem comprou, entre outros',
-                id='text_descricao')
+                id='text_comentario')
 
 
 # @@@@@@@@ TELAS DO SISTEMA
@@ -370,18 +362,15 @@ class TelaEncomendas(Screen):
  
         self.ID_PRODUTO = int()
         self.LISTA_DE_PRODUTOS = controller.listar_produtos_dicionario()
- 
-    def on_mount(self):
-        self.criar_lista_produtos()
 
-    def on_screen_resume(self):
-        self.criar_lista_produtos()
+    # def on_screen_resume(self):
+    #     self.criar_lista_produtos()
 
-    def criar_lista_produtos(self):
-        scroll_produtos = self.query_one("#scroll_produtos", VerticalScroll)
+    # def criar_lista_produtos(self):
+    #     scroll_produtos = self.query_one("#scroll_produtos", VerticalScroll)
         
-        for produto in self.LISTA_DE_PRODUTOS:
-            scroll_produtos.mount(Checkbox(produto))
+    #     for produto in self.LISTA_DE_PRODUTOS:
+    #         scroll_produtos.mount(Checkbox(produto))
 
     def compose(self) -> ComposeResult:
         
@@ -389,13 +378,11 @@ class TelaEncomendas(Screen):
             yield Header(show_clock=True)
 
             with HorizontalGroup(id='cnt_select_produtos'):
-                yield Label('Selecione o produto')
-                
-                with Collapsible(title='Selecionar produtos...'):
-                    yield VerticalScroll(id="scroll_produtos")
+                yield Label('Selecione os produtos')
 
-
-                yield Button('OK', id='bt_select_produto')
+                with Collapsible(title="Clique para expandir", id="collapsible_encomendas"):
+                    with VerticalScroll():
+                        yield SelectionList(id='select_produtos').add_options((nome, id_produto) for nome, id_produto in self.LISTA_DE_PRODUTOS.items())
 
             with Container(id='tela_encomendas'):
                 yield Static(content='''
@@ -413,6 +400,21 @@ class TelaEncomendas(Screen):
                     yield Button('Deletar', id='bt_deletar', disabled=True)
                     yield Button('Voltar', id='bt_voltar')
 
+
+    # @on(SelectionList.OptionSelected)
+    # async def on_selected_change(self, event: SelectionList.OptionSelected):
+    #     lista_de_selecionados = self.query_one("#select_produtos", SelectionList).selected
+    #     self.notify(lista_de_selecionados)
+
+    @on(Input.Changed)
+    async def on_input(self, event: Input.Changed):
+        if event.input.value == '':
+            self.query_one("#bt_cadastrar", Button).disabled = True
+            self.query_one("#bt_limpar", Button).disabled = True
+        else:
+            self.query_one("#bt_cadastrar", Button).disabled = False
+            self.query_one("#bt_limpar", Button).disabled = False
+
     @on(Button.Pressed)
     async def on_button(self, event: Button.Pressed):
         match event.button.id:
@@ -420,7 +422,20 @@ class TelaEncomendas(Screen):
                 self.app.switch_screen('tela_inicial')
                 # self.limpar_inputs_produtos()
                 # self.limpar_texto_static()
-        
+
+            case 'bt_cadastrar':
+                # ######## Retorna uma lista com os IDs dos produtos selecionados
+                status = self.query_one('#select_status_encomenda', Select).value
+                prazo = self.query_one("#prazo_encomenda", Input).value
+                comentario = self.query_one("#text_comentario", TextArea).text
+                
+                id_produtos_selecionados = self.query_one('#select_produtos', SelectionList).selected
+
+                controller.insert_encomenda(status, prazo, comentario, produtos=id_produtos_selecionados)
+
+
+
+
             # case 'bt_cadastrar':
             #     nome, quantidade, valor_unitario, valor_custo, imagem, aceita_encomenda, descricao = self.pegar_valores_inputs()
 

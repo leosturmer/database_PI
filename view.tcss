@@ -38,6 +38,14 @@ Horizontal {
 #select_produtos {
 }
 
+#select_status_encomenda {
+    width: 40;
+}
+
+#collapsible_encomendas {
+    width: 100;
+}
+
 #static_encomendas {
     text-align: center;
     content-align: center middle;
