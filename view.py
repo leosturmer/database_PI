@@ -16,6 +16,7 @@ from textual.errors import (
 from textual.scroll_view import ScrollView
 from textual.scrollbar import ScrollBar
 from textual.suggester import SuggestFromList
+from textual.events import Mount
 
 
 # @@@@@@@@@@@ CONTAINERS
@@ -354,6 +355,40 @@ class TelaProdutos(Screen):
                     self.notify("Ops! Você precisa selecionar um produto!")
 
 
+class NovaTelaEncomendas(Screen):
+    TITLE = 'Encomendas'
+
+    def __init__(self, name = None, id = None, classes = None):
+        super().__init__(name, id, classes)
+ 
+        self.ID_PRODUTO = int()
+
+    def compose(self):
+        yield Header(show_clock=True)
+
+        yield ContainerEncomendas()
+
+        yield Button("Registrar nova encomenda")
+        yield Button("Alterar encomenda existente")
+
+        yield Static("Selecione a encomenda para adicionar produtos")
+        yield Select(name='Selecione a encomenda', options=[("opcao", 1)])
+        yield Static("Aqui vai o ID da encomenda")
+
+        yield Select(name="Selecione o produto", id="select_produto", options=[("opcao", 1)])
+        yield Input(placeholder="Quantidade", max_length=2)
+        yield Button("Inserir produto")
+
+        yield Static("Aqui vão todas as informações da encomenda")
+
+
+class WidgetQuantidade(Static):
+    def compose(self):
+        # id_produto = self.query_one("#select_produtos", SelectionList).selected
+
+        yield Select(options=[('opcao', 1)])
+
+
 class TelaEncomendas(Screen):
     TITLE = 'Encomendas'
 
@@ -361,7 +396,7 @@ class TelaEncomendas(Screen):
         super().__init__(name, id, classes)
  
         self.ID_PRODUTO = int()
-        self.LISTA_DE_PRODUTOS = controller.listar_produtos_dicionario()
+        self.LISTA_DE_PRODUTOS = controller.listar_produtos_encomenda()
 
     # def on_screen_resume(self):
     #     self.criar_lista_produtos()
@@ -381,8 +416,11 @@ class TelaEncomendas(Screen):
                 yield Label('Selecione os produtos')
 
                 with Collapsible(title="Clique para expandir", id="collapsible_encomendas"):
-                    with VerticalScroll():
-                        yield SelectionList(id='select_produtos').add_options((nome, id_produto) for nome, id_produto in self.LISTA_DE_PRODUTOS.items())
+                    with HorizontalGroup():
+                        with VerticalScroll():
+                            yield SelectionList(id='select_produtos').add_options((nome, id_produto) for nome, id_produto in self.LISTA_DE_PRODUTOS.items())
+                    yield WidgetQuantidade()
+
 
             with Container(id='tela_encomendas'):
                 yield Static(content='''
@@ -401,10 +439,25 @@ class TelaEncomendas(Screen):
                     yield Button('Voltar', id='bt_voltar')
 
 
-    # @on(SelectionList.OptionSelected)
-    # async def on_selected_change(self, event: SelectionList.OptionSelected):
-    #     lista_de_selecionados = self.query_one("#select_produtos", SelectionList).selected
-    #     self.notify(lista_de_selecionados)
+    def limpar_inputs(self):
+        self.query_one("#prazo_encomenda", Input).clear()
+        self.query_one("#select_status_encomenda", Select).value = 1
+        self.query_one("#text_comentario", TextArea).clear()
+        self.query_one("#select_produtos", SelectionList).deselect_all()
+
+
+    @on(Mount)
+    @on(SelectionList.SelectedChanged)
+    def atualizar_select_quantidade(self) -> None:
+        id_produto = self.query_one(SelectionList).selected
+
+        self.query_one(WidgetQuantidade).update(f"{id_produto}")
+
+    @on(SelectionList.OptionSelected)
+    async def on_selected_change(self, event: SelectionList.OptionSelected):
+        if event.option:
+            self.query_one("#bt_limpar", Button).disabled = False
+        
 
     @on(Input.Changed)
     async def on_input(self, event: Input.Changed):
@@ -431,10 +484,16 @@ class TelaEncomendas(Screen):
                 
                 id_produtos_selecionados = self.query_one('#select_produtos', SelectionList).selected
 
-                controller.insert_encomenda(status, prazo, comentario, produtos=id_produtos_selecionados)
+                if id_produtos_selecionados == []:
+                    self.notify("Selecione pelo menos um produto!")
+                elif len(prazo) < 10:
+                    self.notify("Preencha o prazo no formato DD/MM/AAAA") 
+                else:
+                    controller.insert_encomenda(status=status, prazo=prazo, comentario=comentario, produtos=id_produtos_selecionados)
 
 
-
+            case 'bt_limpar':
+                self.limpar_inputs()
 
             # case 'bt_cadastrar':
             #     nome, quantidade, valor_unitario, valor_custo, imagem, aceita_encomenda, descricao = self.pegar_valores_inputs()

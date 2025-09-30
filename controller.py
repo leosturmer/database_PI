@@ -19,9 +19,9 @@ def listar_produtos():
 
     return produtos
 
-def listar_produtos_dicionario():
+def listar_produtos_encomenda():
     estoque = model.Estoque()
-    produtos = model.listar_produtos_dicionario(estoque)
+    produtos = model.listar_produtos_encomenda(estoque)
 
     return produtos
 
@@ -43,13 +43,19 @@ def delete_produto(id_produto):
 
     return model.delete_produto(produto)
 
-def insert_encomenda(status, prazo=None, comentario=None, produtos=[]):
-    encomenda = model.Encomenda(status, prazo, comentario, produtos)
+def insert_encomenda(status, prazo, comentario, produtos=[]):
+    if comentario == '':
+        comentario = None
+
+    encomenda = model.Encomenda(status=status, prazo=prazo, comentario=comentario, produtos=produtos)
 
     model.insert_encomenda(encomenda)
 
     
 
+def select_produto_quantidade():
+    produto = model.Produto()
 
+    
 
 

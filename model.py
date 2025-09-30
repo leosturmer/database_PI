@@ -309,10 +309,12 @@ def listar_produtos(estoque: Estoque):
     return estoque.produtos
 
 
-def listar_produtos_dicionario(estoque: Estoque):
+def listar_produtos_encomenda(estoque: Estoque):
     sql = '''
     SELECT id_produto, nome, valor_unitario, quantidade, imagem, aceita_encomenda, descricao, valor_custo
-        FROM view_produtos;
+        FROM view_produtos
+        
+    WHERE aceita_encomenda = 1;
     '''
     produtos_dict = dict()
     lista_de_produtos = dict()
@@ -513,27 +515,27 @@ def insert_vendedor(login, senha, nome, nome_loja=None):
     with sqlite3.connect('nize_database.db') as conexao:
         conexao.execute(sql, sql_values_vendedor)
 
-
-
 def insert_encomenda(encomenda:Encomenda):
 
-    sql = '''INSERT INTO encomendas (status, prazo, comentario) 
-                        VALUES (?, ?, ?)
-                        RETURNING id_encomenda
-                        '''
+    sql_insert_encomenda = '''INSERT INTO encomendas (status, prazo, comentario) 
+            VALUES (?, ?, ?)
+            RETURNING id_encomenda
+            '''
 
+    sql_insert_encomenda_produto = '''
+            INSERT INTO encomenda_produto (id_encomenda, id_produto, quantidade)
+            VALUES (?, ?, ?);
+            '''
+    
     sql_values_encomenda = [encomenda.status, encomenda.prazo, encomenda.comentario]
 
+   
     with sqlite3.connect('nize_database.db') as conexao:
-        cursor = conexao.execute(sql, sql_values_encomenda)
+        cursor = conexao.execute(sql_insert_encomenda, sql_values_encomenda)
         id_encomenda = cursor.fetchone()[0]
 
-        sql = f'''
-                INSERT INTO encomenda_produto (id_encomenda, id_produto, quantidade)
-                VALUES ({id_encomenda}, ?, ?);
-                '''
-
-        cursor.executemany(sql, tuple(encomenda.produtos))
+        for produto in encomenda.produtos:
+            cursor.execute(sql_insert_encomenda_produto, (id_encomenda, produto, 0))
 
 
 def insert_venda(data, status, valor_final=0, comentario=None, produtos=[]):
