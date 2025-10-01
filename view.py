@@ -385,8 +385,10 @@ class NovaTelaEncomendas(Screen):
 class WidgetQuantidade(Static):
     def compose(self):
         # id_produto = self.query_one("#select_produtos", SelectionList).selected
+        yield Static("Produto selecionado: ", id='stt_produto_selecionado')
+        yield Select(options=[('opcao', 1)], id='select_quantidade')
+        yield Button("Confirmar", id='bt_confirmar_quantidade')
 
-        yield Select(options=[('opcao', 1)])
 
 
 class TelaEncomendas(Screen):
@@ -419,8 +421,7 @@ class TelaEncomendas(Screen):
                     with HorizontalGroup():
                         with VerticalScroll():
                             yield SelectionList(id='select_produtos').add_options((nome, id_produto) for nome, id_produto in self.LISTA_DE_PRODUTOS.items())
-                    yield WidgetQuantidade()
-
+                        yield Button("Confirmar produtos", id='bt_confirmar_produtos')
 
             with Container(id='tela_encomendas'):
                 yield Static(content='''
@@ -446,12 +447,14 @@ class TelaEncomendas(Screen):
         self.query_one("#select_produtos", SelectionList).deselect_all()
 
 
-    @on(Mount)
-    @on(SelectionList.SelectedChanged)
-    def atualizar_select_quantidade(self) -> None:
-        id_produto = self.query_one(SelectionList).selected
+    # @on(Mount)
+    # @on(SelectionList.SelectedChanged)
+        
 
-        self.query_one(WidgetQuantidade).update(f"{id_produto}")
+        # produto = controller.select_produto_id(id_produto)
+
+        # self.query_one("#stt_produto_selecionado", Static).update(f"Produto selecionado: {produto}")
+        # self.query_one("#seletor_produtos", WidgetQuantidade).update(f"{id_produto}")
 
     @on(SelectionList.OptionSelected)
     async def on_selected_change(self, event: SelectionList.OptionSelected):
@@ -494,6 +497,16 @@ class TelaEncomendas(Screen):
 
             case 'bt_limpar':
                 self.limpar_inputs()
+
+            case 'bt_confirmar_produtos':
+                # async def atualizar_select_quantidade(self) -> None:
+                id_produto_lista = self.query_one(SelectionList).selected
+
+                for produto in id_produto_lista:
+                    widget = self.query_one("#collapsible_encomendas", Collapsible)
+                    widget.mount(WidgetQuantidade('oiiiiiii'))
+
+                self.notify(f"{id_produto_lista}")
 
             # case 'bt_cadastrar':
             #     nome, quantidade, valor_unitario, valor_custo, imagem, aceita_encomenda, descricao = self.pegar_valores_inputs()
