@@ -26,7 +26,6 @@ def listar_produtos_encomenda():
     return produtos
 
 
-
 def select_produto_id(id_produto: int):
       
     return model.select_produto_id(model.Produto(id_produto))
@@ -43,7 +42,7 @@ def delete_produto(id_produto):
 
     return model.delete_produto(produto)
 
-def insert_encomenda(status, prazo, comentario, produtos=[]):
+def insert_encomenda(status, prazo, comentario, produtos):
     if comentario == '':
         comentario = None
 

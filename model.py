@@ -227,7 +227,7 @@ class Produto():
 
 
 class Encomenda():
-    def __init__(self, status, prazo=None, comentario=None, produtos=[]):
+    def __init__(self, status, prazo=None, comentario=None, produtos={}):
         import datetime
 
         self.status = status
@@ -534,8 +534,8 @@ def insert_encomenda(encomenda:Encomenda):
         cursor = conexao.execute(sql_insert_encomenda, sql_values_encomenda)
         id_encomenda = cursor.fetchone()[0]
 
-        for produto in encomenda.produtos:
-            cursor.execute(sql_insert_encomenda_produto, (id_encomenda, produto, 0))
+        for id_produto, quantidade in encomenda.produtos.items():
+            cursor.execute(sql_insert_encomenda_produto, (id_encomenda, id_produto, quantidade))
 
 
 def insert_venda(data, status, valor_final=0, comentario=None, produtos=[]):
