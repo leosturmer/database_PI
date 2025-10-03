@@ -4,7 +4,7 @@ from textual import on
 
 from textual.app import (App, ComposeResult)
 from textual.widgets import (Button, Input, TextArea, Footer, Header,
-                             Label, Static, MaskedInput, OptionList, Select, SelectionList, TabbedContent, TabPane, DataTable, Collapsible, Switch, Placeholder, Checkbox)
+                             Label, Static, MaskedInput, OptionList, Select, SelectionList, TabbedContent, TabPane, DataTable, Collapsible, Switch, Placeholder, Checkbox, Rule)
 from textual.screen import (Screen, ModalScreen)
 from textual.containers import (
     Container, VerticalGroup, HorizontalGroup, Grid, Center, ScrollableContainer, Horizontal, Vertical, CenterMiddle, ItemGrid, VerticalScroll)
@@ -365,73 +365,87 @@ class TelaEncomendas(Screen):
         self.LISTA_DE_PRODUTOS = controller.listar_produtos()
         self.ID_PRODUTO = int()
         self.PRODUTOS_QUANTIDADE = dict()
+        self.texto_static_produto = '\nInformações do produto:\n'
+        self.texto_static_encomenda = 'Aqui vão as informações da encomenda'
+
 
     def compose(self) -> ComposeResult:
+        yield Header(show_clock=True)
 
-        with ScrollableContainer():
-            yield Header(show_clock=True)
+        with TabbedContent(initial='tab_cadastrar_encomeda'):
 
-            # with Collapsible():
-            with HorizontalGroup(id='cnt_select_produtos'):
-                yield Label('Selecione um produto:')
+            with TabPane('Cadastrar encomenda', id='tab_cadastrar_encomeda'):
 
-                # with Collapsible(title="Clique para expandir", id="collapsible_encomendas"):
-                with HorizontalGroup():
+                with ScrollableContainer():
+                    with HorizontalGroup(id='cnt_select_produtos'):
+                        yield Label('Selecione um produto:')
+                        with HorizontalGroup():
+                            with VerticalGroup():
+                                with HorizontalGroup():
+                                    yield Select(self.LISTA_DE_PRODUTOS,
+                                                type_to_search=True,
+                                                id='select_produtos',
+                                                allow_blank=True,
+                                                )
+
+                                yield Static(self.texto_static_produto, id='static_produto')
+
+                                with HorizontalGroup():
+                                    yield Input(placeholder='Quantidade encomendada...',
+                                                id='quantidade_encomenda',
+                                                max_length=3,
+                                                type="integer"
+                                                )
+                                    yield Button('Adicionar',
+                                                disabled=True,
+                                                id='bt_adicionar_quantidade')
+
                     with VerticalGroup():
+                        yield Static(self.texto_static_encomenda, id="static_encomenda")
                         with HorizontalGroup():
-                            yield Select(self.LISTA_DE_PRODUTOS,
-                                         type_to_search=True,
-                                         id='select_produtos',
-                                         allow_blank=True,
-                                         )
+                            yield Label('Prazo de entrega[red]*[/red]')
+                            yield MaskedInput(template='00/00/0000', placeholder='DD/MM/AAAA', id="prazo_encomenda")
 
-                        yield Static('Informações do produto:', id='static_produto')
-
-                        with HorizontalGroup():
-                            yield Input(placeholder='Quantidade encomendada...',
-                                        id='quantidade_encomenda',
-                                        max_length=3,
-                                        type="integer"
+                            yield Label('Status da encomenda[red]*[/red]')
+                            yield Select([('Em produção', 1),
+                                        ('Finalizada', 2),
+                                        ('Vendida', 3),
+                                        ('Cancelada', 4)],
+                                        type_to_search=True,
+                                        id='select_status_encomenda',
+                                        allow_blank=False
                                         )
-                            yield Button('Adicionar',
-                                         disabled=True,
-                                         id='bt_adicionar_quantidade')
 
-            with VerticalGroup():
+                        with HorizontalGroup():
+                            yield Label("Comentários")
+                            yield TextArea(
+                                placeholder='Detalhes da encomenda, dos produtos, da entrega, quem comprou, entre outros',
+                                id='text_comentario')
 
-                with Horizontal():
+                    with HorizontalGroup(id='bt_tela_encomendas'):
+                        yield Button('Cadastrar',  id='bt_cadastrar', disabled=True)
+                        # yield Button("Alterar", id='bt_alterar', disabled=True)
+                        yield Button('Limpar', id='bt_limpar', disabled=True)
+                        # yield Button('Deletar', id='bt_deletar', disabled=True)
+                        yield Button('Voltar', id='bt_voltar')
 
-                    yield Label('Prazo de entrega[red]*[/red]')
-                    yield MaskedInput(template='00/00/0000', placeholder='DD/MM/AAAA', id="prazo_encomenda")
+            with TabPane('Atualizar encomenda', id='tab_atualizar_encomenda'):
 
-                    yield Label('Status da encomenda[red]*[/red]')
-                    yield Select([('Em produção', 1),
-                                  ('Finalizada', 2),
-                                  ('Vendida', 3),
-                                  ('Cancelada', 4)],
-                                 type_to_search=True,
-                                 id='select_status_encomenda',
-                                 allow_blank=False,
-                                 )
+                yield Select([('opcao 1', 1)])
+                yield Static('ALGUMA COISA AQUI')
 
-                yield Static('''
-            Encomenda: ---------- ID: {id_encomenda}
-            Produto: {produto} | Quantidade: {quantidade}
-                            ''',
-                             id="static_encomenda")
+                yield Label('produto')
+                yield Input('quantidade')
+                yield Label('prazo')
+                yield Label('status')
+                yield Label('comentario')
 
-                with Horizontal():
-                    yield Label("Comentários")
-                    yield TextArea(
-                        placeholder='Detalhes da encomenda, dos produtos, da entrega, quem comprou, entre outros',
-                        id='text_comentario')
 
                 with HorizontalGroup(id='bt_tela_encomendas'):
-                    yield Button('Cadastrar',  id='bt_cadastrar', disabled=True)
                     yield Button("Alterar", id='bt_alterar', disabled=True)
-                    yield Button('Limpar', id='bt_limpar', disabled=True)
                     yield Button('Deletar', id='bt_deletar', disabled=True)
                     yield Button('Voltar', id='bt_voltar')
+
 
     def atualizar_select_produtos(self):
         self.LISTA_DE_PRODUTOS = controller.listar_produtos()
@@ -445,22 +459,34 @@ class TelaEncomendas(Screen):
         try:
             id_produto = self.query_one("#select_produtos", Select).value
 
-            static_produto = self.query_one("#static_produto", Static)
+            static = self.query_one("#static_produto", Static)
 
             id_produto, nome, quantidade, valor_unitario, valor_custo, aceita_encomenda, descricao, imagem = controller.select_produto_id(
                 id_produto)
-
-            static_produto.update(f'''
+            
+            novo_texto = f'''
             Informações do produto: ID {id_produto}
             Produto selecionado: {nome}   |   Quantidade em estoque: {quantidade} 
-                ''')
+                '''
+            
+            static.update(novo_texto)
         except:
             pass
 
     def atualizar_static_encomenda(self):
+
+        novo_texto = 'Encomenda: \n\n'
         try:
-            id_produto = self.query_one("#select_produtos", Select).value
-            static_encomenda = self.query_one("#static_encomenda", Static)
+            static = self.query_one('#static_encomenda', Static)
+            for item in self.PRODUTOS_QUANTIDADE.items():
+                id_produto, quantidade = item
+
+                _id_produto, nome, _quantidade, _valor_unitario, _valor_custo, _aceita_encomenda, _descricao, _imagem = controller.select_produto_id(
+            id_produto)
+                
+                novo_texto += f'Produto: {nome}, Quantidade: {quantidade}\n'
+
+            static.update(novo_texto)
 
         except:
             pass
@@ -470,14 +496,18 @@ class TelaEncomendas(Screen):
         quantidade_encomendada = self.query_one(
             "#quantidade_encomenda", Input).value
 
-        self.PRODUTOS_QUANTIDADE[f'{id_produto}'] = {
-            'id_produto': id_produto, 'quantidade_encomendada': quantidade_encomendada}
+        self.PRODUTOS_QUANTIDADE[id_produto] = quantidade_encomendada
+        
 
     def limpar_inputs(self):
         self.query_one("#prazo_encomenda", Input).clear()
         self.query_one("#select_status_encomenda", Select).value = 1
         self.query_one("#text_comentario", TextArea).clear()
         self.query_one("#select_produtos", Select).clear()
+        self.query_one('#quantidade_encomenda', Input).clear()
+        self.query_one('#static_produto', Static).update(self.texto_static_produto)
+        self.query_one('#static_encomenda', Static).update(self.texto_static_encomenda)
+        
 
     @on(Select.Changed)
     async def on_select(self, event: Select.Changed):
@@ -499,14 +529,21 @@ class TelaEncomendas(Screen):
                     self.query_one("#bt_cadastrar", Button).disabled = False
                     self.query_one("#bt_limpar", Button).disabled = False
 
+    @on(TextArea.Changed)
+    async def on_textarea(self, event: TextArea.Changed):
+        if event.text_area.id == 'text_comentario':
+            self.query_one("#bt_limpar", Button).disabled = False
+
+
     @on(Button.Pressed)
     async def on_button(self, event: Button.Pressed):
         match event.button.id:
             case 'bt_adicionar_quantidade':
 
                 self.adicionar_dicionario_encomenda()
+                self.atualizar_static_encomenda()
 
-                self.notify(f'{self.PRODUTOS_QUANTIDADE.values()}')
+                # self.notify(f'Adicionar: {self.PRODUTOS_QUANTIDADE.values()}')
 
                 # id_produto = self.query_one("#select_produtos", Select).selection
                 # static_encomenda = self.query_one("#static_encomenda", Static)
@@ -527,20 +564,28 @@ class TelaEncomendas(Screen):
                 prazo = self.query_one("#prazo_encomenda", Input).value
                 comentario = self.query_one("#text_comentario", TextArea).text
 
-                id_produto = self.query_one("#select_produtos", Select).value
+                produtos = self.PRODUTOS_QUANTIDADE
 
-                if id_produto == '':
-                    self.notify("Selecione pelo menos um produto!")
+                if produtos == []:
+                    self.notify("Adicione pelo menos um produto!")
                 elif len(prazo) < 10:
                     self.notify("Preencha o prazo no formato DD/MM/AAAA")
                 else:
                     controller.insert_encomenda(
-                        status=status, prazo=prazo, comentario=comentario, produtos=self.PRODUTOS_QUANTIDADE)
+                        status=status, prazo=prazo, comentario=comentario, produtos=produtos)
                     
-                    self.notify(f'{self.PRODUTOS_QUANTIDADE.keys()}')
+                    self.notify(f'Cadastrado: {produtos.values()}')
+                    self.PRODUTOS_QUANTIDADE.clear()
+                    self.limpar_inputs()
+
+                    # for produto in self.PRODUTOS_QUANTIDADE.items():
+                    #     texto_produto += str(produto)
+                    #     return texto_produto
+
+                    # self.notify(texto_produto)
+
                     
-                    # self.PRODUTOS_QUANTIDADE.clear()
-                    # self.limpar_inputs()
+
 
             case 'bt_limpar':
                 self.limpar_inputs()

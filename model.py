@@ -227,7 +227,7 @@ class Produto():
 
 
 class Encomenda():
-    def __init__(self, status, prazo=None, comentario=None, produtos={}):
+    def __init__(self, status, prazo=None, comentario=None, produtos=[]):
         import datetime
 
         self.status = status
@@ -532,10 +532,18 @@ def insert_encomenda(encomenda:Encomenda):
    
     with sqlite3.connect('nize_database.db') as conexao:
         cursor = conexao.execute(sql_insert_encomenda, sql_values_encomenda)
+
         id_encomenda = cursor.fetchone()[0]
 
-        for id_produto, quantidade in encomenda.produtos.items():
-            cursor.execute(sql_insert_encomenda_produto, (id_encomenda, id_produto, quantidade))
+        produtos = encomenda.produtos
+
+        lista = []
+
+        for item in produtos.items():
+           id_produto, quantidade = item
+           lista.append((id_encomenda, id_produto, quantidade))
+        
+        cursor.executemany(sql_insert_encomenda_produto, lista)
 
 
 def insert_venda(data, status, valor_final=0, comentario=None, produtos=[]):
