@@ -55,10 +55,12 @@ def select_produto_quantidade():
 
 def listar_encomendas():
     encomendas = model.listar_encomendas()
+
     return encomendas
 
 def select_encomenda_status(status):
     encomendas = model.select_encomenda_status(status)
+    
     return encomendas
 
 

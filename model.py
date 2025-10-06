@@ -695,7 +695,7 @@ def select_encomenda_produto(nome_produto):
             print(
                 f'ID: {id_encomenda} | Produto: {nome} | Quantidade: {quantidade} | Prazo: {prazo} | Status: {status} | Comentário: {comentario}')
 
-def select_encomenda_status(status_encomenda):
+def select_encomenda_status(status):
     sql = '''
     SELECT id_encomenda, prazo, nome, quantidade, comentario, status
 
@@ -705,7 +705,7 @@ def select_encomenda_status(status_encomenda):
     '''
 
     with sqlite3.connect('nize_database.db') as conexao:
-        cursor = conexao.execute(sql, (f'%{status_encomenda}%',))
+        cursor = conexao.execute(sql, (f'%{status}%',))
         select_all = cursor.fetchall()
 
         encomendas_dict = {}

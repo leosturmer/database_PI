@@ -330,34 +330,12 @@ class TelaProdutos(Screen):
                     self.notify("Ops! Você precisa selecionar um produto!")
 
 
-class NovaTelaEncomendas(Screen):
-    TITLE = 'Encomendas'
-
-    def __init__(self, name=None, id=None, classes=None):
-        super().__init__(name, id, classes)
-
-        self.ID_PRODUTO = int()
-
-    def compose(self):
-        yield Header(show_clock=True)
-
-        yield ContainerEncomendas()
-
-        yield Button("Registrar nova encomenda")
-        yield Button("Alterar encomenda existente")
-
-        yield Static("Selecione a encomenda para adicionar produtos")
-        yield Select(name='Selecione a encomenda', options=[("opcao", 1)])
-        yield Static("Aqui vai o ID da encomenda")
-
-        yield Select(name="Selecione o produto", id="select_produto", options=[("opcao", 1)])
-        yield Input(placeholder="Quantidade", max_length=2)
-        yield Button("Inserir produto")
-
-        yield Static("Aqui vão todas as informações da encomenda")
-
-
 class TelaEncomendas(Screen):
+
+    class Mensagem(Message):
+        def __init__(self):
+            super().__init__()
+
     TITLE = 'Encomendas'
 
     def __init__(self, name=None, id=None, classes=None):
@@ -366,13 +344,16 @@ class TelaEncomendas(Screen):
         self.LISTA_DE_PRODUTOS = controller.listar_produtos()
         self.ID_PRODUTO = int()
         self.PRODUTOS_QUANTIDADE = dict()
-        self.DADOS_ENCOMENDA = controller.listar_encomendas()
         self.texto_static_produto = '\nInformações do produto:\n'
         self.texto_static_encomenda = 'Aqui vão as informações da encomenda'
-
+        self.LISTA_DE_ENCOMENDAS = []
 
     def on_mount(self):
+        tabela = self.query_one("#tabela_encomendas", DataTable)
+        tabela.border_title = "Encomendas"
+        tabela.add_columns('ID encomenda', 'Produtos', 'Prazo', 'Comentario', 'Status')
         self.atualizar_tabela_encomendas()
+        self.atualizar_select_encomendas()
 
     def compose(self) -> ComposeResult:
         yield Header(show_clock=True)
@@ -380,7 +361,6 @@ class TelaEncomendas(Screen):
         with TabbedContent(initial='tab_cadastrar_encomeda'):
 
             with TabPane('Cadastrar encomenda', id='tab_cadastrar_encomeda'):
-
                 with ScrollableContainer():
                     with HorizontalGroup(id='cnt_select_produtos'):
                         yield Label('Selecione um produto:')
@@ -418,7 +398,7 @@ class TelaEncomendas(Screen):
                                         ('Vendida', 3),
                                         ('Cancelada', 4)],
                                         type_to_search=True,
-                                        id='select_status_encomenda',
+                                        id='select_status_cadastro',
                                         allow_blank=False
                                         )
 
@@ -430,22 +410,27 @@ class TelaEncomendas(Screen):
 
                     with HorizontalGroup(id='bt_tela_encomendas'):
                         yield Button('Cadastrar',  id='bt_cadastrar', disabled=True)
-                        # yield Button("Alterar", id='bt_alterar', disabled=True)
                         yield Button('Limpar', id='bt_limpar', disabled=True)
-                        # yield Button('Deletar', id='bt_deletar', disabled=True)
                         yield Button('Voltar', id='bt_voltar')
 
             with TabPane('Atualizar encomenda', id='tab_atualizar_encomenda'):
-                yield Select([('Em produção', 1),
-                              ('Finalizadas', 2),
-                              ('Vendidas', 3),
-                              ('Canceladas', 4)],
-                              prompt='Filtre as encomendas por status', 
-                              id='select_status_encomenda')
+                with Collapsible(title='Expandir tabela de encomendas'):
+                    # yield Select([('Todas encomendas', 0),
+                        #             ('Em produção', 1),
+                        #             ('Finalizadas', 2),
+                        #             ('Vendidas', 3),
+                        #             ('Canceladas', 4)],
+                        #             prompt='Filtre as encomendas por status', 
+                        #             allow_blank=False,
+                        #             id='select_status_tabela')
+                    with VerticalScroll():
+                        yield DataTable(id='tabela_encomendas')
 
-                yield DataTable(id='tabela_encomendas')
+                yield Rule(orientation='horizontal', line_style='solid')
 
-                yield Static('ALGUMA COISA AQUI')
+                yield Select(self.LISTA_DE_ENCOMENDAS, prompt='Selecione a encomenda para alterar', 
+                             type_to_search=True,
+                             id='select_id_encomenda')
 
                 yield Label('produto')
                 yield Input('quantidade')
@@ -459,32 +444,11 @@ class TelaEncomendas(Screen):
                     yield Button('Deletar', id='bt_deletar', disabled=True)
                     yield Button('Voltar', id='bt_voltar')
 
-    def atualizar_tabela_encomendas(self):
-        tabela = self.query_one("#tabela_encomendas", DataTable)
-        tabela.border_title = "Encomendas"
-        dados_encomendas = self.DADOS_ENCOMENDA
 
-        tabela.add_columns('ID encomenda', 'Produtos', 'Prazo', 'Comentario', 'Status')
+      
 
-        for id_encomenda, detalhes in dados_encomendas.items():
-            # for nome, quantidade in detalhes['produtos']:
-            #     produto = nome
-            #     quant = quantidade
-               
-            nome_produtos = [''.join([f'{nome}, ({quantidade}) | '])  for nome, quantidade in detalhes['produtos']]  
 
-            if detalhes['status'] == 1:
-                status = 'Em produção'
-            elif detalhes['status'] == 2:
-                status = 'Finalizada'
-            elif detalhes['status'] == 3:
-                status = 'Vendida'
-            elif detalhes['status'] == 4:
-                status = 'Cancelada'                    
-
-            tabela.add_row(id_encomenda, ''.join(nome_produtos), detalhes['prazo'], detalhes['comentario'], status)
-
-            
+      
 
     def atualizar_select_produtos(self):
         self.LISTA_DE_PRODUTOS = controller.listar_produtos()
@@ -540,13 +504,42 @@ class TelaEncomendas(Screen):
 
     def limpar_inputs(self):
         self.query_one("#prazo_encomenda", Input).clear()
-        self.query_one("#select_status_encomenda", Select).value = 1
+        self.query_one("#select_status_cadastro", Select).value = 1
         self.query_one("#text_comentario", TextArea).clear()
         self.query_one("#select_produtos", Select).clear()
         self.query_one('#quantidade_encomenda', Input).clear()
         self.query_one('#static_produto', Static).update(self.texto_static_produto)
         self.query_one('#static_encomenda', Static).update(self.texto_static_encomenda)
         
+    def atualizar_tabela_encomendas(self):
+        tabela = self.query_one("#tabela_encomendas", DataTable)
+
+        dados_encomendas = controller.listar_encomendas()
+
+        for id_encomenda, detalhes in dados_encomendas.items():              
+            nome_produtos = [''.join([f'{nome}, ({quantidade}) | '])  for nome, quantidade in detalhes['produtos']]  
+
+            if detalhes['status'] == 1:
+                status = 'Em produção'
+            elif detalhes['status'] == 2:
+                status = 'Finalizada'
+            elif detalhes['status'] == 3:
+                status = 'Vendida'
+            elif detalhes['status'] == 4:
+                status = 'Cancelada'                    
+
+            tabela.add_row(id_encomenda, ''.join(nome_produtos), detalhes['prazo'], detalhes['comentario'], status)
+
+    def atualizar_select_encomendas(self):
+        encomendas = controller.listar_encomendas()
+        lista_de_encomendas = []
+
+        for id_encomenda in encomendas:
+            lista_de_encomendas.append((str(id_encomenda), id_encomenda))
+
+        self.query_one("#select_id_encomenda", Select).set_options(lista_de_encomendas)
+
+        return lista_de_encomendas
 
     @on(Select.Changed)
     async def on_select(self, event: Select.Changed):
@@ -555,12 +548,21 @@ class TelaEncomendas(Screen):
                 self.ID_PRODUTO = event.select.value
                 self.atualizar_static_produto()
 
-            case 'select_status_encomenda':
+            # case 'select_status_tabela':
+            #     status = self.query_one('#select_status_tabela', Select)
+            #     tabela = self.query_one("#tabela_encomendas", DataTable)     
 
-                self.DADOS_ENCOMENDA = controller.select_encomenda_status(event.select.value)
+            #     match status.value:
+            #         case 1:
+            #             self.atualizar_tabela_encomendas(1)
+            #         case 2:
+            #             self.atualizar_tabela_encomendas(2)
+            #         case 3:
+            #             self.atualizar_tabela_encomendas(3)
+            #         case 4:
+            #             self.atualizar_tabela_encomendas(4)
 
-                self.query_one(DataTable).refresh()
-                self.atualizar_tabela_encomendas()
+                
 
 
     @on(Input.Changed)
@@ -592,24 +594,12 @@ class TelaEncomendas(Screen):
                 self.adicionar_dicionario_encomenda()
                 self.atualizar_static_encomenda()
 
-                # self.notify(f'Adicionar: {self.PRODUTOS_QUANTIDADE.values()}')
-
-                # id_produto = self.query_one("#select_produtos", Select).selection
-                # static_encomenda = self.query_one("#static_encomenda", Static)
-
-                # static_encomenda.update(f"")
-
-                # self.notify(f'{id_produto}')
-
             case 'bt_voltar':
                 self.app.switch_screen('tela_inicial')
-                # self.limpar_inputs_produtos()
-                # self.limpar_texto_static()
 
             case 'bt_cadastrar':
-                # ######## Retorna uma lista com os IDs dos produtos selecionados
                 status = self.query_one(
-                    '#select_status_encomenda', Select).value
+                    '#select_status_cadastro', Select).value
                 prazo = self.query_one("#prazo_encomenda", Input).value
                 comentario = self.query_one("#text_comentario", TextArea).text
 
