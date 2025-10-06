@@ -667,15 +667,17 @@ def listar_encomendas():
             encomendas_dict[id_encomenda]['produtos'].append(
                 (nome, quantidade))
 
-        for id_encomenda, detalhes in encomendas_dict.items():
+        return encomendas_dict
+    
+    #     for id_encomenda, detalhes in encomendas_dict.items():
 
-            nome_produtos = [', '.join([f'{nome}, ({quantidade})'])
-                             for nome, quantidade in detalhes['produtos']]
+    #         nome_produtos = [', '.join([f'{nome}, ({quantidade})'])
+    #                          for nome, quantidade in detalhes['produtos']]
 
-            print(f"""
-    Encomenda id {id_encomenda}:
-    Produtos: {', '.join(nome_produtos)}
-    Prazo de entrega: {detalhes['prazo']} | Status: {status} | Comentário: {detalhes['comentario']}""")
+    #         print(f"""
+    # Encomenda id {id_encomenda}:
+    # Produtos: {', '.join(nome_produtos)}
+    # Prazo de entrega: {detalhes['prazo']} | Status: {status} | Comentário: {detalhes['comentario']}""")
 
 
 def select_encomenda_produto(nome_produto):
@@ -693,7 +695,35 @@ def select_encomenda_produto(nome_produto):
             print(
                 f'ID: {id_encomenda} | Produto: {nome} | Quantidade: {quantidade} | Prazo: {prazo} | Status: {status} | Comentário: {comentario}')
 
+def select_encomenda_status(status_encomenda):
+    sql = '''
+    SELECT id_encomenda, prazo, nome, quantidade, comentario, status
 
+    FROM view_encomendas
+    
+    WHERE status = ?;
+    '''
+
+    with sqlite3.connect('nize_database.db') as conexao:
+        cursor = conexao.execute(sql, (f'%{status_encomenda}%',))
+        select_all = cursor.fetchall()
+
+        encomendas_dict = {}
+
+        for id_encomenda, prazo, nome, quantidade, comentario, status in select_all:
+            if id_encomenda not in encomendas_dict:
+                encomendas_dict[id_encomenda] = {
+                    'produtos': [],
+                    'prazo': prazo,
+                    'comentario': comentario,
+                    'status': status
+                }
+
+            encomendas_dict[id_encomenda]['produtos'].append(
+                (nome, quantidade))
+
+        return encomendas_dict
+            
 def select_encomenda_prazo(prazo_encomenda):
     sql = '''
     SELECT id_encomenda, prazo, nome, quantidade, comentario, status

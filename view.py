@@ -125,7 +125,8 @@ class TelaProdutos(Screen):
                 yield Select(self.LISTA_DE_PRODUTOS,
                              type_to_search=True,
                              id='select_produtos',
-                             allow_blank=True
+                             allow_blank=True,
+                             prompt='Selecione o produto'
                              )
 
             with HorizontalGroup():
@@ -365,9 +366,13 @@ class TelaEncomendas(Screen):
         self.LISTA_DE_PRODUTOS = controller.listar_produtos()
         self.ID_PRODUTO = int()
         self.PRODUTOS_QUANTIDADE = dict()
+        self.DADOS_ENCOMENDA = controller.listar_encomendas()
         self.texto_static_produto = '\nInformações do produto:\n'
         self.texto_static_encomenda = 'Aqui vão as informações da encomenda'
 
+
+    def on_mount(self):
+        self.atualizar_tabela_encomendas()
 
     def compose(self) -> ComposeResult:
         yield Header(show_clock=True)
@@ -386,6 +391,7 @@ class TelaEncomendas(Screen):
                                                 type_to_search=True,
                                                 id='select_produtos',
                                                 allow_blank=True,
+                                                prompt='Selecione o produto para adicionar à encomenda'
                                                 )
 
                                 yield Static(self.texto_static_produto, id='static_produto')
@@ -430,8 +436,15 @@ class TelaEncomendas(Screen):
                         yield Button('Voltar', id='bt_voltar')
 
             with TabPane('Atualizar encomenda', id='tab_atualizar_encomenda'):
+                yield Select([('Em produção', 1),
+                              ('Finalizadas', 2),
+                              ('Vendidas', 3),
+                              ('Canceladas', 4)],
+                              prompt='Filtre as encomendas por status', 
+                              id='select_status_encomenda')
 
-                yield Select([('opcao 1', 1)])
+                yield DataTable(id='tabela_encomendas')
+
                 yield Static('ALGUMA COISA AQUI')
 
                 yield Label('produto')
@@ -446,6 +459,32 @@ class TelaEncomendas(Screen):
                     yield Button('Deletar', id='bt_deletar', disabled=True)
                     yield Button('Voltar', id='bt_voltar')
 
+    def atualizar_tabela_encomendas(self):
+        tabela = self.query_one("#tabela_encomendas", DataTable)
+        tabela.border_title = "Encomendas"
+        dados_encomendas = self.DADOS_ENCOMENDA
+
+        tabela.add_columns('ID encomenda', 'Produtos', 'Prazo', 'Comentario', 'Status')
+
+        for id_encomenda, detalhes in dados_encomendas.items():
+            # for nome, quantidade in detalhes['produtos']:
+            #     produto = nome
+            #     quant = quantidade
+               
+            nome_produtos = [''.join([f'{nome}, ({quantidade}) | '])  for nome, quantidade in detalhes['produtos']]  
+
+            if detalhes['status'] == 1:
+                status = 'Em produção'
+            elif detalhes['status'] == 2:
+                status = 'Finalizada'
+            elif detalhes['status'] == 3:
+                status = 'Vendida'
+            elif detalhes['status'] == 4:
+                status = 'Cancelada'                    
+
+            tabela.add_row(id_encomenda, ''.join(nome_produtos), detalhes['prazo'], detalhes['comentario'], status)
+
+            
 
     def atualizar_select_produtos(self):
         self.LISTA_DE_PRODUTOS = controller.listar_produtos()
@@ -511,8 +550,18 @@ class TelaEncomendas(Screen):
 
     @on(Select.Changed)
     async def on_select(self, event: Select.Changed):
-        self.ID_PRODUTO = event.select.value
-        self.atualizar_static_produto()
+        match event.select.id:
+            case 'select_produtos':
+                self.ID_PRODUTO = event.select.value
+                self.atualizar_static_produto()
+
+            case 'select_status_encomenda':
+
+                self.DADOS_ENCOMENDA = controller.select_encomenda_status(event.select.value)
+
+                self.query_one(DataTable).refresh()
+                self.atualizar_tabela_encomendas()
+
 
     @on(Input.Changed)
     async def on_input(self, event: Input.Changed):
@@ -574,7 +623,7 @@ class TelaEncomendas(Screen):
                     controller.insert_encomenda(
                         status=status, prazo=prazo, comentario=comentario, produtos=produtos)
                     
-                    self.notify(f'Cadastrado: {produtos.values()}')
+                    self.notify('Encomenda cadastrada com sucesso!')
                     self.PRODUTOS_QUANTIDADE.clear()
                     self.limpar_inputs()
 

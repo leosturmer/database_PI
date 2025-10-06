@@ -25,7 +25,6 @@ def listar_produtos_encomenda():
 
     return produtos
 
-
 def select_produto_id(id_produto: int):
       
     return model.select_produto_id(model.Produto(id_produto))
@@ -50,11 +49,16 @@ def insert_encomenda(status, prazo, comentario, produtos):
 
     model.insert_encomenda(encomenda)
 
-    
 
 def select_produto_quantidade():
     produto = model.Produto()
 
-    
+def listar_encomendas():
+    encomendas = model.listar_encomendas()
+    return encomendas
+
+def select_encomenda_status(status):
+    encomendas = model.select_encomenda_status(status)
+    return encomendas
 
 
