@@ -46,7 +46,7 @@ Horizontal {
     width: 100;
 }
 
-#static_encomenda {
+#static_encomenda, #static_alteracao_encomenda {
     text-align: center;
     content-align: center middle;
     border: white;

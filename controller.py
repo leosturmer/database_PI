@@ -63,4 +63,5 @@ def select_encomenda_status(status):
     
     return encomendas
 
-
+def select_encomenda_id(id_encomenda: int):
+    return model.select_encomenda_id(model.Encomenda(id_encomenda))

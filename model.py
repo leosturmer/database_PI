@@ -668,16 +668,18 @@ def listar_encomendas():
                 (nome, quantidade))
 
         return encomendas_dict
-    
-    #     for id_encomenda, detalhes in encomendas_dict.items():
 
-    #         nome_produtos = [', '.join([f'{nome}, ({quantidade})'])
-    #                          for nome, quantidade in detalhes['produtos']]
+def select_encomenda_id(encomenda:Encomenda):
+    sql = '''
+    SELECT id_encomenda, prazo, nome, quantidade, comentario, status
 
-    #         print(f"""
-    # Encomenda id {id_encomenda}:
-    # Produtos: {', '.join(nome_produtos)}
-    # Prazo de entrega: {detalhes['prazo']} | Status: {status} | Comentário: {detalhes['comentario']}""")
+    FROM view_encomendas
+    WHERE id_encomenda = ?;
+    '''
+
+    with sqlite3.connect('nize_database.db') as conexao:
+        cursor = conexao.execute(sql, (encomenda.id_encomenda,))
+        return cursor.fetchone()
 
 
 def select_encomenda_produto(nome_produto):
