@@ -669,7 +669,7 @@ def listar_encomendas():
 
         return encomendas_dict
 
-def select_encomenda_id(encomenda:Encomenda):
+def select_encomenda_id(id_encomenda):
     sql = '''
     SELECT id_encomenda, prazo, nome, quantidade, comentario, status
 
@@ -678,8 +678,9 @@ def select_encomenda_id(encomenda:Encomenda):
     '''
 
     with sqlite3.connect('nize_database.db') as conexao:
-        cursor = conexao.execute(sql, (encomenda.id_encomenda,))
-        return cursor.fetchone()
+        cursor = conexao.execute(sql, (id_encomenda,))
+        encomenda = cursor.fetchone()
+        return encomenda
 
 
 def select_encomenda_produto(nome_produto):
@@ -896,21 +897,21 @@ def update_vendedor(id_vendedor, login=None, senha=None, nome=None, nome_loja=No
     with sqlite3.connect('nize_database.db') as conexao:
         conexao.execute(sql, valores)
 
-def update_encomendas(id_encomenda, prazo=None, comentario=None, status=None):
+def update_encomendas(id_encomenda, encomenda:Encomenda):
     consulta_valores = []
     valores = []
 
-    if prazo is not None:
+    if encomenda.prazo is not None:
         consulta_valores.append('prazo = ?')
-        valores.append(prazo)
+        valores.append(encomenda.prazo)
 
-    if comentario is not None:
+    if encomenda.comentario is not None:
         consulta_valores.append('comentario = ?')
-        valores.append(comentario)
+        valores.append(encomenda.comentario)
 
-    if status is not None:
+    if encomenda.status is not None:
         consulta_valores.append('status = ?')
-        valores.append(status)
+        valores.append(encomenda.status)
 
     sql = f'''  
     UPDATE encomendas

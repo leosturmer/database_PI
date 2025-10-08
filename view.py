@@ -347,7 +347,6 @@ class TelaEncomendas(Screen):
         self.texto_static_produto = '\nInformações do produto:\n'
         self.texto_static_encomenda = 'Aqui vão as informações da encomenda'
         self.texto_static_alteracao = 'Selecione uma encomenda para ver as informações'
-        # self.LISTA_DE_ENCOMENDAS = []
         self.ENCOMENDA_ALTERACAO = []
 
     def on_mount(self):
@@ -355,9 +354,7 @@ class TelaEncomendas(Screen):
         tabela.border_title = "Encomendas"
         tabela.cursor_type = 'row'
         tabela.zebra_stripes = True
-        
 
-        
         tabela.add_columns('ID encomenda', 'Produtos',
                            'Prazo', 'Comentario', 'Status')
         self.atualizar_tabela_encomendas()
@@ -432,13 +429,27 @@ class TelaEncomendas(Screen):
                 with HorizontalGroup():
                     yield Static(self.texto_static_alteracao, id="static_alteracao_encomenda")
                     yield Button('Preencher dados', id='bt_preencher_dados')
-                    
-                yield Label('Produtos: ')
 
-                yield Input('quantidade')
-                yield Label('prazo')
-                yield Label('status')
-                yield Label('comentario')
+                with VerticalGroup():
+                    with HorizontalGroup():
+                        yield Label('Prazo de entrega')
+                        yield MaskedInput(template='00/00/0000', placeholder='DD/MM/AAAA', id="prazo_alterado")
+
+                        yield Label('Status da encomenda')
+                        yield Select([('Em produção', 1),
+                                        ('Finalizada', 2),
+                                        ('Vendida', 3),
+                                        ('Cancelada', 4)],
+                                        type_to_search=True,
+                                        id='select_status_alterado',
+                                        allow_blank=False
+                                        )
+
+                    with HorizontalGroup():
+                        yield Label("Comentários")
+                        yield TextArea(
+                            placeholder='Detalhes da encomenda, dos produtos, da entrega, quem comprou, entre outros',
+                            id='text_comentario_alterado')
 
                 with HorizontalGroup(id='bt_tela_encomendas'):
                     yield Button("Alterar", id='bt_alterar', disabled=True)
@@ -500,11 +511,7 @@ class TelaEncomendas(Screen):
         if comentario == None:
             comentario = ''
 
-        novo_texto = f'''Encomenda: ID {id_encomenda}\n\n
-        Produtos: {produtos}
-        Prazo: {prazo} 
-        Status: {status}
-        Comentários: {comentario}'''
+        novo_texto = f'''Encomenda: ID {id_encomenda}\n\nProdutos: {produtos}\nPrazo: {prazo}\nStatus: {status}\nComentários: {comentario}'''
 
         static.update(novo_texto)
 
@@ -526,14 +533,18 @@ class TelaEncomendas(Screen):
         self.query_one('#static_encomenda', Static).update(
             self.texto_static_encomenda)
 
+    def limpar_inputs_alteracao(self):
+        pass 
     def atualizar_tabela_encomendas(self):
         tabela = self.query_one("#tabela_encomendas", DataTable)
 
         dados_encomendas = controller.listar_encomendas()
-        
+
         for id_encomenda, detalhes in dados_encomendas.items():
             nome_produtos = [''.join([f'{nome}, ({quantidade}) | '])
                              for nome, quantidade in detalhes['produtos']]
+            
+            status = detalhes['status']
 
             if detalhes['status'] == 1:
                 status = 'Em produção'
@@ -548,11 +559,47 @@ class TelaEncomendas(Screen):
                 tabela.add_row(id_encomenda, ''.join(nome_produtos),
                                detalhes['prazo'], detalhes['comentario'], status)
 
+    def preencher_alteracoes_encomenda(self):
+
+        novo_prazo = self.query_one("#prazo_alterado", MaskedInput)
+        novo_status = self.query_one("#select_status_alterado", Select)
+        novo_comentario = self.query_one("#text_comentario_alterado", TextArea)
+
+        _id_encomenda, _produtos, prazo, comentario, status = self.ENCOMENDA_ALTERACAO
+        
+        comentario = str(comentario)
+
+        if status == 'Em produção':
+            status = 1
+        elif status == 'Finalizada':
+            status = 2
+        elif status == 'Vendida':
+            status = 3
+        elif status == 'Cancelada':
+            status = 4
+
+        if comentario == 'None':
+            comentario = ''
+
+        novo_prazo.value = prazo
+        novo_status.value = status
+        novo_comentario.text = comentario
+
+    def update_encomenda(self):
+        id_encomenda = self.ENCOMENDA_ALTERACAO[0]
+        novo_prazo = self.query_one("#prazo_alterado", MaskedInput).value
+        novo_status = self.query_one("#select_status_alterado", Select).value
+        novo_comentario = self.query_one("#text_comentario_alterado", TextArea).text
+
+        controller.update_encomendas(id_encomenda, prazo=novo_prazo, status=novo_status, comentario=novo_comentario)
+
     @on(DataTable.RowSelected)
     async def on_row_selected(self, event: DataTable.RowSelected):
         encomenda = self.query_one('#tabela_encomendas', DataTable)
         self.ENCOMENDA_ALTERACAO = encomenda.get_row(event.row_key)
         self.atualizar_static_alteracao()
+        self.query_one("#bt_alterar", Button).disabled = False
+
 
     @on(Select.Changed)
     async def on_select(self, event: Select.Changed):
@@ -563,7 +610,6 @@ class TelaEncomendas(Screen):
 
             case 'select_id_encomenda':
                 self.atualizar_static_alteracao()
-
 
     @on(Input.Changed)
     async def on_input(self, event: Input.Changed):
@@ -615,8 +661,16 @@ class TelaEncomendas(Screen):
                     self.notify('Encomenda cadastrada com sucesso!')
                     self.PRODUTOS_QUANTIDADE.clear()
                     self.limpar_inputs()
-                    # self.atualizar_select_encomendas()
                     self.atualizar_tabela_encomendas()
+
+            case 'bt_preencher_dados':
+                try:
+                    self.preencher_alteracoes_encomenda()
+                except:
+                    self.notify("Ops! Você precisa selecionar uma encomenda")
+
+            case 'bt_alterar':
+                self.update_encomenda()
 
             case 'bt_limpar':
                 self.limpar_inputs()

@@ -38,7 +38,7 @@ Horizontal {
 #select_produtos {
 }
 
-#select_status_tabela, #select_status_cadastro {
+#select_status_tabela, #select_status_cadastro, #select_status_alterado {
     width: 40;
 }
 
@@ -55,7 +55,7 @@ Horizontal {
     # height: ;
 }
 
-#text_comentario {
+#text_comentario, #text_comentario_alterado {
     height: 10;
     margin: 1;
 }

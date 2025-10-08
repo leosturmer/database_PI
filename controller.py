@@ -65,3 +65,9 @@ def select_encomenda_status(status):
 
 def select_encomenda_id(id_encomenda: int):
     return model.select_encomenda_id(model.Encomenda(id_encomenda))
+
+def update_encomendas(id_encomenda, prazo=None, comentario=None, status=None):
+    encomenda = model.Encomenda(id_encomenda, prazo, comentario, status)
+    model.update_encomendas(id_encomenda, encomenda)
+
+    return encomenda
