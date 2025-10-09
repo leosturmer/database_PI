@@ -332,10 +332,6 @@ class TelaProdutos(Screen):
 
 class TelaEncomendas(Screen):
 
-    class Mensagem(Message):
-        def __init__(self):
-            super().__init__()
-
     TITLE = 'Encomendas'
 
     def __init__(self, name=None, id=None, classes=None):
@@ -358,8 +354,6 @@ class TelaEncomendas(Screen):
         tabela.add_columns('ID encomenda', 'Produtos',
                            'Prazo', 'Comentario', 'Status')
         self.atualizar_tabela_encomendas()
-
-        # self.atualizar_select_encomendas()
 
     def compose(self) -> ComposeResult:
         yield Header(show_clock=True)
@@ -564,6 +558,13 @@ class TelaEncomendas(Screen):
             if id_encomenda not in tabela.rows:
                 tabela.add_row(id_encomenda, ''.join(nome_produtos),
                                detalhes['prazo'], detalhes['comentario'], status)
+                
+    def resetar_tabela_encomendas(self):
+        tabela = self.query_one("#tabela_encomendas", DataTable)
+
+        tabela.clear()
+
+        self.atualizar_tabela_encomendas()
 
     def preencher_alteracoes_encomenda(self):
         novo_prazo = self.query_one("#prazo_alterado", MaskedInput)
@@ -675,6 +676,7 @@ class TelaEncomendas(Screen):
                     self.PRODUTOS_QUANTIDADE.clear()
                     self.limpar_inputs()
                     self.atualizar_tabela_encomendas()
+                    # self.resetar_tabela_encomendas()
 
             case 'bt_preencher_dados':
                 try:
@@ -684,14 +686,15 @@ class TelaEncomendas(Screen):
 
             case 'bt_alterar':
                 self.update_encomenda()
+                self.resetar_tabela_encomendas()
                 self.limpar_inputs_alteracao()
 
             case 'bt_deletar':
                 self.deletar_encomenda() 
+                self.resetar_tabela_encomendas()
 
             case 'bt_limpar':
                 self.limpar_inputs()
-
 
 class TelaVendas(Screen):
     TITLE = 'Vendas'
