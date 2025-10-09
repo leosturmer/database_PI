@@ -437,13 +437,13 @@ class TelaEncomendas(Screen):
 
                         yield Label('Status da encomenda')
                         yield Select([('Em produção', 1),
-                                        ('Finalizada', 2),
-                                        ('Vendida', 3),
-                                        ('Cancelada', 4)],
-                                        type_to_search=True,
-                                        id='select_status_alterado',
-                                        allow_blank=False
-                                        )
+                                      ('Finalizada', 2),
+                                      ('Vendida', 3),
+                                      ('Cancelada', 4)],
+                                     type_to_search=True,
+                                     id='select_status_alterado',
+                                     allow_blank=False
+                                     )
 
                     with HorizontalGroup():
                         yield Label("Comentários")
@@ -534,7 +534,13 @@ class TelaEncomendas(Screen):
             self.texto_static_encomenda)
 
     def limpar_inputs_alteracao(self):
-        pass 
+        self.query_one("#prazo_alterado", MaskedInput).clear()
+        self.query_one("#select_status_alterado", Select).value = 1
+        self.query_one("#text_comentario_alterado", TextArea).clear()
+        self.query_one("#static_alteracao_encomenda", Static).update(
+            self.texto_static_encomenda)
+        self.query_one("#bt_alterar", Button).disabled = True
+
     def atualizar_tabela_encomendas(self):
         tabela = self.query_one("#tabela_encomendas", DataTable)
 
@@ -543,7 +549,7 @@ class TelaEncomendas(Screen):
         for id_encomenda, detalhes in dados_encomendas.items():
             nome_produtos = [''.join([f'{nome}, ({quantidade}) | '])
                              for nome, quantidade in detalhes['produtos']]
-            
+
             status = detalhes['status']
 
             if detalhes['status'] == 1:
@@ -560,13 +566,11 @@ class TelaEncomendas(Screen):
                                detalhes['prazo'], detalhes['comentario'], status)
 
     def preencher_alteracoes_encomenda(self):
-
         novo_prazo = self.query_one("#prazo_alterado", MaskedInput)
         novo_status = self.query_one("#select_status_alterado", Select)
         novo_comentario = self.query_one("#text_comentario_alterado", TextArea)
 
         _id_encomenda, _produtos, prazo, comentario, status = self.ENCOMENDA_ALTERACAO
-        
         comentario = str(comentario)
 
         if status == 'Em produção':
@@ -587,11 +591,19 @@ class TelaEncomendas(Screen):
 
     def update_encomenda(self):
         id_encomenda = self.ENCOMENDA_ALTERACAO[0]
-        novo_prazo = self.query_one("#prazo_alterado", MaskedInput).value
-        novo_status = self.query_one("#select_status_alterado", Select).value
-        novo_comentario = self.query_one("#text_comentario_alterado", TextArea).text
 
-        controller.update_encomendas(id_encomenda, prazo=novo_prazo, status=novo_status, comentario=novo_comentario)
+        prazo = self.query_one("#prazo_alterado", MaskedInput).value
+        status = self.query_one("#select_status_alterado", Select).value
+        comentario = self.query_one("#text_comentario_alterado", TextArea).text
+
+        controller.update_encomendas(
+            id_encomenda=id_encomenda, prazo=prazo, comentario=comentario, status=status)
+
+    def deletar_encomenda(self):
+        id_encomenda = self.ENCOMENDA_ALTERACAO[0]
+        controller.delete_encomenda(id_encomenda)
+        self.notify(f'Encomenda ID {id_encomenda} deletada com sucesso!', severity='error')
+
 
     @on(DataTable.RowSelected)
     async def on_row_selected(self, event: DataTable.RowSelected):
@@ -599,6 +611,7 @@ class TelaEncomendas(Screen):
         self.ENCOMENDA_ALTERACAO = encomenda.get_row(event.row_key)
         self.atualizar_static_alteracao()
         self.query_one("#bt_alterar", Button).disabled = False
+        self.query_one("#bt_deletar", Button).disabled = False
 
 
     @on(Select.Changed)
@@ -671,6 +684,10 @@ class TelaEncomendas(Screen):
 
             case 'bt_alterar':
                 self.update_encomenda()
+                self.limpar_inputs_alteracao()
+
+            case 'bt_deletar':
+                self.deletar_encomenda() 
 
             case 'bt_limpar':
                 self.limpar_inputs()

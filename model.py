@@ -901,6 +901,10 @@ def update_encomendas(id_encomenda, encomenda:Encomenda):
     consulta_valores = []
     valores = []
 
+    if encomenda.status is not None:
+        consulta_valores.append('status = ?')
+        valores.append(encomenda.status)
+
     if encomenda.prazo is not None:
         consulta_valores.append('prazo = ?')
         valores.append(encomenda.prazo)
@@ -909,9 +913,6 @@ def update_encomendas(id_encomenda, encomenda:Encomenda):
         consulta_valores.append('comentario = ?')
         valores.append(encomenda.comentario)
 
-    if encomenda.status is not None:
-        consulta_valores.append('status = ?')
-        valores.append(encomenda.status)
 
     sql = f'''  
     UPDATE encomendas
