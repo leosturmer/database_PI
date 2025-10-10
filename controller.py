@@ -58,6 +58,10 @@ def listar_encomendas():
 
     return encomendas
 
+def listar_vendas():
+    vendas = model.listar_vendas()
+    return vendas
+
 def select_encomenda_status(status):
     encomendas = model.select_encomenda_status(status)
     
@@ -72,6 +76,23 @@ def update_encomendas(id_encomenda, status, prazo=None, comentario=None):
 
     return encomenda
 
+def update_venda(id_venda, status, prazo=None, comentario=None):
+    venda = model.Venda(status, prazo, comentario)
+    model.update_vendas(id_venda, venda)
+
+    return venda
+
 def delete_encomenda(id_encomenda):
     encomenda = model.delete_encomenda(id_encomenda)
     return encomenda
+
+def delete_venda(id_venda):
+    venda = model.delete_venda(id_venda)
+    return venda
+
+def insert_venda(data, comentario, produtos, status):
+    if comentario == '':
+        comentario = None
+
+    venda = model.Venda(data=data, comentario=comentario, produtos=produtos, status=status)
+    model.insert_venda(venda)

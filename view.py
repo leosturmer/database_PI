@@ -706,19 +706,20 @@ class TelaVendas(Screen):
         self.ID_PRODUTO = int()
         self.PRODUTOS_QUANTIDADE = dict()
         self.texto_static_produto = '\nInformações do produto:\n'
-        self.texto_static_venda = 'Aqui vão as informações da encomenda'
-        self.texto_static_alteracao = 'Selecione uma encomenda para ver as informações'
-        self.ENCOMENDA_ALTERACAO = []
+        self.texto_static_venda = 'Aqui vão as informações da venda'
+        self.texto_static_alteracao = 'Selecione uma venda para ver as informações'
+        self.VENDA_ALTERACAO = []
+        self.VALOR_TOTAL_VENDA = []
 
-    # def on_mount(self):
-    #     tabela = self.query_one("#tabela_encomendas", DataTable)
-    #     tabela.border_title = "Encomendas"
-    #     tabela.cursor_type = 'row'
-    #     tabela.zebra_stripes = True
+    def on_mount(self):
+        tabela = self.query_one("#tabela_vendas", DataTable)
+        tabela.border_title = "Vendas"
+        tabela.cursor_type = 'row'
+        tabela.zebra_stripes = True
 
-    #     tabela.add_columns('ID encomenda', 'Produtos',
-    #                        'Prazo', 'Comentario', 'Status')
-    #     self.atualizar_tabela_encomendas()
+        tabela.add_columns('ID venda', 'Produtos',
+                           'Prazo', 'Comentario', 'Status') ########### ATUALIZAR ESSES AQUIIIII
+        self.atualizar_tabela_vendas()
 
     def compose(self) -> ComposeResult:
         yield Header(show_clock=True)
@@ -734,7 +735,7 @@ class TelaVendas(Screen):
                                 with HorizontalGroup():
                                     yield Select(self.LISTA_DE_PRODUTOS,
                                                  type_to_search=True,
-                                                 id='select_produtos',
+                                                 id='select_produtos_venda',
                                                  allow_blank=True,
                                                  prompt='Selecione o produto para adicionar à venda'
                                                  )
@@ -743,7 +744,7 @@ class TelaVendas(Screen):
 
                                 with HorizontalGroup():
                                     yield Input(placeholder='Quantidade vendida...',
-                                                id='quantidade_vendida',
+                                                id='quantidade_venda',
                                                 max_length=3,
                                                 type="integer"
                                                 )
@@ -759,8 +760,9 @@ class TelaVendas(Screen):
 
                             yield Label('Status da venda[red]*[/red]')
                             yield Select([('Em andamento', 1),
-                                          ('Finalizada', 2),
-                                          ('Cancelada', 3)],
+                                          ('Aguardando pagamento', 2),
+                                          ('Finalizada', 3),
+                                          ('Cancelada', 4)],
                                          type_to_search=True,
                                          id='select_status_venda',
                                          allow_blank=False
@@ -780,7 +782,7 @@ class TelaVendas(Screen):
             with TabPane('Atualizar venda', id='tab_atualizar_venda'):
                 with Collapsible(title='Expandir tabela de venda'):
                     with VerticalScroll():
-                        yield DataTable(id='tabela_venda')
+                        yield DataTable(id='tabela_vendas')
 
                 yield Rule(orientation='horizontal', line_style='solid')
 
@@ -795,8 +797,9 @@ class TelaVendas(Screen):
 
                         yield Label('Status da venda')
                         yield Select([('Em andamento', 1),
-                                          ('Finalizada', 2),
-                                          ('Cancelada', 3)],
+                                          ('Aguardando pagamento', 2),
+                                          ('Finalizada', 3),
+                                          ('Cancelada', 4)],
                                          type_to_search=True,
                                          id='select_status_venda_alterada',
                                          allow_blank=False
@@ -812,6 +815,262 @@ class TelaVendas(Screen):
                     yield Button("Alterar", id='bt_alterar', disabled=True)
                     yield Button('Deletar', id='bt_deletar', disabled=True)
                     yield Button('Voltar', id='bt_voltar')
+
+
+    def atualizar_select_produtos(self):
+        self.LISTA_DE_PRODUTOS = controller.listar_produtos()
+
+        self.query_one("#select_produtos_venda", Select).set_options(
+            self.LISTA_DE_PRODUTOS)
+
+        return self.LISTA_DE_PRODUTOS
+
+    def atualizar_static_produto(self):
+        try:
+            id_produto = self.query_one("#select_produtos_venda", Select).value
+
+            static = self.query_one("#static_produto", Static)
+
+            id_produto, nome, quantidade, valor_unitario, valor_custo, aceita_encomenda, descricao, imagem = controller.select_produto_id(
+                id_produto)
+
+            novo_texto = f'''
+            Informações do produto: ID {id_produto}
+            Produto selecionado: {nome}   |   Quantidade em estoque: {quantidade} 
+            Valor unitário: {valor_unitario}
+                '''
+
+            static.update(novo_texto)
+        except:
+            pass
+
+    def atualizar_static_venda(self):
+
+        novo_texto = 'Venda: \n\n'
+
+        try:
+            static = self.query_one('#static_venda', Static)
+
+            for item in self.PRODUTOS_QUANTIDADE.items():
+                id_produto, quantidade = item
+
+                _id_produto, nome, _quantidade, valor_unitario, _valor_custo, _aceita_encomenda, _descricao, _imagem = controller.select_produto_id(
+                    id_produto)
+
+                valor_produtos = (valor_unitario * int(quantidade))
+
+
+                novo_texto += f'Produto: {nome} | Quantidade: {quantidade} | Valor unitário: {valor_unitario} | Valor total: {valor_produtos}\n'
+
+           
+            self.VALOR_TOTAL_VENDA.append(valor_produtos)
+            valor_total = sum(self.VALOR_TOTAL_VENDA)
+
+
+            static.update(f'{novo_texto} \n Total da venda: {valor_total}')
+
+        except:
+            pass
+
+    def atualizar_static_alteracao(self):
+        static = self.query_one('#static_alteracao_venda', Static)
+        novo_texto = f''''''
+
+        id_encomenda, produtos, prazo, comentario, status = self.VENDA_ALTERACAO
+
+        if comentario == None:
+            comentario = ''
+
+        novo_texto = f'''Venda: ID {id_encomenda}\n\nProdutos: {produtos}\nPrazo: {prazo}\nStatus: {status}\nComentários: {comentario}'''
+            ################# TEM QUE IR VALOR UNITÁRIO E VALOR FINAL
+        static.update(novo_texto)
+
+    def adicionar_dicionario_venda(self):
+        id_produto = self.query_one("#select_produtos_venda", Select).selection
+        quantidade_vendida = self.query_one(
+            "#quantidade_venda", Input).value
+
+        self.PRODUTOS_QUANTIDADE[id_produto] = quantidade_vendida
+
+    def limpar_inputs(self):
+        self.query_one("#data_venda", Input).clear()
+        self.query_one("#select_status_venda", Select).value = 1
+        self.query_one("#text_comentario", TextArea).clear()
+        self.query_one("#select_produtos_venda", Select).clear()
+        self.query_one('#quantidade_venda', Input).clear()
+        self.query_one('#static_produto', Static).update(
+            self.texto_static_produto)
+        self.query_one('#static_venda', Static).update(
+            self.texto_static_venda)
+
+    def limpar_inputs_alteracao(self):
+        self.query_one("#data_alterada", MaskedInput).clear()
+        self.query_one("#select_status_venda_alterada", Select).value = 1
+        self.query_one("#text_comentario_alterado", TextArea).clear()
+        self.query_one("#static_alteracao_venda", Static).update(
+            self.texto_static_venda)
+        self.query_one("#bt_alterar", Button).disabled = True
+
+    def atualizar_tabela_vendas(self):
+        tabela = self.query_one("#tabela_vendas", DataTable)
+
+        dados_vendas = controller.listar_vendas()
+
+        for id_encomenda, detalhes in dados_vendas.items():
+            nome_produtos = [''.join([f'{nome}, ({quantidade}), R${valor_unitario} | '])
+                             for nome, quantidade, valor_unitario in detalhes['produtos']]
+
+            status = detalhes['status']
+
+            if detalhes['status'] == 1:
+                status = 'Em produção'
+            elif detalhes['status'] == 2:
+                status = 'Finalizada'
+            elif detalhes['status'] == 3:
+                status = 'Vendida'
+            elif detalhes['status'] == 4:
+                status = 'Cancelada'
+
+            if id_encomenda not in tabela.rows:
+                tabela.add_row(id_encomenda, ''.join(nome_produtos),
+                               detalhes['data'], detalhes['comentario'], status)
+                
+    def resetar_tabela_vendas(self):
+        tabela = self.query_one("#tabela_vendas", DataTable)
+
+        tabela.clear()
+
+        self.atualizar_tabela_vendas()
+
+    def preencher_alteracoes_venda(self):
+        novo_prazo = self.query_one("#data_alterada", MaskedInput)
+        novo_status = self.query_one("#select_status_venda_alterada", Select)
+        novo_comentario = self.query_one("#text_comentario_alterado", TextArea)
+
+        _id_encomenda, _produtos, prazo, comentario, status = self.VENDA_ALTERACAO
+        comentario = str(comentario)
+
+        if status == 'Em produção':
+            status = 1
+        elif status == 'Finalizada':
+            status = 2
+        elif status == 'Vendida':
+            status = 3
+        elif status == 'Cancelada':
+            status = 4
+
+        if comentario == 'None':
+            comentario = ''
+
+        novo_prazo.value = prazo
+        novo_status.value = status
+        novo_comentario.text = comentario
+
+    def update_venda(self):
+        id_venda = self.VENDA_ALTERACAO[0]
+
+        prazo = self.query_one("#data_alterada", MaskedInput).value
+        status = self.query_one("#select_status_venda_alterada", Select).value
+        comentario = self.query_one("#text_comentario_alterado", TextArea).text
+
+        controller.update_venda(
+            id_venda==id_venda, prazo=prazo, comentario=comentario, status=status)
+
+    def delete_venda(self):
+        id_venda = self.VENDA_ALTERACAO[0]
+        controller.delete_venda(id_venda)
+        self.notify(f'Venda ID {id_venda} deletada com sucesso!', severity='error')
+
+
+    @on(DataTable.RowSelected)
+    async def on_row_selected(self, event: DataTable.RowSelected):
+        encomenda = self.query_one('#tabela_vendas', DataTable)
+        self.VENDA_ALTERACAO = encomenda.get_row(event.row_key)
+        self.atualizar_static_alteracao()
+        self.query_one("#bt_alterar", Button).disabled = False
+        self.query_one("#bt_deletar", Button).disabled = False
+
+    @on(Select.Changed)
+    async def on_select(self, event: Select.Changed):
+        match event.select.id:
+            case 'select_produtos_venda':
+                self.ID_PRODUTO = event.select.value
+                self.atualizar_static_produto()
+
+            case 'select_id_venda':
+                self.atualizar_static_alteracao()
+
+    @on(Input.Changed)
+    async def on_input(self, event: Input.Changed):
+        match event.input.id:
+            case 'quantidade_venda':
+                self.query_one("#bt_adicionar_quantidade",
+                               Button).disabled = False
+
+            case 'data_venda':
+                if event.input.value == '':
+                    self.query_one("#bt_cadastrar", Button).disabled = True
+                    self.query_one("#bt_limpar", Button).disabled = True
+                else:
+                    self.query_one("#bt_cadastrar", Button).disabled = False
+                    self.query_one("#bt_limpar", Button).disabled = False
+
+    @on(TextArea.Changed)
+    async def on_textarea(self, event: TextArea.Changed):
+        if event.text_area.id == 'text_comentario':
+            self.query_one("#bt_limpar", Button).disabled = False
+
+    @on(Button.Pressed)
+    async def on_button(self, event: Button.Pressed):
+        match event.button.id:
+            case 'bt_adicionar_quantidade':
+
+                self.adicionar_dicionario_venda()
+                self.atualizar_static_venda()
+
+            case 'bt_voltar':
+                self.app.switch_screen('tela_inicial')
+
+            case 'bt_cadastrar':
+                status = self.query_one(
+                    '#select_status_venda', Select).value
+                data = self.query_one("#data_venda", MaskedInput).value
+                comentario = self.query_one("#text_comentario", TextArea).text
+
+                produtos = self.PRODUTOS_QUANTIDADE
+
+                if produtos == []:
+                    self.notify("Adicione pelo menos um produto!")
+                elif len(data) < 10:
+                    self.notify("Preencha o prazo no formato DD/MM/AAAA")
+                else:
+                    controller.insert_venda(
+                        data=data, comentario=comentario, produtos=produtos, status=status)
+
+                    self.notify('Venda cadastrada com sucesso!')
+                    self.PRODUTOS_QUANTIDADE.clear()
+                    self.limpar_inputs()
+                    self.atualizar_tabela_vendas()
+                    # self.resetar_tabela_encomendas()
+
+            case 'bt_preencher_dados':
+                try:
+                    self.preencher_alteracoes_venda()
+                except:
+                    self.notify("Ops! Você precisa selecionar uma venda")
+
+            case 'bt_alterar':
+                self.update_venda()
+                self.resetar_tabela_vendas()
+                self.limpar_inputs_alteracao()
+
+            case 'bt_deletar':
+                self.deletar_venda() 
+                self.resetar_tabela_vendas()
+
+            case 'bt_limpar':
+                self.limpar_inputs()
+
 
 
 
