@@ -1039,6 +1039,8 @@ class TelaVendas(Screen):
 
                 produtos = self.PRODUTOS_QUANTIDADE
 
+                valor_final = sum(self.VALOR_TOTAL_VENDA)
+
                 if produtos == []:
                     self.notify("Adicione pelo menos um produto!")
                 elif len(data) < 10:

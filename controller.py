@@ -90,9 +90,7 @@ def delete_venda(id_venda):
     venda = model.delete_venda(id_venda)
     return venda
 
-def insert_venda(data, comentario, produtos, status):
-    if comentario == '':
-        comentario = None
+def insert_venda(data, comentario, valor_final, produtos, status):
 
-    venda = model.Venda(data=data, comentario=comentario, produtos=produtos, status=status)
+    venda = model.Venda(data=data, comentario=comentario, valor_final=valor_final, produtos=produtos, status=status)
     model.insert_venda(venda)
