@@ -1071,12 +1071,58 @@ class TelaVendas(Screen):
 class TelaPesquisa(Screen):
     TITLE = 'Pesquisa'
 
+    def __init__(self, name = None, id = None, classes = None):
+        super().__init__(name, id, classes)
+        self.LISTA_DE_PRODUTOS = controller.listar_produtos()
+
+
+    def on_mount(self):
+        tabela_estoque = self.query_one("#tabela_estoque", DataTable)
+        tabela_estoque.border_title = "Produtos"
+        tabela_estoque.cursor_type = 'row'
+        tabela_estoque.zebra_stripes = True
+
+        
+        tabela_estoque.add_columns('ID produto', 'Produto',
+                           'Valor unitario', 'Valor de custo', 'Quantidade disponível', 'Aceita encomenda', 'Descrição')
+        self.atualizar_tabela_estoque()
+    
+        tabela_encomendas = self.query_one("#tabela_encomendas", DataTable)
+        tabela_encomendas.border_title = "Encomendas"
+        tabela_encomendas.cursor_type = 'row'
+        tabela_encomendas.zebra_stripes = True
+
+        tabela_encomendas.add_columns('ID encomenda', 'Produtos',
+                           'Prazo', 'Comentario', 'Status')
+        self.atualizar_tabela_encomendas()
+
+
+        tabela_vendas = self.query_one("#tabela_vendas", DataTable)
+        tabela_vendas.border_title = "Vendas"
+        tabela_vendas.cursor_type = 'row'
+        tabela_vendas.zebra_stripes = True
+
+        tabela_vendas.add_columns('ID venda', 'Produtos',
+                           'Data', 'Comentario', 'Status', 'Valor final')  # ATUALIZAR ESSES AQUIIIII
+        self.atualizar_tabela_vendas()
+
     def compose(self):
         yield Header(show_clock=True)
 
         with TabbedContent(initial='tab_estoque', id='tabbed_pesquisa'):
             with TabPane('Estoque', id='tab_estoque'):
-                pass
+                with VerticalScroll():
+                    yield DataTable(id='tabela_estoque')
+
+            with TabPane('Encomendas', id='tab_encomendas'):
+                with VerticalScroll():
+                    yield DataTable(id='tabela_encomendas')
+
+
+            with TabPane('Vendas', id='tab_vendas'):
+                with VerticalScroll():
+                    yield DataTable(id='tabela_vendas')
+
 
 
 
@@ -1092,6 +1138,62 @@ class TelaPesquisa(Screen):
             case 'bt_voltar':
                 self.app.switch_screen('tela_inicial')
 
+    def atualizar_tabela_estoque(self):
+        tabela = self.query_one("#tabela_estoque", DataTable)
+
+        id_produto, nome, valor_unitario, quantidade, imagem, aceita_encomenda, descricao, valor_custo = controller.listar_produtos()
+
+        if id_produto not in tabela.rows:
+                tabela.add_row(id_produto, nome, valor_unitario, valor_custo, quantidade, aceita_encomenda, descricao)
+
+    def atualizar_tabela_encomendas(self):
+        tabela = self.query_one("#tabela_encomendas", DataTable)
+
+        dados_encomendas = controller.listar_encomendas()
+
+        for id_encomenda, detalhes in dados_encomendas.items():
+            nome_produtos = [''.join([f'{nome}, ({quantidade}) | '])
+                             for nome, quantidade in detalhes['produtos']]
+
+            status = detalhes['status']
+
+            if detalhes['status'] == 1:
+                status = 'Em produção'
+            elif detalhes['status'] == 2:
+                status = 'Finalizada'
+            elif detalhes['status'] == 3:
+                status = 'Vendida'
+            elif detalhes['status'] == 4:
+                status = 'Cancelada'
+
+            if id_encomenda not in tabela.rows:
+                tabela.add_row(id_encomenda, ''.join(nome_produtos),
+                               detalhes['prazo'], detalhes['comentario'], status)
+
+    def atualizar_tabela_vendas(self):
+        tabela = self.query_one("#tabela_vendas", DataTable)
+
+        dados_vendas = controller.listar_vendas()
+
+        for id_encomenda, detalhes in dados_vendas.items():
+            nome_produtos = [''.join([f'{nome}, ({quantidade}), R${valor_unitario} | '])
+                             for nome, quantidade, valor_unitario in detalhes['produtos']]
+
+            status = detalhes['status']
+            valor_final = detalhes['valor_final']
+
+            if detalhes['status'] == 1:
+                status = 'Em produção'
+            elif detalhes['status'] == 2:
+                status = 'Finalizada'
+            elif detalhes['status'] == 3:
+                status = 'Vendida'
+            elif detalhes['status'] == 4:
+                status = 'Cancelada'
+
+            if id_encomenda not in tabela.rows:
+                tabela.add_row(id_encomenda, ''.join(nome_produtos),
+                               detalhes['data'], detalhes['comentario'], status, valor_final)
 
 
 
