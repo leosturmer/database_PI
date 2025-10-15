@@ -599,13 +599,13 @@ def update_vendas(id_venda, venda:Venda):
     consulta_valores = []
     valores = []
 
+    if venda.data is not None:
+        consulta_valores.append('data = ?')
+        valores.append(venda.data)
+
     if venda.status is not None:
         consulta_valores.append('status = ?')
         valores.append(venda.status)
-
-    if venda.data is not None:
-        consulta_valores.append('prazo = ?')
-        valores.append(venda.data)
 
     if venda.comentario is not None:
         consulta_valores.append('comentario = ?')

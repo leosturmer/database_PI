@@ -718,7 +718,7 @@ class TelaVendas(Screen):
         tabela.zebra_stripes = True
 
         tabela.add_columns('ID venda', 'Produtos',
-                           'Prazo', 'Comentario', 'Status') ########### ATUALIZAR ESSES AQUIIIII
+                           'Data', 'Comentario', 'Status', 'Valor final') ########### ATUALIZAR ESSES AQUIIIII
         self.atualizar_tabela_vendas()
 
     def compose(self) -> ComposeResult:
@@ -860,28 +860,28 @@ class TelaVendas(Screen):
                 valor_produtos = (valor_unitario * int(quantidade))
 
 
-                novo_texto += f'Produto: {nome} | Quantidade: {quantidade} | Valor unitário: {valor_unitario} | Valor total: {valor_produtos}\n'
+                novo_texto += f'Produto: {nome} | Quantidade: {quantidade} | Valor unitário: {valor_unitario:.2f} | Valor total: {valor_produtos:.2f}\n'
 
            
             self.VALOR_TOTAL_VENDA.append(valor_produtos)
             valor_total = sum(self.VALOR_TOTAL_VENDA)
 
 
-            static.update(f'{novo_texto} \n Total da venda: {valor_total}')
+            static.update(f'{novo_texto} \n ------------------- Total da venda: {valor_total:.2f}')
 
         except:
             pass
 
     def atualizar_static_alteracao(self):
         static = self.query_one('#static_alteracao_venda', Static)
-        novo_texto = f''''''
+        novo_texto = ''
 
-        id_encomenda, produtos, prazo, comentario, status = self.VENDA_ALTERACAO
+        id_encomenda, produtos, prazo, comentario, status, valor_final = self.VENDA_ALTERACAO
 
         if comentario == None:
             comentario = ''
 
-        novo_texto = f'''Venda: ID {id_encomenda}\n\nProdutos: {produtos}\nPrazo: {prazo}\nStatus: {status}\nComentários: {comentario}'''
+        novo_texto = f'''Venda: ID {id_encomenda}\n\nProdutos: {produtos}\nPrazo: {prazo}\nStatus: {status}\nComentários: {comentario}\nValor total: {valor_final:.2f}'''
             ################# TEM QUE IR VALOR UNITÁRIO E VALOR FINAL
         static.update(novo_texto)
 
@@ -921,6 +921,7 @@ class TelaVendas(Screen):
                              for nome, quantidade, valor_unitario in detalhes['produtos']]
 
             status = detalhes['status']
+            valor_final = detalhes['valor_final']
 
             if detalhes['status'] == 1:
                 status = 'Em produção'
@@ -933,7 +934,7 @@ class TelaVendas(Screen):
 
             if id_encomenda not in tabela.rows:
                 tabela.add_row(id_encomenda, ''.join(nome_produtos),
-                               detalhes['data'], detalhes['comentario'], status)
+                               detalhes['data'], detalhes['comentario'], status, valor_final)
                 
     def resetar_tabela_vendas(self):
         tabela = self.query_one("#tabela_vendas", DataTable)
@@ -969,12 +970,12 @@ class TelaVendas(Screen):
     def update_venda(self):
         id_venda = self.VENDA_ALTERACAO[0]
 
-        prazo = self.query_one("#data_alterada", MaskedInput).value
-        status = self.query_one("#select_status_venda_alterada", Select).value
-        comentario = self.query_one("#text_comentario_alterado", TextArea).text
+        status = self.query_one('#select_status_venda_alterada', Select).value
+        data = self.query_one('#data_alterada', Input).value
+        comentario = self.query_one('#text_comentario_alterado', TextArea).text
 
         controller.update_venda(
-            id_venda==id_venda, prazo=prazo, comentario=comentario, status=status)
+            id_venda=id_venda, data=data, status=status,  comentario=comentario)
 
     def delete_venda(self):
         id_venda = self.VENDA_ALTERACAO[0]
@@ -1041,8 +1042,6 @@ class TelaVendas(Screen):
 
                 valor_final = sum(self.VALOR_TOTAL_VENDA)
 
-                self.notify(f'{produtos}, {valor_final}')
-
                 if produtos == {}:
                     self.notify("Adicione pelo menos um produto!")
                 elif len(data) < 10:
@@ -1055,7 +1054,7 @@ class TelaVendas(Screen):
                     self.PRODUTOS_QUANTIDADE.clear()
                     self.limpar_inputs()
                     self.atualizar_tabela_vendas()
-                    # self.resetar_tabela_encomendas()
+                    self.resetar_tabela_vendas()
 
             case 'bt_preencher_dados':
                 try:
@@ -1069,7 +1068,7 @@ class TelaVendas(Screen):
                 self.limpar_inputs_alteracao()
 
             case 'bt_deletar':
-                self.deletar_venda() 
+                # self.deletar_venda() 
                 self.resetar_tabela_vendas()
 
             case 'bt_limpar':

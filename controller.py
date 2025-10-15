@@ -76,8 +76,8 @@ def update_encomendas(id_encomenda, status, prazo=None, comentario=None):
 
     return encomenda
 
-def update_venda(id_venda, status, prazo=None, comentario=None):
-    venda = model.Venda(status, prazo, comentario)
+def update_venda(id_venda, data=None, status=None, comentario=None):
+    venda = model.Venda(data, status, comentario)
     model.update_vendas(id_venda, venda)
 
     return venda
