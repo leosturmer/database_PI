@@ -1041,13 +1041,15 @@ class TelaVendas(Screen):
 
                 valor_final = sum(self.VALOR_TOTAL_VENDA)
 
-                if produtos == []:
+                self.notify(f'{produtos}, {valor_final}')
+
+                if produtos == {}:
                     self.notify("Adicione pelo menos um produto!")
                 elif len(data) < 10:
                     self.notify("Preencha o prazo no formato DD/MM/AAAA")
                 else:
                     controller.insert_venda(
-                        data=data, comentario=comentario, produtos=produtos, status=status)
+                        data=data, valor_final=valor_final, status=status, comentario=comentario, produtos=produtos)
 
                     self.notify('Venda cadastrada com sucesso!')
                     self.PRODUTOS_QUANTIDADE.clear()

@@ -236,7 +236,7 @@ class Encomenda():
 
 
 class Venda():
-    def __init__(self, data, status, valor_final=0, comentario=None, produtos=[]):
+    def __init__(self, data, status, valor_final=0, comentario=None, produtos={}):
         # import datetime
 
         # data = datetime.date.today()
@@ -567,7 +567,7 @@ def insert_venda(venda:Venda):
 
         produtos_quantidades = list()
         
-        for prod_quant in venda.produtos:
+        for prod_quant in venda.produtos.items():
             produtos_quantidades.append(
                 {
                     'id_venda': id_venda,
