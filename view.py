@@ -18,8 +18,33 @@ from textual.scrollbar import ScrollBar
 from textual.suggester import SuggestFromList
 from textual.events import Mount
 
+# @@@@@@@@ TELAS DO SISTEMA
 
-# @@@@@@@@@@@ CONTAINERS
+
+class TelaInicial(Screen):
+
+    def compose(self):
+        with VerticalGroup(id="grupo_botoes_inicial"):
+            yield Button("Produtos", id="bt_produtos", classes="botoes_inicial", variant="primary")
+            yield Button("Encomendas", id="bt_encomendas", classes="botoes_inicial", variant="success")
+            yield Button("Vendas", id="bt_vendas", classes="botoes_inicial", variant="warning")
+            yield Button("Pesquisar", id="bt_pesquisa", classes="botoes_inicial", variant='error')
+            yield Button("Sair", id="bt_sair", classes="botoes_inicial")
+
+    def on_button_pressed(self, event: Button.Pressed):
+        match event.button.id:
+            case "bt_produtos":
+                self.app.switch_screen("tela_produtos")
+            case "bt_encomendas":
+                self.app.switch_screen("tela_encomendas")
+            case "bt_vendas":
+                self.app.switch_screen("tela_vendas")
+            case "bt_pesquisa":
+                self.app.switch_screen("tela_pesquisa")
+
+            case "bt_sair":
+                self.app.exit()
+
 
 class ContainerProdutos(ScrollableContainer):
     def compose(self):
@@ -73,35 +98,6 @@ class ContainerProdutos(ScrollableContainer):
             yield TextArea(
                 placeholder='Descrição',
                 id='text_descricao')
-
-# @@@@@@@@ TELAS DO SISTEMA
-
-
-class TelaInicial(Screen):
-
-    def compose(self):
-        with VerticalGroup(id="grupo_botoes_inicial"):
-            yield Button("Produtos", id="bt_produtos", classes="botoes_inicial", variant="primary")
-            yield Button("Encomendas", id="bt_encomendas", classes="botoes_inicial", variant="success")
-            yield Button("Vendas", id="bt_vendas", classes="botoes_inicial", variant="warning")
-            yield Button("Pesquisar", id="bt_pesquisa", classes="botoes_inicial", variant='error')
-            yield Button("Estoque", classes="botoes_inicial", id="bt_estoque")
-            yield Button("Sair", id="bt_sair", classes="botoes_inicial")
-
-    def on_button_pressed(self, event: Button.Pressed):
-        match event.button.id:
-            case "bt_produtos":
-                self.app.switch_screen("tela_produtos")
-            case "bt_encomendas":
-                self.app.switch_screen("tela_encomendas")
-            case "bt_vendas":
-                self.app.switch_screen("tela_vendas")
-            case "bt_pesquisa":
-                self.app.switch_screen("tela_pesquisa")
-            case "bt_estoque":
-                self.app.switch_screen("tela_estoque")
-            case "bt_sair":
-                self.app.exit()
 
 
 class TelaProdutos(Screen):
@@ -558,7 +554,7 @@ class TelaEncomendas(Screen):
             if id_encomenda not in tabela.rows:
                 tabela.add_row(id_encomenda, ''.join(nome_produtos),
                                detalhes['prazo'], detalhes['comentario'], status)
-                
+
     def resetar_tabela_encomendas(self):
         tabela = self.query_one("#tabela_encomendas", DataTable)
 
@@ -603,8 +599,8 @@ class TelaEncomendas(Screen):
     def deletar_encomenda(self):
         id_encomenda = self.ENCOMENDA_ALTERACAO[0]
         controller.delete_encomenda(id_encomenda)
-        self.notify(f'Encomenda ID {id_encomenda} deletada com sucesso!', severity='error')
-
+        self.notify(
+            f'Encomenda ID {id_encomenda} deletada com sucesso!', severity='error')
 
     @on(DataTable.RowSelected)
     async def on_row_selected(self, event: DataTable.RowSelected):
@@ -613,7 +609,6 @@ class TelaEncomendas(Screen):
         self.atualizar_static_alteracao()
         self.query_one("#bt_alterar", Button).disabled = False
         self.query_one("#bt_deletar", Button).disabled = False
-
 
     @on(Select.Changed)
     async def on_select(self, event: Select.Changed):
@@ -690,11 +685,12 @@ class TelaEncomendas(Screen):
                 self.limpar_inputs_alteracao()
 
             case 'bt_deletar':
-                self.deletar_encomenda() 
+                self.deletar_encomenda()
                 self.resetar_tabela_encomendas()
 
             case 'bt_limpar':
                 self.limpar_inputs()
+
 
 class TelaVendas(Screen):
     TITLE = 'Vendas'
@@ -718,7 +714,7 @@ class TelaVendas(Screen):
         tabela.zebra_stripes = True
 
         tabela.add_columns('ID venda', 'Produtos',
-                           'Data', 'Comentario', 'Status', 'Valor final') ########### ATUALIZAR ESSES AQUIIIII
+                           'Data', 'Comentario', 'Status', 'Valor final')  # ATUALIZAR ESSES AQUIIIII
         self.atualizar_tabela_vendas()
 
     def compose(self) -> ComposeResult:
@@ -797,12 +793,12 @@ class TelaVendas(Screen):
 
                         yield Label('Status da venda')
                         yield Select([('Em andamento', 1),
-                                          ('Aguardando pagamento', 2),
-                                          ('Finalizada', 3),
-                                          ('Cancelada', 4)],
-                                         type_to_search=True,
-                                         id='select_status_venda_alterada',
-                                         allow_blank=False
+                                      ('Aguardando pagamento', 2),
+                                      ('Finalizada', 3),
+                                      ('Cancelada', 4)],
+                                     type_to_search=True,
+                                     id='select_status_venda_alterada',
+                                     allow_blank=False
                                      )
 
                     with HorizontalGroup():
@@ -815,7 +811,6 @@ class TelaVendas(Screen):
                     yield Button("Alterar", id='bt_alterar', disabled=True)
                     yield Button('Deletar', id='bt_deletar', disabled=True)
                     yield Button('Voltar', id='bt_voltar')
-
 
     def atualizar_select_produtos(self):
         self.LISTA_DE_PRODUTOS = controller.listar_produtos()
@@ -859,15 +854,13 @@ class TelaVendas(Screen):
 
                 valor_produtos = (valor_unitario * int(quantidade))
 
-
                 novo_texto += f'Produto: {nome} | Quantidade: {quantidade} | Valor unitário: {valor_unitario:.2f} | Valor total: {valor_produtos:.2f}\n'
 
-           
             self.VALOR_TOTAL_VENDA.append(valor_produtos)
             valor_total = sum(self.VALOR_TOTAL_VENDA)
 
-
-            static.update(f'{novo_texto} \n ------------------- Total da venda: {valor_total:.2f}')
+            static.update(
+                f'{novo_texto} \n ------------------- Total da venda: {valor_total:.2f}')
 
         except:
             pass
@@ -882,7 +875,7 @@ class TelaVendas(Screen):
             comentario = ''
 
         novo_texto = f'''Venda: ID {id_encomenda}\n\nProdutos: {produtos}\nPrazo: {prazo}\nStatus: {status}\nComentários: {comentario}\nValor total: {valor_final:.2f}'''
-            ################# TEM QUE IR VALOR UNITÁRIO E VALOR FINAL
+        # TEM QUE IR VALOR UNITÁRIO E VALOR FINAL
         static.update(novo_texto)
 
     def adicionar_dicionario_venda(self):
@@ -935,7 +928,7 @@ class TelaVendas(Screen):
             if id_encomenda not in tabela.rows:
                 tabela.add_row(id_encomenda, ''.join(nome_produtos),
                                detalhes['data'], detalhes['comentario'], status, valor_final)
-                
+
     def resetar_tabela_vendas(self):
         tabela = self.query_one("#tabela_vendas", DataTable)
 
@@ -980,8 +973,8 @@ class TelaVendas(Screen):
     def delete_venda(self):
         id_venda = self.VENDA_ALTERACAO[0]
         controller.delete_venda(id_venda)
-        self.notify(f'Venda ID {id_venda} deletada com sucesso!', severity='error')
-
+        self.notify(
+            f'Venda ID {id_venda} deletada com sucesso!', severity='error')
 
     @on(DataTable.RowSelected)
     async def on_row_selected(self, event: DataTable.RowSelected):
@@ -1068,31 +1061,37 @@ class TelaVendas(Screen):
                 self.limpar_inputs_alteracao()
 
             case 'bt_deletar':
-                # self.deletar_venda() 
+                self.delete_venda()
                 self.resetar_tabela_vendas()
 
             case 'bt_limpar':
                 self.limpar_inputs()
 
 
-
-
 class TelaPesquisa(Screen):
     TITLE = 'Pesquisa'
 
-    pass
-
-
-class TelaEstoque(Screen):
-    TITLE = 'Estoque'
-
-    ROWS = [
-        ('id_produto', 'nome', 'valor_unitario', 'quantidade',
-         'imagem', 'aceita_encomenda', 'descricao', 'valor_custo')
-    ]
-
     def compose(self):
+        yield Header(show_clock=True)
 
-        yield Header()
+        with TabbedContent(initial='tab_estoque', id='tabbed_pesquisa'):
+            with TabPane('Estoque', id='tab_estoque'):
+                pass
 
-        yield DataTable()
+
+
+
+        yield Button('Voltar', id='bt_voltar')
+    
+    
+    
+    
+    @on(Button.Pressed)
+    async def on_button(self, event: Button.Pressed):
+        match event.button.id:
+            case 'bt_voltar':
+                self.app.switch_screen('tela_inicial')
+
+
+
+

@@ -46,7 +46,7 @@ Horizontal {
     width: 100;
 }
 
-#static_encomenda, #static_alteracao_encomenda {
+#static_encomenda, #static_alteracao_encomenda, #static_produto, #static_venda, #static_alteracao_venda {
     text-align: center;
     content-align: center middle;
     border: white;
@@ -55,38 +55,12 @@ Horizontal {
     # height: ;
 }
 
+
 #text_comentario, #text_comentario_alterado {
     height: 10;
     margin: 1;
 }
 
-YesOrNo {
-    align: center middle;
-}
-
-YesOrNo > Container {
-    width: auto;
-    height: 30%;
-    align: center middle;
-    padding: 1 2;
-    background: $panel;
-}
-
-YesOrNo > Container > Label {
-    width: 100%;
-    content-align-horizontal: center;
-    border: blank;
-}
-
-YesOrNo > Container > Horizontal {
-    height: auto;
-    width: auto;
-}
-
-YesOrNo > Container > Horizontal > Button {
-    margin-right: 2;
-    margin-top: 1;
-}
 
 Static {
 }
