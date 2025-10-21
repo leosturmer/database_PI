@@ -24,12 +24,16 @@ from textual.events import Mount
 class TelaInicial(Screen):
 
     def compose(self):
+        yield Header()
+
         with VerticalGroup(id="grupo_botoes_inicial"):
             yield Button("Produtos", id="bt_produtos", classes="botoes_inicial", variant="primary")
             yield Button("Encomendas", id="bt_encomendas", classes="botoes_inicial", variant="success")
             yield Button("Vendas", id="bt_vendas", classes="botoes_inicial", variant="warning")
             yield Button("Pesquisar", id="bt_pesquisa", classes="botoes_inicial", variant='error')
             yield Button("Sair", id="bt_sair", classes="botoes_inicial")
+
+        yield Footer()
 
     def on_button_pressed(self, event: Button.Pressed):
         match event.button.id:
