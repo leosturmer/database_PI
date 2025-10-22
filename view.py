@@ -30,7 +30,7 @@ class TelaInicial(Screen):
             yield Button("Produtos", id="bt_produtos", classes="botoes_inicial", variant="primary")
             yield Button("Encomendas", id="bt_encomendas", classes="botoes_inicial", variant="success")
             yield Button("Vendas", id="bt_vendas", classes="botoes_inicial", variant="warning")
-            # yield Button("Pesquisar", id="bt_pesquisa", classes="botoes_inicial", variant='error')
+            yield Button("Relatórios", id="bt_pesquisa", classes="botoes_inicial", variant='error')
             yield Button("Sair", id="bt_sair", classes="botoes_inicial")
 
         yield Footer()
@@ -1072,132 +1072,126 @@ class TelaVendas(Screen):
                 self.limpar_inputs()
 
 
-class TelaPesquisa(Screen):
+class TelaRelatorios(Screen):
     TITLE = 'Pesquisa'
 
-    def __init__(self, name = None, id = None, classes = None):
-        super().__init__(name, id, classes)
-        self.LISTA_DE_PRODUTOS = controller.listar_produtos()
+    # def __init__(self, name = None, id = None, classes = None):
+    #     super().__init__(name, id, classes)
+    #     self.LISTA_DE_PRODUTOS = controller.listar_produtos()
 
+    # def on_mount(self):
+    #     tabela_estoque = self.query_one("#tabela_estoque", DataTable)
+    #     tabela_estoque.border_title = "Produtos"
+    #     tabela_estoque.cursor_type = 'row'
+    #     tabela_estoque.zebra_stripes = True
 
-    def on_mount(self):
-        tabela_estoque = self.query_one("#tabela_estoque", DataTable)
-        tabela_estoque.border_title = "Produtos"
-        tabela_estoque.cursor_type = 'row'
-        tabela_estoque.zebra_stripes = True
+    #     tabela_estoque.add_columns('ID produto', 'Produto',
+    #                        'Valor unitario', 'Valor de custo', 'Quantidade disponível', 'Aceita encomenda', 'Descrição')
+    #     self.atualizar_tabela_estoque()
 
-        
-        tabela_estoque.add_columns('ID produto', 'Produto',
-                           'Valor unitario', 'Valor de custo', 'Quantidade disponível', 'Aceita encomenda', 'Descrição')
-        self.atualizar_tabela_estoque()
-    
-        tabela_encomendas = self.query_one("#tabela_encomendas", DataTable)
-        tabela_encomendas.border_title = "Encomendas"
-        tabela_encomendas.cursor_type = 'row'
-        tabela_encomendas.zebra_stripes = True
+    #     tabela_encomendas = self.query_one("#tabela_encomendas", DataTable)
+    #     tabela_encomendas.border_title = "Encomendas"
+    #     tabela_encomendas.cursor_type = 'row'
+    #     tabela_encomendas.zebra_stripes = True
 
-        tabela_encomendas.add_columns('ID encomenda', 'Produtos',
-                           'Prazo', 'Comentario', 'Status')
-        self.atualizar_tabela_encomendas()
+    #     tabela_encomendas.add_columns('ID encomenda', 'Produtos',
+    #                        'Prazo', 'Comentario', 'Status')
+    #     self.atualizar_tabela_encomendas()
 
+    #     tabela_vendas = self.query_one("#tabela_vendas", DataTable)
+    #     tabela_vendas.border_title = "Vendas"
+    #     tabela_vendas.cursor_type = 'row'
+    #     tabela_vendas.zebra_stripes = True
 
-        tabela_vendas = self.query_one("#tabela_vendas", DataTable)
-        tabela_vendas.border_title = "Vendas"
-        tabela_vendas.cursor_type = 'row'
-        tabela_vendas.zebra_stripes = True
-
-        tabela_vendas.add_columns('ID venda', 'Produtos',
-                           'Data', 'Comentario', 'Status', 'Valor final')  # ATUALIZAR ESSES AQUIIIII
-        self.atualizar_tabela_vendas()
+    #     tabela_vendas.add_columns('ID venda', 'Produtos',
+    #                        'Data', 'Comentario', 'Status', 'Valor final')  # ATUALIZAR ESSES AQUIIIII
+    #     self.atualizar_tabela_vendas()
 
     def compose(self):
         yield Header(show_clock=True)
 
-        with TabbedContent(initial='tab_estoque', id='tabbed_pesquisa'):
-            with TabPane('Estoque', id='tab_estoque'):
+        with TabbedContent(initial='tab_produtos', id='tabbed_pesquisa'):
+            with TabPane('Produtos', id='tab_produtos'):
                 with VerticalScroll():
-                    yield DataTable(id='tabela_estoque')
+                    yield SelectionList[int](('Todas as encomendas', 1), ('Em andamento', 2), ("Produtos fora de estoque", 3))
+
+                with VerticalScroll():
+                    yield DataTable(id='tabela_produtos')
+
+                with HorizontalGroup():
+                    yield Select(prompt='Filtrar por:', options=[('nome', 1), ("quantidade", 2), ('valor unitário', 3), ('valor de custo', 4), ('aceita encomenda', 5), ('descrição', 6)])
+                    yield Input()
+                    yield Button("Pesquisar", disabled=True)
 
             with TabPane('Encomendas', id='tab_encomendas'):
                 with VerticalScroll():
                     yield DataTable(id='tabela_encomendas')
 
-
             with TabPane('Vendas', id='tab_vendas'):
                 with VerticalScroll():
                     yield DataTable(id='tabela_vendas')
 
-
-
-
-
         yield Button('Voltar', id='bt_voltar')
-    
-    
-    
-    
+
     @on(Button.Pressed)
     async def on_button(self, event: Button.Pressed):
         match event.button.id:
             case 'bt_voltar':
                 self.app.switch_screen('tela_inicial')
 
-    def atualizar_tabela_estoque(self):
-        tabela = self.query_one("#tabela_estoque", DataTable)
+    # def atualizar_tabela_estoque(self):
+    #     tabela = self.query_one("#tabela_estoque", DataTable)
 
-        id_produto, nome, valor_unitario, quantidade, imagem, aceita_encomenda, descricao, valor_custo = controller.listar_produtos()
+    #     id_produto, nome, valor_unitario, quantidade, imagem, aceita_encomenda, descricao, valor_custo = controller.listar_produtos()
 
-        if id_produto not in tabela.rows:
-                tabela.add_row(id_produto, nome, valor_unitario, valor_custo, quantidade, aceita_encomenda, descricao)
+    #     if id_produto not in tabela.rows:
+    #             tabela.add_row(id_produto, nome, valor_unitario, valor_custo, quantidade, aceita_encomenda, descricao)
 
-    def atualizar_tabela_encomendas(self):
-        tabela = self.query_one("#tabela_encomendas", DataTable)
+    # def atualizar_tabela_encomendas(self):
+    #     tabela = self.query_one("#tabela_encomendas", DataTable)
 
-        dados_encomendas = controller.listar_encomendas()
+    #     dados_encomendas = controller.listar_encomendas()
 
-        for id_encomenda, detalhes in dados_encomendas.items():
-            nome_produtos = [''.join([f'{nome}, ({quantidade}) | '])
-                             for nome, quantidade in detalhes['produtos']]
+    #     for id_encomenda, detalhes in dados_encomendas.items():
+    #         nome_produtos = [''.join([f'{nome}, ({quantidade}) | '])
+    #                          for nome, quantidade in detalhes['produtos']]
 
-            status = detalhes['status']
+    #         status = detalhes['status']
 
-            if detalhes['status'] == 1:
-                status = 'Em produção'
-            elif detalhes['status'] == 2:
-                status = 'Finalizada'
-            elif detalhes['status'] == 3:
-                status = 'Vendida'
-            elif detalhes['status'] == 4:
-                status = 'Cancelada'
+    #         if detalhes['status'] == 1:
+    #             status = 'Em produção'
+    #         elif detalhes['status'] == 2:
+    #             status = 'Finalizada'
+    #         elif detalhes['status'] == 3:
+    #             status = 'Vendida'
+    #         elif detalhes['status'] == 4:
+    #             status = 'Cancelada'
 
-            if id_encomenda not in tabela.rows:
-                tabela.add_row(id_encomenda, ''.join(nome_produtos),
-                               detalhes['prazo'], detalhes['comentario'], status)
+    #         if id_encomenda not in tabela.rows:
+    #             tabela.add_row(id_encomenda, ''.join(nome_produtos),
+    #                            detalhes['prazo'], detalhes['comentario'], status)
 
-    def atualizar_tabela_vendas(self):
-        tabela = self.query_one("#tabela_vendas", DataTable)
+    # def atualizar_tabela_vendas(self):
+    #     tabela = self.query_one("#tabela_vendas", DataTable)
 
-        dados_vendas = controller.listar_vendas()
+    #     dados_vendas = controller.listar_vendas()
 
-        for id_encomenda, detalhes in dados_vendas.items():
-            nome_produtos = [''.join([f'{nome}, ({quantidade}), R${valor_unitario} | '])
-                             for nome, quantidade, valor_unitario in detalhes['produtos']]
+    #     for id_encomenda, detalhes in dados_vendas.items():
+    #         nome_produtos = [''.join([f'{nome}, ({quantidade}), R${valor_unitario} | '])
+    #                          for nome, quantidade, valor_unitario in detalhes['produtos']]
 
-            status = detalhes['status']
-            valor_final = detalhes['valor_final']
+    #         status = detalhes['status']
+    #         valor_final = detalhes['valor_final']
 
-            if detalhes['status'] == 1:
-                status = 'Em produção'
-            elif detalhes['status'] == 2:
-                status = 'Finalizada'
-            elif detalhes['status'] == 3:
-                status = 'Vendida'
-            elif detalhes['status'] == 4:
-                status = 'Cancelada'
+    #         if detalhes['status'] == 1:
+    #             status = 'Em produção'
+    #         elif detalhes['status'] == 2:
+    #             status = 'Finalizada'
+    #         elif detalhes['status'] == 3:
+    #             status = 'Vendida'
+    #         elif detalhes['status'] == 4:
+    #             status = 'Cancelada'
 
-            if id_encomenda not in tabela.rows:
-                tabela.add_row(id_encomenda, ''.join(nome_produtos),
-                               detalhes['data'], detalhes['comentario'], status, valor_final)
-
-
-
+    #         if id_encomenda not in tabela.rows:
+    #             tabela.add_row(id_encomenda, ''.join(nome_produtos),
+    #                            detalhes['data'], detalhes['comentario'], status, valor_final)
