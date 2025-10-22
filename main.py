@@ -36,7 +36,7 @@ class NizeApp(App):
         'tela_produtos': TelaProdutos,
         'tela_encomendas': TelaEncomendas,
         'tela_vendas': TelaVendas,
-        'tela_pesquisa': TelaPesquisa
+        # 'tela_pesquisa': TelaPesquisa
     }
 
     def on_mount(self) -> ComposeResult:

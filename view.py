@@ -30,7 +30,7 @@ class TelaInicial(Screen):
             yield Button("Produtos", id="bt_produtos", classes="botoes_inicial", variant="primary")
             yield Button("Encomendas", id="bt_encomendas", classes="botoes_inicial", variant="success")
             yield Button("Vendas", id="bt_vendas", classes="botoes_inicial", variant="warning")
-            yield Button("Pesquisar", id="bt_pesquisa", classes="botoes_inicial", variant='error')
+            # yield Button("Pesquisar", id="bt_pesquisa", classes="botoes_inicial", variant='error')
             yield Button("Sair", id="bt_sair", classes="botoes_inicial")
 
         yield Footer()
