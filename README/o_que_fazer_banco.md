@@ -1,5 +1,10 @@
 #### O que fazer no banco também:
 
+- Ver datas
+- Ver o delete das tabelas do banco
+- Ver para reduzir do estoque quando vender
+- Ver a interface para ficar responsiva
+
 - Arrumar os SQL que não estão funcionando direito (searchs de encomenda e venda)
 
 - Ver como a MODEL e VIEW vão inserir os produtos na venda e encomenda
