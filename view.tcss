@@ -5,6 +5,7 @@ Screen {
 #tela_produtos {
     align: center middle;
     column-span: 4;
+    width: auto;
 }
 
 #grupo_botoes_inicial{

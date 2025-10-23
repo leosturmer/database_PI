@@ -123,15 +123,15 @@ class TelaProdutos(Screen):
             with HorizontalGroup(id='class_select_produtos'):
                 yield Label('Selecione o produto')
                 yield Select(self.LISTA_DE_PRODUTOS,
-                             type_to_search=True,
-                             id='select_produtos',
-                             allow_blank=True,
-                             prompt='Selecione o produto'
-                             )
+                            type_to_search=True,
+                            id='select_produtos',
+                            allow_blank=True,
+                            prompt='Selecione o produto'
+                            )
 
             with HorizontalGroup():
                 yield Static(f"""Informações do produto:
-                                 
+                                
         Selecione o produto para visualizar
                                     
         """, id='stt_info_produto')
@@ -145,6 +145,8 @@ class TelaProdutos(Screen):
                 yield Button('Limpar', id='bt_limpar', disabled=True)
                 yield Button('Deletar', id='bt_deletar', disabled=True)
                 yield Button('Voltar', id='bt_voltar')
+
+            yield Footer()
 
     def pegar_inputs_produtos(self):
         nome = self.query_one("#input_nome", Input)
