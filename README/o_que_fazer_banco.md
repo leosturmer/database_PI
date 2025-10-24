@@ -1,5 +1,7 @@
 #### O que fazer no banco também:
 
+- Fazer tela de login - https://www.youtube.com/watch?v=Y2-c22nCE4E
+- Ver casos de uso 
 - Ver datas
 - Ver o delete das tabelas do banco
 - Ver para reduzir do estoque quando vender

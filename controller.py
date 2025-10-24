@@ -1,10 +1,15 @@
 import model
 
 
-def insert_vendedor(login, senha, nome, nome_loja):
+
+
+def insert_vendedor(login, senha, nome=None, nome_loja=None):
     novo_vendedor = model.Vendedor(login, senha, nome, nome_loja)
 
     model.insert_vendedor(novo_vendedor)
+
+
+
 
 
 def insert_produto(id_produto, nome, valor_unitario, quantidade, imagem, aceita_encomenda, descricao, valor_custo):

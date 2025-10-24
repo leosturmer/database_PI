@@ -512,6 +512,10 @@ def insert_vendedor(login, senha, nome, nome_loja=None):
         conexao.execute(sql, sql_values_vendedor)
 
 
+def select_vendedor(login, senha, nome, nome_loja=None):
+    pass
+
+
 def insert_encomenda(encomenda: Encomenda):
 
     sql_insert_encomenda = '''INSERT INTO encomendas (status, prazo, comentario) 

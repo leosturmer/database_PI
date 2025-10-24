@@ -21,6 +21,103 @@ from textual.events import Mount
 # @@@@@@@@ TELAS DO SISTEMA
 
 
+class TelaLogin(Screen):
+
+    def compose(self):
+        yield Header()
+        yield Label("Faça o seu login")
+        yield Input(placeholder='Login', id="input_login")
+        yield Input(placeholder='Senha', password=True, id="input_senha")
+
+        with HorizontalGroup():
+            yield Label("Mostrar senha?")
+            yield Switch(id="switch_senha")
+
+        with HorizontalGroup():
+            yield Button("Entrar", id="bt_login")
+            yield Button("Sair", id="bt_sair")
+
+        with HorizontalGroup():
+            yield Label("Não tem cadastro?")
+            yield Button("Cadastrar", id="bt_cadastrar")
+
+    @on(Switch.Changed)
+    async def on_switch(self, event: Switch.Changed):
+        mostrar_senha = self.query_one("#switch_senha", Switch).value
+        input_senha = self.query_one("#input_senha", Input)
+
+        if mostrar_senha == True:
+            input_senha.password = False
+        else:
+            input_senha.password = True
+
+    @on(Button.Pressed)
+    async def on_button(self, event: Button.Pressed):
+        match event.button.id:
+            case 'bt_login':
+                login = self.query_one("#input_login", Input).value
+                senha = self.query_one("#input_senha", Input).value
+
+                try:
+                    controller.insert_vendedor(login=login, senha=senha)
+
+                    self.app.switch_screen("tela_inicial")
+                except:
+                    self.notify("Ops!")
+
+            case "bt_sair":
+                self.app.exit()
+
+            case "bt_cadastrar":
+                self.app.switch_screen("tela_cadastro")
+
+
+class TelaCadastro(Screen):
+    def compose(self):
+        with HorizontalGroup():
+            yield Label("Qual o seu nome?*")
+            yield Input(placeholder="Nome*", id="input_nome")
+
+        with HorizontalGroup():
+            yield Label("Digite seu e-mail para login")
+            yield Input(placeholder="Login*", id="input_login")
+
+        with HorizontalGroup():
+            yield Label("Digite uma senha")
+            yield Input(placeholder="Senha*", password=True, max_length=16, id="input_senha")
+
+        with HorizontalGroup():
+            yield Label("Mostrar senha?")
+            yield Switch(id="switch_senha")
+
+        with HorizontalGroup():
+            yield Label("Sua loja tem nome? (opcional)")
+            yield Input(placeholder="Nome da loja", id="input_nome_loja")
+
+        with HorizontalGroup():
+            yield Button("Cadastrar", id="bt_cadastrar")
+            yield Button("Voltar", id="bt_voltar")
+
+    @on(Switch.Changed)
+    async def on_switch(self, event: Switch.Changed):
+        mostrar_senha = self.query_one("#switch_senha", Switch).value
+        input_senha = self.query_one("#input_senha", Input)
+
+        if mostrar_senha == True:
+            input_senha.password = False
+        else:
+            input_senha.password = True
+
+    @on(Button.Pressed)
+    async def on_button(self, event: Button.Pressed):
+        match event.button.id:
+            case 'bt_voltar':
+                self.app.switch_screen('tela_inicial')
+
+            case "bt_cadastrar":
+                self.app.switch_screen("tela_cadastro")
+
+
 class TelaInicial(Screen):
 
     def compose(self):
@@ -123,11 +220,11 @@ class TelaProdutos(Screen):
             with HorizontalGroup(id='class_select_produtos'):
                 yield Label('Selecione o produto')
                 yield Select(self.LISTA_DE_PRODUTOS,
-                            type_to_search=True,
-                            id='select_produtos',
-                            allow_blank=True,
-                            prompt='Selecione o produto'
-                            )
+                             type_to_search=True,
+                             id='select_produtos',
+                             allow_blank=True,
+                             prompt='Selecione o produto'
+                             )
 
             with HorizontalGroup():
                 yield Static(f"""Informações do produto:
@@ -1074,7 +1171,7 @@ class TelaVendas(Screen):
                 self.limpar_inputs()
 
 
-class TelaRelatorios(Screen):
+class TelaPesquisa(Screen):
     TITLE = 'Pesquisa'
 
     # def __init__(self, name = None, id = None, classes = None):

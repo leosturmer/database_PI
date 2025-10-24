@@ -1,5 +1,5 @@
 from view import (TelaProdutos, TelaEncomendas,
-                  TelaInicial, TelaVendas, TelaRelatorios)
+                  TelaInicial, TelaVendas, TelaPesquisa, TelaLogin, TelaCadastro)
 
 from textual.app import (App, ComposeResult)
 from textual.binding import (Binding)
@@ -32,16 +32,18 @@ class NizeApp(App):
     CSS_PATH = 'view.tcss'
 
     SCREENS = {
+        'tela_login': TelaLogin,
+        'tela_cadastro': TelaCadastro,
         'tela_inicial': TelaInicial,
         'tela_produtos': TelaProdutos,
         'tela_encomendas': TelaEncomendas,
         'tela_vendas': TelaVendas,
-        'tela_pesquisa': TelaRelatorios
+        'tela_pesquisa': TelaPesquisa
     }
 
     def on_mount(self) -> ComposeResult:
         self.theme = 'catppuccin-latte'
-        self.push_screen('tela_inicial')
+        self.push_screen('tela_login')
         # self.register_theme(meu_tema)
         # self.theme = 'meu-tema'
 
