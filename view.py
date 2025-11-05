@@ -35,11 +35,13 @@ class TelaLogin(Screen):
 
         with HorizontalGroup():
             yield Button("Entrar", id="bt_login")
-            yield Button("Sair", id="bt_sair")
 
         with HorizontalGroup():
             yield Label("Não tem cadastro?")
             yield Button("Cadastrar", id="bt_cadastrar")
+
+        yield Button("Sair", id="bt_sair")
+        
 
     @on(Switch.Changed)
     async def on_switch(self, event: Switch.Changed):
@@ -55,8 +57,8 @@ class TelaLogin(Screen):
     async def on_button(self, event: Button.Pressed):
         match event.button.id:
             case 'bt_login':
-                login = self.query_one("#input_login", Input).value
-                senha = self.query_one("#input_senha", Input).value
+                login = self.query_one("#input_login", Input).value.strip()
+                senha = self.query_one("#input_senha", Input).value.strip()
 
                 try:
                     controller.insert_vendedor(login=login, senha=senha)
@@ -75,16 +77,16 @@ class TelaLogin(Screen):
 class TelaCadastro(Screen):
     def compose(self):
         with HorizontalGroup():
-            yield Label("Qual o seu nome?*")
+            yield Label("Nome[red]*[/red]")
             yield Input(placeholder="Nome*", id="input_nome")
 
         with HorizontalGroup():
-            yield Label("Digite seu e-mail para login")
+            yield Label("E-mail[red]*[/red]")
             yield Input(placeholder="Login*", id="input_login")
 
         with HorizontalGroup():
-            yield Label("Digite uma senha")
-            yield Input(placeholder="Senha*", password=True, max_length=16, id="input_senha")
+            yield Label("Senha[red]*[/red]")
+            yield Input(placeholder="Mínimo 6 caracteres", password=True, max_length=50, id="input_senha")
 
         with HorizontalGroup():
             yield Label("Mostrar senha?")
@@ -97,6 +99,25 @@ class TelaCadastro(Screen):
         with HorizontalGroup():
             yield Button("Cadastrar", id="bt_cadastrar")
             yield Button("Voltar", id="bt_voltar")
+
+    def pegar_dados_vendedor(self):
+        login = self.query_one("#input_login", Input).value
+        senha = self.query_one("#input_senha", Input).value
+        nome = self.query_one("#input_nome", Input).value
+        nome_loja = self.query_one("#input_nome_loja", Input).value
+
+        return login, senha, nome, nome_loja
+    
+    def insert_vendedor(self):
+        login, senha, nome, nome_loja = self.pegar_dados_vendedor()
+
+        try:
+            controller.insert_vendedor(login=login, senha=senha, nome=nome)
+            self.notify("Usuário cadastrado com sucesso!")
+            self.app.switch_screen('tela_login')
+        except:
+            self.notify("ERROOOOOOOOOOOO")
+
 
     @on(Switch.Changed)
     async def on_switch(self, event: Switch.Changed):
@@ -112,10 +133,21 @@ class TelaCadastro(Screen):
     async def on_button(self, event: Button.Pressed):
         match event.button.id:
             case 'bt_voltar':
-                self.app.switch_screen('tela_inicial')
+                self.app.switch_screen('tela_login')
 
             case "bt_cadastrar":
-                self.app.switch_screen("tela_cadastro")
+                login, senha, nome, nome_loja = self.pegar_dados_vendedor()
+
+                if not nome or not login or not senha:
+                    self.notify("Ops! Insira todos os dados necessários", severity="error")
+                elif "@" not in login or ".com" not in login:
+                    self.notify("Insira um e-mail válido!")
+                elif len(senha) < 6:
+                    self.notify("A senha deve ter no mínimo 6 caracteres!")
+                else:
+                    self.insert_vendedor()
+
+
 
 
 class TelaInicial(Screen):
