@@ -4,7 +4,7 @@ import model
 
 
 def insert_vendedor(login, senha, nome, nome_loja=None):
-    novo_vendedor = model.Vendedor(login, senha, nome, nome_loja)
+    novo_vendedor = model.Vendedor(login=login, senha=senha, nome=nome, nome_loja=nome_loja)
 
     model.insert_vendedor(novo_vendedor)
 
@@ -31,9 +31,13 @@ def listar_produtos_encomenda():
 
     return produtos
 
+def select_vendedor(login):
+    vendedor = model.select_vendedor(login)
+
+    return vendedor
+
 
 def select_produto_id(id_produto: int):
-
     return model.select_produto_id(model.Produto(id_produto))
 
 

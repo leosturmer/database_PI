@@ -1,4 +1,5 @@
 import sqlite3
+from hashlib import sha256
 
 # ------------------------------ SQL ------------------------------
 #
@@ -54,12 +55,12 @@ sql_table_encomenda_produto = '''
     CREATE TABLE IF NOT EXISTS encomenda_produto (
         id_encomenda INTEGER NOT NULL,
         id_produto INTEGER NOT NULL,
-            quantidade INTEGER NULL,
+        quantidade INTEGER NULL,
 
-            FOREIGN KEY (id_encomenda)
-                    REFERENCES encomendas (id_encomenda)
-            FOREIGN KEY (id_produto)
-                    REFERENCES produtos (id_produto)
+        FOREIGN KEY (id_encomenda)
+                REFERENCES encomendas (id_encomenda)
+        FOREIGN KEY (id_produto)
+                REFERENCES produtos (id_produto)
     );
     '''
 
@@ -106,20 +107,10 @@ sql_view_vendas = '''
         INNER JOIN produtos ON venda_produto.id_produto = produtos.id_produto;
     '''
 
-
-# Tabelas DELETED
-
-
-
-
-
 # ----------- Inserção de tabelas no banco
 
-with sqlite3.connect('nize_login.db') as conexao:
-    conexao.execute(sql_table_vendedor)
-
 with sqlite3.connect('nize_database.db') as conexao:
-    # conexao.execute(sql_table_vendedor)
+    conexao.execute(sql_table_vendedor)
     conexao.execute(sql_table_produtos)
     conexao.execute(sql_table_encomendas)
     conexao.execute(sql_table_vendas)
@@ -436,9 +427,6 @@ def insert_vendedor(vendedor: Vendedor):
         conexao.execute(sql, (sql_values_vendedor))
 
 
-def select_vendedor(login, senha, nome, nome_loja=None):
-    pass
-
 
 def insert_encomenda(encomenda: Encomenda):
 
@@ -623,6 +611,19 @@ def listar_encomendas():
                 (nome, quantidade))
 
         return encomendas_dict
+
+def select_vendedor(login):
+    sql_vendedor = '''
+    SELECT id_vendedor, login, senha, nome, nome_loja
+    FROM vendedor
+    WHERE login = ?;
+    '''
+
+    with sqlite3.connect("nize_database.db") as conexao:
+        cursor = conexao.execute(sql_vendedor, (login,))
+        vendedor = cursor.fetchone()
+        
+        return vendedor
 
 
 def select_encomenda_id(id_encomenda):

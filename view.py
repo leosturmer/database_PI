@@ -18,8 +18,9 @@ from textual.scrollbar import ScrollBar
 from textual.suggester import SuggestFromList
 from textual.events import Mount
 
-# @@@@@@@@ TELAS DO SISTEMA
+from sqlite3 import IntegrityError
 
+# @@@@@@@@ TELAS DO SISTEMA
 
 class TelaLogin(Screen):
 
@@ -41,7 +42,30 @@ class TelaLogin(Screen):
             yield Button("Cadastrar", id="bt_cadastrar")
 
         yield Button("Sair", id="bt_sair")
-        
+
+    def verificar_login(self):
+        import hashlib
+        from hashlib import sha256
+
+        input_login = self.query_one("#input_login", Input).value.strip()
+        input_senha = self.query_one("#input_senha", Input).value.strip()
+
+        if not input_login or not input_senha:
+            self.notify("Preencha todos os campos!", severity="warning")
+            return
+
+        try:
+            id_vendedor, login, senha, nome, nome_loja = controller.select_vendedor(
+                input_login)
+
+            senha_hash = hashlib.sha256(input_senha.encode('utf-8')).digest()
+
+            if input_login == login and senha_hash == senha:
+                self.notify("Login realizado com sucesso!")
+                self.app.switch_screen('tela_inicial')
+
+        except TypeError:
+            self.notify("Login ou senha incorretos!", severity='error')
 
     @on(Switch.Changed)
     async def on_switch(self, event: Switch.Changed):
@@ -57,15 +81,7 @@ class TelaLogin(Screen):
     async def on_button(self, event: Button.Pressed):
         match event.button.id:
             case 'bt_login':
-                login = self.query_one("#input_login", Input).value.strip()
-                senha = self.query_one("#input_senha", Input).value.strip()
-
-                try:
-                    controller.insert_vendedor(login=login, senha=senha)
-
-                    self.app.switch_screen("tela_inicial")
-                except:
-                    self.notify("Ops!")
+                self.verificar_login()
 
             case "bt_sair":
                 self.app.exit()
@@ -100,6 +116,12 @@ class TelaCadastro(Screen):
             yield Button("Cadastrar", id="bt_cadastrar")
             yield Button("Voltar", id="bt_voltar")
 
+    def limpar_campos(self):
+        self.query_one("#input_login", Input).clear()
+        self.query_one("#input_senha", Input).clear()
+        self.query_one("#input_nome", Input).clear()
+        self.query_one("#input_nome_loja", Input).clear()
+
     def pegar_dados_vendedor(self):
         login = self.query_one("#input_login", Input).value
         senha = self.query_one("#input_senha", Input).value
@@ -107,17 +129,22 @@ class TelaCadastro(Screen):
         nome_loja = self.query_one("#input_nome_loja", Input).value
 
         return login, senha, nome, nome_loja
-    
+
     def insert_vendedor(self):
+        from hashlib import sha256
+
         login, senha, nome, nome_loja = self.pegar_dados_vendedor()
 
+        senha_codificada = sha256(senha.encode('utf-8')).digest()
+
         try:
-            controller.insert_vendedor(login=login, senha=senha, nome=nome)
+            controller.insert_vendedor(login, senha_codificada, nome, nome_loja)
             self.notify("Usuário cadastrado com sucesso!")
             self.app.switch_screen('tela_login')
-        except:
-            self.notify("ERROOOOOOOOOOOO")
+            self.limpar_campos()
 
+        except:
+            self.notify("Ops! Algo deu errado", severity="warning")
 
     @on(Switch.Changed)
     async def on_switch(self, event: Switch.Changed):
@@ -139,14 +166,14 @@ class TelaCadastro(Screen):
                 login, senha, nome, nome_loja = self.pegar_dados_vendedor()
 
                 if not nome or not login or not senha:
-                    self.notify("Ops! Insira todos os dados necessários", severity="error")
+                    self.notify(
+                        "Ops! Insira todos os dados necessários", severity="error")
                 elif "@" not in login or ".com" not in login:
                     self.notify("Insira um e-mail válido!")
                 elif len(senha) < 6:
                     self.notify("A senha deve ter no mínimo 6 caracteres!")
                 else:
                     self.insert_vendedor()
-
 
 
 
