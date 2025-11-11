@@ -25,6 +25,7 @@ from textual.theme import Theme
 #     variables={}
 # )
 
+
 class NizeApp(App):
 
     AUTO_FOCUS = None
@@ -43,7 +44,7 @@ class NizeApp(App):
 
     def on_mount(self) -> ComposeResult:
         self.theme = 'catppuccin-latte'
-        self.push_screen('tela_login')
+        self.push_screen('tela_inicial')
         # self.register_theme(meu_tema)
         # self.theme = 'meu-tema'
 

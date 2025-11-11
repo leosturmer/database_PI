@@ -2,6 +2,13 @@ Screen {
 
 }
 
+#sidebar {
+    dock: left;
+    width: 15;
+    height: auto;
+    margin: 5 5 5 5;
+}
+
 #tela_produtos {
     align: center middle;
     column-span: 4;
@@ -13,6 +20,13 @@ Screen {
     align: center middle;
 }
 
+#container_login {
+    margin-top: 2;
+    align: center middle;
+    
+}
+
+
 #bt_cadastrar, #bt_alterar, #bt_limpar, #bt_deletar, #bt_voltar {
     margin-right: 1;
     align: center middle;
@@ -21,6 +35,9 @@ Screen {
 #stt_produtos {
 
 }
+
+
+
 SelectProduto {
     margin: 0;
     height: auto;

@@ -4,7 +4,8 @@ from textual import on
 
 from textual.app import (App, ComposeResult)
 from textual.widgets import (Button, Input, TextArea, Footer, Header,
-                             Label, Static, MaskedInput, OptionList, Select, SelectionList, TabbedContent, TabPane, DataTable, Collapsible, Switch, Placeholder, Checkbox, Rule)
+                             Label, Static, MaskedInput, OptionList, Select, SelectionList, TabbedContent, TabPane, DataTable, 
+                             Collapsible, Switch, Placeholder, Checkbox, Rule)
 from textual.screen import (Screen, ModalScreen)
 from textual.containers import (
     Container, VerticalGroup, HorizontalGroup, Grid, Center, ScrollableContainer, Horizontal, Vertical, CenterMiddle, ItemGrid, VerticalScroll)
@@ -22,29 +23,54 @@ from sqlite3 import IntegrityError
 
 # @@@@@@@@ TELAS DO SISTEMA
 
+class SidebarMenu(Container):
+    def compose(self):
+    
+        with VerticalGroup(id="grupo_botoes_inicial"):
+            yield Button("Produtos", id="bt_produtos", classes="botoes_inicial", variant="primary")
+            yield Button("Encomendas", id="bt_encomendas", classes="botoes_inicial", variant="success")
+            yield Button("Vendas", id="bt_vendas", classes="botoes_inicial", variant="warning")
+            yield Button("Relatórios", id="bt_pesquisa", classes="botoes_inicial", variant='error')
+
+        return super().compose()
+
+
+    def on_button_pressed(self, event: Button.Pressed):
+        match event.button.id:
+            case "bt_produtos":
+                self.app.switch_screen("tela_produtos")
+            case "bt_encomendas":
+                self.app.switch_screen("tela_encomendas")
+            case "bt_vendas":
+                self.app.switch_screen("tela_vendas")
+            case "bt_pesquisa":
+                self.app.switch_screen("tela_pesquisa")
+
 class TelaLogin(Screen):
 
     def compose(self):
         yield Header()
-        yield Label("Faça o seu login")
-        yield Input(placeholder='Login', id="input_login")
-        yield Input(placeholder='Senha', password=True, id="input_senha")
 
-        with HorizontalGroup():
-            yield Label("Mostrar senha?")
-            yield Switch(id="switch_senha")
+        with CenterMiddle(id="container_login"):
+            with VerticalGroup():
+                yield Label("Faça o seu login")
+                yield Input(placeholder='Login', id="input_login")
+                yield Input(placeholder='Senha', password=True, id="input_senha")
 
-        with HorizontalGroup():
-            yield Button("Entrar", id="bt_login")
+            with HorizontalGroup():
+                yield Label("Mostrar senha?")
+                yield Switch(id="switch_senha")
 
-        with HorizontalGroup():
-            yield Label("Não tem cadastro?")
-            yield Button("Cadastrar", id="bt_cadastrar")
+            with HorizontalGroup():
+                yield Button("Entrar", id="bt_login")
 
-        yield Button("Sair", id="bt_sair")
+            with HorizontalGroup():
+                yield Label("Não tem cadastro?")
+                yield Button("Cadastrar", id="bt_cadastrar")
+
+            yield Button("Sair", id="bt_sair")
 
         yield Footer()
-
 
     def verificar_login(self):
         import hashlib
@@ -143,7 +169,8 @@ class TelaCadastro(Screen):
         senha_codificada = sha256(senha.encode('utf-8')).digest()
 
         try:
-            controller.insert_vendedor(login, senha_codificada, nome, nome_loja)
+            controller.insert_vendedor(
+                login, senha_codificada, nome, nome_loja)
             self.notify("Usuário cadastrado com sucesso!")
             self.app.switch_screen('tela_login')
             self.limpar_campos()
@@ -179,7 +206,6 @@ class TelaCadastro(Screen):
                     self.notify("A senha deve ter no mínimo 6 caracteres!")
                 else:
                     self.insert_vendedor()
-
 
 
 class TelaInicial(Screen):
@@ -279,6 +305,8 @@ class TelaProdutos(Screen):
     def compose(self) -> ComposeResult:
 
         yield Header(show_clock=True)
+
+        yield SidebarMenu(id="sidebar")
 
         with ScrollableContainer(id='tela_produtos'):
             with HorizontalGroup(id='class_select_produtos'):
@@ -523,6 +551,8 @@ class TelaEncomendas(Screen):
 
     def compose(self) -> ComposeResult:
         yield Header(show_clock=True)
+
+        yield SidebarMenu(id="sidebar")
 
         with TabbedContent(initial='tab_cadastrar_encomeda'):
 
@@ -894,6 +924,8 @@ class TelaVendas(Screen):
 
     def compose(self) -> ComposeResult:
         yield Header(show_clock=True)
+
+        yield SidebarMenu(id="sidebar")
 
         with TabbedContent(initial='tab_cadastrar_venda'):
 
@@ -1282,6 +1314,9 @@ class TelaPesquisa(Screen):
 
     def compose(self):
         yield Header(show_clock=True)
+
+        yield SidebarMenu(id="sidebar")
+
 
         with TabbedContent(initial='tab_produtos', id='tabbed_pesquisa'):
             with TabPane('Produtos', id='tab_produtos'):
