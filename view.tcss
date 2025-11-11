@@ -9,6 +9,14 @@ Screen {
     margin: 5 5 5 5;
 }
 
+#coll_encomendas, #coll_vendas{
+    width: 80%;
+}
+
+#tabela_encomendas, #tabela_vendas {
+    width: 90%;
+}
+
 #tela_produtos {
     align: center middle;
     column-span: 4;

@@ -30,7 +30,7 @@ class SidebarMenu(Container):
             yield Button("Produtos", id="bt_produtos", classes="botoes_inicial", variant="primary")
             yield Button("Encomendas", id="bt_encomendas", classes="botoes_inicial", variant="success")
             yield Button("Vendas", id="bt_vendas", classes="botoes_inicial", variant="warning")
-            yield Button("Relatórios", id="bt_pesquisa", classes="botoes_inicial", variant='error')
+            yield Button("Pesquisa", id="bt_pesquisa", classes="botoes_inicial", variant='error')
 
         return super().compose()
 
@@ -217,7 +217,7 @@ class TelaInicial(Screen):
             yield Button("Produtos", id="bt_produtos", classes="botoes_inicial", variant="primary")
             yield Button("Encomendas", id="bt_encomendas", classes="botoes_inicial", variant="success")
             yield Button("Vendas", id="bt_vendas", classes="botoes_inicial", variant="warning")
-            yield Button("Relatórios", id="bt_pesquisa", classes="botoes_inicial", variant='error')
+            yield Button("Pesquisa", id="bt_pesquisa", classes="botoes_inicial", variant='error')
             yield Button("Sair", id="bt_sair", classes="botoes_inicial")
 
         yield Footer()
@@ -610,7 +610,7 @@ class TelaEncomendas(Screen):
                         yield Button('Voltar', id='bt_voltar')
 
             with TabPane('Atualizar encomenda', id='tab_atualizar_encomenda'):
-                with Collapsible(title='Expandir tabela de encomendas'):
+                with Collapsible(title='Expandir tabela de encomendas', id="coll_encomendas"):
                     with VerticalScroll():
                         yield DataTable(id='tabela_encomendas')
 
@@ -983,7 +983,7 @@ class TelaVendas(Screen):
                         yield Button('Voltar', id='bt_voltar')
 
             with TabPane('Atualizar venda', id='tab_atualizar_venda'):
-                with Collapsible(title='Expandir tabela de venda'):
+                with Collapsible(title='Expandir tabela de venda', id="coll_vendas"):
                     with VerticalScroll():
                         yield DataTable(id='tabela_vendas')
 
@@ -1280,11 +1280,12 @@ class TelaVendas(Screen):
 class TelaPesquisa(Screen):
     TITLE = 'Pesquisa'
 
-    # def __init__(self, name = None, id = None, classes = None):
-    #     super().__init__(name, id, classes)
-    #     self.LISTA_DE_PRODUTOS = controller.listar_produtos()
+    def __init__(self, name = None, id = None, classes = None):
+        super().__init__(name, id, classes)
+        self.LISTA_DE_PRODUTOS = controller.listar_produtos()
 
-    # def on_mount(self):
+    def on_mount(self):
+        self.query_one("#seletor_produtos", SelectionList).border_title = "Selecione a opção desejada"
     #     tabela_estoque = self.query_one("#tabela_estoque", DataTable)
     #     tabela_estoque.border_title = "Produtos"
     #     tabela_estoque.cursor_type = 'row'
@@ -1317,14 +1318,14 @@ class TelaPesquisa(Screen):
 
         yield SidebarMenu(id="sidebar")
 
-
         with TabbedContent(initial='tab_produtos', id='tabbed_pesquisa'):
             with TabPane('Produtos', id='tab_produtos'):
                 with VerticalScroll():
-                    yield SelectionList[int](('Todas as encomendas', 1), ('Em andamento', 2), ("Produtos fora de estoque", 3))
+                    yield SelectionList[int](('Todos os produtos', 1), ('Em estoque', 2), ("Fora de estoque", 3), id="seletor_produtos")
 
                 with VerticalScroll():
                     yield DataTable(id='tabela_produtos')
+                    
 
                 with HorizontalGroup():
                     yield Select(prompt='Filtrar por:', options=[('nome', 1), ("quantidade", 2), ('valor unitário', 3), ('valor de custo', 4), ('aceita encomenda', 5), ('descrição', 6)])
@@ -1348,6 +1349,11 @@ class TelaPesquisa(Screen):
         match event.button.id:
             case 'bt_voltar':
                 self.app.switch_screen('tela_inicial')
+
+    @on(SelectionList.SelectedChanged)
+    async def on_selected(self, event: SelectionList.SelectedChanged):
+        selecionados = self.query_one("#seletor_produtos", SelectionList).selected
+        self.notify(f"{selecionados}")
 
     # def atualizar_tabela_estoque(self):
     #     tabela = self.query_one("#tabela_estoque", DataTable)
