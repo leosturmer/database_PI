@@ -43,6 +43,9 @@ class TelaLogin(Screen):
 
         yield Button("Sair", id="bt_sair")
 
+        yield Footer()
+
+
     def verificar_login(self):
         import hashlib
         from hashlib import sha256
@@ -115,6 +118,8 @@ class TelaCadastro(Screen):
         with HorizontalGroup():
             yield Button("Cadastrar", id="bt_cadastrar")
             yield Button("Voltar", id="bt_voltar")
+
+        yield Footer()
 
     def limpar_campos(self):
         self.query_one("#input_login", Input).clear()
@@ -503,6 +508,9 @@ class TelaEncomendas(Screen):
         self.texto_static_alteracao = 'Selecione uma encomenda para ver as informações'
         self.ENCOMENDA_ALTERACAO = []
 
+    def on_screen_resume(self):
+        self.atualizar_select_produtos()
+
     def on_mount(self):
         tabela = self.query_one("#tabela_encomendas", DataTable)
         tabela.border_title = "Encomendas"
@@ -607,6 +615,8 @@ class TelaEncomendas(Screen):
                     yield Button("Alterar", id='bt_alterar', disabled=True)
                     yield Button('Deletar', id='bt_deletar', disabled=True)
                     yield Button('Voltar', id='bt_voltar')
+
+        yield Footer()
 
     def atualizar_select_produtos(self):
         self.LISTA_DE_PRODUTOS = controller.listar_produtos()
@@ -869,6 +879,9 @@ class TelaVendas(Screen):
         self.VENDA_ALTERACAO = []
         self.VALOR_TOTAL_VENDA = []
 
+    def on_screen_resume(self):
+        self.atualizar_select_produtos()
+
     def on_mount(self):
         tabela = self.query_one("#tabela_vendas", DataTable)
         tabela.border_title = "Vendas"
@@ -973,6 +986,8 @@ class TelaVendas(Screen):
                     yield Button("Alterar", id='bt_alterar', disabled=True)
                     yield Button('Deletar', id='bt_deletar', disabled=True)
                     yield Button('Voltar', id='bt_voltar')
+
+        yield Footer()
 
     def atualizar_select_produtos(self):
         self.LISTA_DE_PRODUTOS = controller.listar_produtos()
@@ -1290,6 +1305,8 @@ class TelaPesquisa(Screen):
                     yield DataTable(id='tabela_vendas')
 
         yield Button('Voltar', id='bt_voltar')
+
+        yield Footer()
 
     @on(Button.Pressed)
     async def on_button(self, event: Button.Pressed):
