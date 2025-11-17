@@ -944,6 +944,10 @@ class TelaVendas(Screen):
                                                  )
 
                                 yield Static(self.texto_static_produto, id='static_produto')
+                                
+                                with HorizontalGroup():
+                                    yield Label("Dar baixa no estoque?")
+                                    yield Switch(disabled=False, id="switch_baixa")
 
                                 with HorizontalGroup():
                                     yield Input(placeholder='Quantidade vendida...',
@@ -951,9 +955,12 @@ class TelaVendas(Screen):
                                                 max_length=3,
                                                 type="integer"
                                                 )
+
                                     yield Button('Adicionar',
                                                  disabled=True,
                                                  id='bt_adicionar_quantidade')
+                                    
+
 
                     with VerticalGroup():
                         yield Static(self.texto_static_venda, id="static_venda")
@@ -1078,12 +1085,12 @@ class TelaVendas(Screen):
         static = self.query_one('#static_alteracao_venda', Static)
         novo_texto = ''
 
-        id_encomenda, produtos, prazo, comentario, status, valor_final = self.VENDA_ALTERACAO
+        id_venda, produtos, prazo, comentario, status, valor_final = self.VENDA_ALTERACAO
 
         if comentario == None:
             comentario = ''
 
-        novo_texto = f'''Venda: ID {id_encomenda}\n\nProdutos: {produtos}\nPrazo: {prazo}\nStatus: {status}\nComentários: {comentario}\nValor total: {valor_final:.2f}'''
+        novo_texto = f'''Venda: ID {id_venda}\n\nProdutos: {produtos}\nPrazo: {prazo}\nStatus: {status}\nComentários: {comentario}\nValor total: {valor_final:.2f}'''
         # TEM QUE IR VALOR UNITÁRIO E VALOR FINAL
         static.update(novo_texto)
 
@@ -1091,8 +1098,17 @@ class TelaVendas(Screen):
         id_produto = self.query_one("#select_produtos_venda", Select).selection
         quantidade_vendida = self.query_one(
             "#quantidade_venda", Input).value
+        
+        dados_produtos = controller.select_produto_id(id_produto)
+        
+        dar_baixa = self.query_one("#switch_baixa", Switch).value
+    
+        if dar_baixa == True:
+            if int(quantidade_vendida) >= int(dados_produtos[2]):
+                self.notify("Quantidade maior do que a disponível no estoque", severity="error")
 
-        self.PRODUTOS_QUANTIDADE[id_produto] = quantidade_vendida
+        else:
+            self.PRODUTOS_QUANTIDADE[id_produto] = quantidade_vendida
 
     def limpar_inputs(self):
         self.query_one("#data_venda", Input).clear()
