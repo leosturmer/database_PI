@@ -1,47 +1,18 @@
 #### O que fazer no banco também:
 
-- Fazer tela de login - https://www.youtube.com/watch?v=Y2-c22nCE4E
-- Ver casos de uso 
-- Ver datas
-- Ver o delete das tabelas do banco
-- Ver para reduzir do estoque quando vender
-- Ver a interface para ficar responsiva
 
-- Arrumar os SQL que não estão funcionando direito (searchs de encomenda e venda)
+- ##### TELA VENDAS TÁ AUMENTANDO O PREÇO FINAL SEMPRE QUE CLICA EM ADICIONAR
+- Ver datas ########################
+- TEM QUE DIMINUIR DO ESTOQUE QUANDO REALIZAR UMA VENDAAAAAAA!!!!!!!!!!!!! Ver para reduzir do estoque quando vender ################ 
 
-- Ver como a MODEL e VIEW vão inserir os produtos na venda e encomenda
-- Ver como a MODEL e VIEW vão inserir as datas e prazos nas vendas
+- Tela de Relatórios / fazer filtros
+- Tela de Encomendas/ Vendas - filtrar por status
 
 - Ver se tem como uma ENCOMENDA FINALIZADA se transformar em uma VENDA
-
-- Fazer def filtrar_encomenda_status
-- Fazer def filtrar_venda_status
-
 - Ver as questões de diferenciar maiúsculo e minúsculo
 
 
-- TEM QUE DIMINUIR DO ESTOQUE QUANDO REALIZAR UMA VENDAAAAAAA!!!!!!!!!!!!!
-
-
-##### CONFERÊNCIAS
-
-- Só deixar inserir uma venda/encomenda se o produto existir;
-- Só deixar inserir quando estiver com todos campos NULL corretos;
-
-##### Quais são os status
-
-STATUS DE VENDA:
-1. Em produção / encomendado
-1. Cancelada
-1. Aguardando pagamento
-1. Finalizado
-
-STATUS DA ENCOMENDA:
-1. Em produção
-1. Cancelado
-1. Vendido (transforma em VENDA)
-1. Finalizado
-
+- Ver casos de uso 
 
 
 ##### OUTROS COMENTÁRIOS
