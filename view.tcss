@@ -64,7 +64,7 @@ Horizontal {
 #select_produtos {
 }
 
-#select_status_tabela, #select_status_cadastro, #select_status_alterado {
+#select_status_tabela, #select_status_cadastro, #select_status_alterado, #select_status_venda {
     width: 40;
 }
 
