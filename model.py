@@ -458,18 +458,23 @@ def insert_encomenda(encomenda: Encomenda):
 
         cursor.executemany(sql_insert_encomenda_produto, lista)
 
-def update_quantidade(produto: Produto):
+def update_quantidade(quantidade_vendida, produto: Produto):
     sql = '''UPDATE quantidade 
     SET quantidade = ?
-    WHERE id_produto = ?'''
+    WHERE id_produto = ?;'''
 
-    sql_values = 
+    sql_quantidade = "SELECT quantidade FROM produtos WHERE id_produto = ?;"
+    
+    sql_subtracao = "SELECT ? - ? as difference;"
 
 
     with sqlite3.connect('nize_database.db') as conexao:
-        cursor = conexao.execute
+        quantidade_total = conexao.execute(sql_quantidade)
+
+        cursor = conexao.execute()
 
 
+    # https://www.beekeeperstudio.io/blog/sqlite-subtract
 
     #         sql_total_venda = '''SELECT SUM(venda_produto.valor_unitario * venda_produto.quantidade) as total_venda
     #     FROM venda_produto
