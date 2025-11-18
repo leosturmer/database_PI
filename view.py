@@ -1275,6 +1275,8 @@ class TelaVendas(Screen):
                 else:
                     controller.insert_venda(
                         data=data, valor_final=valor_final, status=status, comentario=comentario, produtos=produtos)
+                    
+                    
 
                     self.notify('Venda cadastrada com sucesso!')
                     self.PRODUTOS_QUANTIDADE.clear()

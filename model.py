@@ -458,6 +458,23 @@ def insert_encomenda(encomenda: Encomenda):
 
         cursor.executemany(sql_insert_encomenda_produto, lista)
 
+def update_quantidade(produto: Produto):
+    sql = '''UPDATE quantidade 
+    SET quantidade = ?
+    WHERE id_produto = ?'''
+
+    sql_values = 
+
+
+    with sqlite3.connect('nize_database.db') as conexao:
+        cursor = conexao.execute
+
+
+
+    #         sql_total_venda = '''SELECT SUM(venda_produto.valor_unitario * venda_produto.quantidade) as total_venda
+    #     FROM venda_produto
+    #     WHERE venda_produto.id_venda = ?;   
+    # '''
 
 def insert_venda(venda: Venda):
     sql = '''INSERT INTO vendas (data, status, valor_final, comentario)
