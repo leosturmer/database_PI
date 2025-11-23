@@ -802,7 +802,7 @@ class TelaEncomendas(Screen):
         id_encomenda = self.ENCOMENDA_ALTERACAO[0]
         controller.delete_encomenda(id_encomenda)
         self.notify(
-            f'Encomenda ID {id_encomenda} deletada com sucesso!', severity='error')
+            f'Encomenda deletada com sucesso!', severity='error')
 
     @on(DataTable.RowSelected)
     async def on_row_selected(self, event: DataTable.RowSelected):
@@ -1065,6 +1065,7 @@ class TelaVendas(Screen):
         novo_texto = 'Venda: \n\n'
 
         try:
+            self.VALOR_TOTAL_VENDA.clear()
             static = self.query_one('#static_venda', Static)
 
             for item in self.PRODUTOS_QUANTIDADE.items():
@@ -1107,11 +1108,15 @@ class TelaVendas(Screen):
         dados_produtos = controller.select_produto_id(id_produto)
         
         dar_baixa = self.query_one("#switch_baixa", Switch).value
-    
+        
+        if quantidade_vendida == "" or int(quantidade_vendida) == 0:
+            self.notify("Quantidade inválida!", severity="error")
+            return
+        
         if dar_baixa == True:
             if int(quantidade_vendida) >= int(dados_produtos[2]):
                 self.notify("Quantidade maior do que a disponível no estoque", severity="error")
-
+            self.PRODUTOS_QUANTIDADE[id_produto] = quantidade_vendida
         else:
             self.PRODUTOS_QUANTIDADE[id_produto] = quantidade_vendida
 
@@ -1171,7 +1176,8 @@ class TelaVendas(Screen):
         novo_status = self.query_one("#select_status_venda_alterada", Select)
         novo_comentario = self.query_one("#text_comentario_alterado", TextArea)
 
-        _id_encomenda, _produtos, prazo, comentario, status = self.VENDA_ALTERACAO
+        _id_encomenda, _produtos, prazo, comentario, status, _valor_total = self.VENDA_ALTERACAO
+        
         comentario = str(comentario)
 
         if status == 'Em produção':
@@ -1204,7 +1210,7 @@ class TelaVendas(Screen):
         id_venda = self.VENDA_ALTERACAO[0]
         controller.delete_venda(id_venda)
         self.notify(
-            f'Venda ID {id_venda} deletada com sucesso!', severity='error')
+            f'Venda deletada com sucesso!', severity='error')
 
     @on(DataTable.RowSelected)
     async def on_row_selected(self, event: DataTable.RowSelected):
@@ -1279,7 +1285,7 @@ class TelaVendas(Screen):
                     self.atualizar_tabela_vendas()
                     self.resetar_tabela_vendas()
 
-            case 'bt_preencher_dados':
+            case 'bt_preencher_dados':                         
                 try:
                     self.preencher_alteracoes_venda()
                 except:
