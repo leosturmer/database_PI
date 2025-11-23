@@ -545,7 +545,7 @@ class TelaEncomendas(Screen):
         tabela.cursor_type = 'row'
         tabela.zebra_stripes = True
 
-        tabela.add_columns('Encomendas', 'Produtos',
+        tabela.add_columns('ID encomenda', 'Produtos',
                            'Prazo', 'Comentario', 'Status')
         self.atualizar_tabela_encomendas()
 
@@ -622,7 +622,7 @@ class TelaEncomendas(Screen):
 
                 with VerticalGroup():
                     with HorizontalGroup():
-                        yield Label('Prazo de entrega')
+                        yield Label('Prazo de entrega[red]*[/red]')
                         yield MaskedInput(template='00/00/0000', placeholder='DD/MM/AAAA', id="prazo_alterado")
 
                         yield Label('Status da encomenda')
@@ -703,7 +703,7 @@ class TelaEncomendas(Screen):
         if comentario == None:
             comentario = ''
 
-        novo_texto = f'''Encomenda:\n\nProdutos: {produtos}\nPrazo: {prazo}\nStatus: {status}\nComentários: {comentario}'''
+        novo_texto = f'''Encomenda: \n\nProdutos: {produtos}\nPrazo: {prazo}\nStatus: {status}\nComentários: {comentario}'''
 
         static.update(novo_texto)
 
@@ -739,7 +739,7 @@ class TelaEncomendas(Screen):
         dados_encomendas = controller.listar_encomendas()
 
         for id_encomenda, detalhes in dados_encomendas.items():
-            nome_produtos = [''.join([f'{nome}, ({quantidade}) \n '])
+            nome_produtos = [''.join([f'{nome}, ({quantidade}) | '])
                              for nome, quantidade in detalhes['produtos']]
 
             status = detalhes['status']
@@ -754,7 +754,7 @@ class TelaEncomendas(Screen):
                 status = 'Cancelada'
 
             if id_encomenda not in tabela.rows:
-                tabela.add_row('', ''.join(nome_produtos),
+                tabela.add_row(id_encomenda, ''.join(nome_produtos),
                                detalhes['prazo'], detalhes['comentario'], status)
 
     def resetar_tabela_encomendas(self):
@@ -873,7 +873,7 @@ class TelaEncomendas(Screen):
                     self.PRODUTOS_QUANTIDADE.clear()
                     self.limpar_inputs()
                     self.atualizar_tabela_encomendas()
-                    # self.resetar_tabela_encomendas()
+                    self.resetar_tabela_encomendas()
 
             case 'bt_preencher_dados':
                 try:
@@ -882,9 +882,14 @@ class TelaEncomendas(Screen):
                     self.notify("Ops! Você precisa selecionar uma encomenda")
 
             case 'bt_alterar':
-                self.update_encomenda()
-                self.resetar_tabela_encomendas()
-                self.limpar_inputs_alteracao()
+                prazo = self.query_one("#prazo_alterado", Input).value
+                
+                if len(prazo) < 10:
+                    self.notify("Preencha o prazo no formato DD/MM/AAAA")
+                else:
+                    self.update_encomenda()
+                    self.resetar_tabela_encomendas()
+                    self.limpar_inputs_alteracao()
 
             case 'bt_deletar':
                 self.deletar_encomenda()
@@ -918,7 +923,7 @@ class TelaVendas(Screen):
         tabela.cursor_type = 'row'
         tabela.zebra_stripes = True
 
-        tabela.add_columns('Vendas', 'Produtos',
+        tabela.add_columns('ID venda', 'Produtos',
                            'Data', 'Comentario', 'Status', 'Valor final')  # ATUALIZAR ESSES AQUIIIII
         self.atualizar_tabela_vendas()
 
@@ -961,10 +966,9 @@ class TelaVendas(Screen):
                                                  id='bt_adicionar_quantidade')
                                     
 
+
                     with VerticalGroup():
-                        with HorizontalGroup():
-                            yield Static(self.texto_static_venda, id="static_venda")
-                            yield Button("Cancelar", id="bt_cancelar")
+                        yield Static(self.texto_static_venda, id="static_venda")
                         with HorizontalGroup():
                             yield Label('Data da venda[red]*[/red]')
                             yield MaskedInput(template='00/00/0000', placeholder='DD/MM/AAAA', id="data_venda")
@@ -1047,9 +1051,10 @@ class TelaVendas(Screen):
                 id_produto)
 
             novo_texto = f'''
-            Informações do produto:
+            Informações do produto: 
             Produto selecionado: {nome}   |   Quantidade em estoque: {quantidade} 
-            Valor unitário: {valor_unitario}'''
+            Valor unitário: {valor_unitario}
+                '''
 
             static.update(novo_texto)
         except:
@@ -1060,7 +1065,6 @@ class TelaVendas(Screen):
         novo_texto = 'Venda: \n\n'
 
         try:
-            self.VALOR_TOTAL_VENDA.clear()
             static = self.query_one('#static_venda', Static)
 
             for item in self.PRODUTOS_QUANTIDADE.items():
@@ -1071,8 +1075,7 @@ class TelaVendas(Screen):
 
                 valor_produtos = (valor_unitario * int(quantidade))
 
-                novo_texto += f'→ Produto: {nome} | Quantidade: {quantidade} | Valor unitário: {valor_unitario:.2f} | Valor total: {valor_produtos:.2f}\n\n'
-
+                novo_texto += f'Produto: {nome} | Quantidade: {quantidade} | Valor unitário: {valor_unitario:.2f} | Valor total: {valor_produtos:.2f}\n'
 
             self.VALOR_TOTAL_VENDA.append(valor_produtos)
             valor_total = sum(self.VALOR_TOTAL_VENDA)
@@ -1092,7 +1095,7 @@ class TelaVendas(Screen):
         if comentario == None:
             comentario = ''
 
-        novo_texto = f'''Venda\n\nProdutos: {produtos}\nPrazo: {prazo}\nStatus: {status}\nComentários: {comentario}\nValor total: {valor_final:.2f}'''
+        novo_texto = f'''Venda:\n\nProdutos: {produtos}\nPrazo: {prazo}\nStatus: {status}\nComentários: {comentario}\nValor total: {valor_final:.2f}'''
         # TEM QUE IR VALOR UNITÁRIO E VALOR FINAL
         static.update(novo_texto)
 
@@ -1105,9 +1108,7 @@ class TelaVendas(Screen):
         
         dar_baixa = self.query_one("#switch_baixa", Switch).value
     
-        if id_produto == None:
-            self.notify("Selecione um produto!", severity="information")
-        elif dar_baixa == True:
+        if dar_baixa == True:
             if int(quantidade_vendida) >= int(dados_produtos[2]):
                 self.notify("Quantidade maior do que a disponível no estoque", severity="error")
 
@@ -1139,7 +1140,7 @@ class TelaVendas(Screen):
         dados_vendas = controller.listar_vendas()
 
         for id_encomenda, detalhes in dados_vendas.items():
-            nome_produtos = [''.join([f'{nome}, ({quantidade}), R$ {valor_unitario} | '])
+            nome_produtos = [''.join([f'{nome}, ({quantidade}), R${valor_unitario} | '])
                              for nome, quantidade, valor_unitario in detalhes['produtos']]
 
             status = detalhes['status']
@@ -1155,7 +1156,7 @@ class TelaVendas(Screen):
                 status = 'Cancelada'
 
             if id_encomenda not in tabela.rows:
-                tabela.add_row('', ''.join(nome_produtos),
+                tabela.add_row(id_encomenda, ''.join(nome_produtos),
                                detalhes['data'], detalhes['comentario'], status, valor_final)
 
     def resetar_tabela_vendas(self):
@@ -1251,10 +1252,6 @@ class TelaVendas(Screen):
                 self.adicionar_dicionario_venda()
                 self.atualizar_static_venda()
 
-            case 'bt_cancelar':
-                self.PRODUTOS_QUANTIDADE.clear()
-                self.limpar_inputs()
-
             case 'bt_voltar':
                 self.app.switch_screen('tela_inicial')
 
@@ -1275,8 +1272,6 @@ class TelaVendas(Screen):
                 else:
                     controller.insert_venda(
                         data=data, valor_final=valor_final, status=status, comentario=comentario, produtos=produtos)
-                    
-                    
 
                     self.notify('Venda cadastrada com sucesso!')
                     self.PRODUTOS_QUANTIDADE.clear()
