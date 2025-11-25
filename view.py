@@ -1154,47 +1154,55 @@ class TelaVendas(Screen):
         static.update(novo_texto)
 
     def adicionar_dicionario_venda(self):
-        id_produto = self.query_one("#select_produtos_venda", Select).selection
-        
-        if id_produto == None:
-            self.notify("Selecione um produto!", severity="error")
-            return 
-        
-        dados_produtos = controller.select_produto_id(id_produto)
+        try:
+            id_produto = self.query_one("#select_produtos_venda", Select).selection
+            quantidade_vendida = self.query_one(
+                "#quantidade_venda", Input).value
 
-        dar_baixa = self.query_one("#switch_baixa", Switch).value
-
-        quantidade_vendida = self.query_one(
-            "#quantidade_venda", Input).value
-        quantidade_estoque = dados_produtos[2]
-        
-        if quantidade_vendida == "" or quantidade_vendida.startswith("0"):
-            self.notify("Insira uma quantidade válida!", severity="error")
-            return
-
-        if dar_baixa == True and int(quantidade_vendida) > int(quantidade_estoque):
-            self.notify(
-                    "Quantidade maior do que a disponível no estoque", severity="error")
-            return
-        
-        if dar_baixa == True and id_produto not in self.PRODUTOS_BAIXA:
-            self.PRODUTOS_QUANTIDADE[id_produto] = quantidade_vendida
-            self.PRODUTOS_BAIXA.append(id_produto)
-            self.atualizar_static_venda()
-            return
-
-        # else:
-        if dar_baixa == False :
-            if id_produto in self.PRODUTOS_BAIXA:
+            if quantidade_vendida == "" or quantidade_vendida.startswith("0"):
+                self.notify("Insira uma quantidade válida!", severity="error")
+                    
+            dados_produtos = controller.select_produto_id(id_produto)
+            dar_baixa = self.query_one("#switch_baixa", Switch).value
+            quantidade_estoque = dados_produtos[2]
+            
+            if dar_baixa == True and int(quantidade_vendida) > int(quantidade_estoque):
+                self.notify(
+                        "Quantidade maior do que a disponível no estoque", severity="error")
+            
+            if  dar_baixa == True and id_produto in self.PRODUTOS_BAIXA and self.PRODUTOS_QUANTIDADE[id_produto] != quantidade_vendida:
                 self.PRODUTOS_BAIXA.remove(id_produto)
+                # self.PRODUTOS_QUANTIDADE[id_produto] = 
+                self.notify(f"Produto removido da venda!", severity="warning")
+
+            self.notify(f"{self.PRODUTOS_QUANTIDADE} //// {self.PRODUTOS_BAIXA}")
+            
+        
+            if dar_baixa == True and id_produto not in self.PRODUTOS_BAIXA:
                 self.PRODUTOS_QUANTIDADE[id_produto] = quantidade_vendida
+                self.PRODUTOS_BAIXA.append(id_produto)
+                self.notify(f"{self.PRODUTOS_QUANTIDADE} //// {self.PRODUTOS_BAIXA}")
+
                 self.atualizar_static_venda()
 
-            else:
-                self.PRODUTOS_QUANTIDADE[id_produto] = quantidade_vendida
-                self.atualizar_static_venda()
-            return
-        
+                return
+
+            # else:
+            if dar_baixa == False :
+                if id_produto in self.PRODUTOS_BAIXA:
+                    self.PRODUTOS_BAIXA.remove(id_produto)
+                    self.PRODUTOS_QUANTIDADE[id_produto] = quantidade_vendida
+                    self.atualizar_static_venda()
+
+                else:
+                    self.PRODUTOS_QUANTIDADE[id_produto] = quantidade_vendida
+                    self.atualizar_static_venda()
+                return
+        except TypeError:
+            self.notify("Selecione um produto!", severity="error")
+
+
+
     def limpar_inputs(self):
         self.query_one("#data_venda", Input).clear()
         self.query_one("#select_status_venda", Select).value = 1
