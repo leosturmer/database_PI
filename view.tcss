@@ -15,6 +15,7 @@ Screen {
 
 #tabela_encomendas, #tabela_vendas {
     width: 90%;
+    margin-top: 1;
 }
 
 #tela_produtos {

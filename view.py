@@ -154,10 +154,10 @@ class TelaCadastro(Screen):
         self.query_one("#input_nome_loja", Input).clear()
 
     def pegar_dados_vendedor(self):
-        login = self.query_one("#input_login", Input).value
-        senha = self.query_one("#input_senha", Input).value
-        nome = self.query_one("#input_nome", Input).value
-        nome_loja = self.query_one("#input_nome_loja", Input).value
+        login = self.query_one("#input_login", Input).value.strip()
+        senha = self.query_one("#input_senha", Input).value.strip()
+        nome = self.query_one("#input_nome", Input).value.strip()
+        nome_loja = self.query_one("#input_nome_loja", Input).value.strip()
 
         return login, senha, nome, nome_loja
 
@@ -351,13 +351,13 @@ class TelaProdutos(Screen):
     def pegar_valores_inputs(self):
         nome, quantidade, valor_unitario, valor_custo, imagem, aceita_encomenda, descricao = self.pegar_inputs_produtos()
 
-        nome = nome.value
+        nome = nome.value.strip()
         quantidade = quantidade.value
         valor_unitario = valor_unitario.value
         valor_custo = valor_custo.value
         imagem = imagem.value
         aceita_encomenda = aceita_encomenda.value
-        descricao = descricao.text
+        descricao = descricao.text.strip()
 
         return nome, quantidade, valor_unitario, valor_custo, imagem, aceita_encomenda, descricao
 
@@ -415,6 +415,31 @@ class TelaProdutos(Screen):
 
         return self.LISTA_DE_PRODUTOS
 
+    def preencher_campos(self):
+        id_produto = self.query_one(
+            "#select_produtos", Select).value
+
+        self.id_produto = id_produto
+
+        _, nome, quantidade, valor_unitario, valor_custo, aceita_encomenda, descricao, imagem = controller.select_produto_id(
+            id_produto)
+
+        input_nome, input_quantidade, input_valor_unitario, input_valor_custo, input_imagem, input_aceita_encomenda, input_descricao = self.pegar_inputs_produtos()
+
+        if imagem == None:
+            imagem = ""
+        if descricao == None:
+            descricao = ""
+
+
+        input_nome.value = str(nome)
+        input_quantidade.value = str(quantidade)
+        input_valor_unitario.value = str(valor_unitario)
+        input_valor_custo.value = str(valor_custo)
+        input_imagem.value = str(imagem)
+        input_aceita_encomenda.value = aceita_encomenda
+        input_descricao.text = str(descricao)
+
     @on(Input.Changed)
     async def on_input(self, event: Input.Changed):
         if event.input.value == '':
@@ -465,23 +490,7 @@ class TelaProdutos(Screen):
             case 'bt_preencher_campos':
 
                 try:
-                    id_produto = self.query_one(
-                        "#select_produtos", Select).value
-
-                    self.id_produto = id_produto
-
-                    _, nome, quantidade, valor_unitario, valor_custo, aceita_encomenda, descricao, imagem = controller.select_produto_id(
-                        id_produto)
-
-                    input_nome, input_quantidade, input_valor_unitario, input_valor_custo, input_imagem, input_aceita_encomenda, input_descricao = self.pegar_inputs_produtos()
-
-                    input_nome.value = str(nome)
-                    input_quantidade.value = str(quantidade)
-                    input_valor_unitario.value = str(valor_unitario)
-                    input_valor_custo.value = str(valor_custo)
-                    input_imagem.value = str(imagem)
-                    input_aceita_encomenda.value = aceita_encomenda
-                    input_descricao.text = str(descricao)
+                    self.preencher_campos()
 
                     self.query_one("#bt_alterar", Button).disabled = False
                     self.query_one("#bt_deletar", Button).disabled = False
@@ -535,6 +544,8 @@ class TelaEncomendas(Screen):
         self.texto_static_encomenda = 'Aqui vão as informações da encomenda'
         self.texto_static_alteracao = 'Selecione uma encomenda para ver as informações'
         self.ENCOMENDA_ALTERACAO = []
+        self.checkbox_list = []
+
 
     def on_screen_resume(self):
         self.atualizar_select_produtos()
@@ -739,17 +750,34 @@ class TelaEncomendas(Screen):
             self.texto_static_encomenda)
         self.query_one("#bt_alterar", Button).disabled = True
 
+
+    def pegar_checkbox(self):
+        producao = self.query_one("#cbox_producao", Checkbox).value
+        finalizada = self.query_one("#cbox_finalizada", Checkbox).value
+        vendida = self.query_one("#cbox_vendida", Checkbox).value
+        cancelada = self.query_one("#cbox_cancelada", Checkbox).value
+
+
+        if producao:
+            self.checkbox_list.append(1)
+
+        if finalizada:
+            self.checkbox_list.append(2)
+            
+        if vendida:
+            self.checkbox_list.append(3)
+
+        if cancelada:
+            self.checkbox_list.append(4)
+
+
+
     def atualizar_tabela_encomendas(self):
         tabela = self.query_one("#tabela_encomendas", DataTable)
-        producao = self.query_one("cbox_producao", Checkbox).value
-        finalizada = self.query_one("cbox_finalizada", Checkbox).value
-        vendida = self.query_one("cbox_vendida", Checkbox).value
-        cancelada = self.query_one("cbox_cancelada", Checkbox).value
-
+        
         dados_encomendas = controller.listar_encomendas()
 
-        # match status:
-        #     if True:
+        self.pegar_checkbox()
 
         for id_encomenda, detalhes in dados_encomendas.items():
             nome_produtos = [''.join([f'{nome}, ({quantidade}) | '])
@@ -757,18 +785,21 @@ class TelaEncomendas(Screen):
 
             status = detalhes['status']
 
-            if detalhes['status'] == 1:
-                status = 'Em produção'
-            elif detalhes['status'] == 2:
-                status = 'Finalizada'
-            elif detalhes['status'] == 3:
-                status = 'Vendida'
-            elif detalhes['status'] == 4:
-                status = 'Cancelada'
+            if status in self.checkbox_list:
 
-            if id_encomenda not in tabela.rows:
-                tabela.add_row(id_encomenda, ''.join(nome_produtos),
-                               detalhes['prazo'], detalhes['comentario'], status)
+                if detalhes['status'] == 1:
+                    status = 'Em produção'
+                elif detalhes['status'] == 2:
+                    status = 'Finalizada'
+                elif detalhes['status'] == 3:
+                    status = 'Vendida'
+                elif detalhes['status'] == 4:
+                    status = 'Cancelada'
+                
+
+                if id_encomenda not in tabela.rows:
+                    tabela.add_row(id_encomenda, ''.join(nome_produtos),
+                                detalhes['prazo'], detalhes['comentario'], status)
 
     def resetar_tabela_encomendas(self):
         tabela = self.query_one("#tabela_encomendas", DataTable)
@@ -817,6 +848,15 @@ class TelaEncomendas(Screen):
         self.notify(
             f'Encomenda deletada com sucesso!', severity='error')
 
+    @on(Checkbox.Changed)
+    async def on_checkbox_change(self, event: Checkbox.Changed):
+        self.checkbox_list.clear()
+
+        self.pegar_checkbox()
+        self.resetar_tabela_encomendas()
+        self.atualizar_tabela_encomendas()
+
+
     @on(DataTable.RowSelected)
     async def on_row_selected(self, event: DataTable.RowSelected):
         encomenda = self.query_one('#tabela_encomendas', DataTable)
@@ -835,9 +875,7 @@ class TelaEncomendas(Screen):
             case 'select_id_encomenda':
                 self.atualizar_static_alteracao()
 
-    @on(Checkbox.Changed)
-    async def on_checkbox_change(self, event: Checkbox.Changed):
-        pass
+
 
 
     @on(Input.Changed)
