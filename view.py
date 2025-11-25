@@ -950,6 +950,7 @@ class TelaVendas(Screen):
         self.LISTA_DE_PRODUTOS = controller.listar_produtos()
         self.ID_PRODUTO = int()
         self.PRODUTOS_QUANTIDADE = dict()
+        self.PRODUTOS_BAIXA = []
         self.texto_static_produto = '\nInformações do produto:\n'
         self.texto_static_venda = 'Aqui vão as informações da venda'
         self.texto_static_alteracao = 'Selecione uma venda para ver as informações'
@@ -1117,13 +1118,18 @@ class TelaVendas(Screen):
 
             for item in self.PRODUTOS_QUANTIDADE.items():
                 id_produto, quantidade = item
+                
+                if id_produto in self.PRODUTOS_BAIXA:
+                    dar_baixa = "Sim"
+                else:
+                    dar_baixa = "Não"
 
                 _id_produto, nome, _quantidade, valor_unitario, _valor_custo, _aceita_encomenda, _descricao, _imagem = controller.select_produto_id(
                     id_produto)
 
                 valor_produtos = (valor_unitario * int(quantidade))
 
-                novo_texto += f'Produto: {nome} | Quantidade: {quantidade} | Valor unitário: {valor_unitario:.2f} | Valor total: {valor_produtos:.2f}\n'
+                novo_texto += f'''Produto: {nome} | Quantidade: {quantidade} | Dar baixa: {dar_baixa}\nValor unitário: {valor_unitario:.2f} | Valor total: {valor_produtos:.2f}\n'''
 
             self.VALOR_TOTAL_VENDA.append(valor_produtos)
             valor_total = sum(self.VALOR_TOTAL_VENDA)
@@ -1165,8 +1171,15 @@ class TelaVendas(Screen):
                 self.notify(
                     "Quantidade maior do que a disponível no estoque", severity="error")
             self.PRODUTOS_QUANTIDADE[id_produto] = quantidade_vendida
+
+            if id_produto not in self.PRODUTOS_BAIXA:
+                self.PRODUTOS_BAIXA.append(id_produto)
+            
         else:
             self.PRODUTOS_QUANTIDADE[id_produto] = quantidade_vendida
+    
+            if id_produto in self.PRODUTOS_BAIXA:
+                self.PRODUTOS_BAIXA.remove(id_produto)
 
     def limpar_inputs(self):
         self.query_one("#data_venda", Input).clear()
@@ -1188,7 +1201,7 @@ class TelaVendas(Screen):
         self.query_one("#bt_alterar", Button).disabled = True
 
     def pegar_checkbox_venda(self):
-        andamento  = self.query_one("#cbox_andamento", Checkbox).value
+        andamento = self.query_one("#cbox_andamento", Checkbox).value
         pagamento = self.query_one("#cbox_pagamento", Checkbox).value
         finalizada = self.query_one("#cbox_finalizada", Checkbox).value
         cancelada = self.query_one("#cbox_cancelada", Checkbox).value
@@ -1232,7 +1245,7 @@ class TelaVendas(Screen):
 
                 if id_encomenda not in tabela.rows:
                     tabela.add_row(id_encomenda, ''.join(nome_produtos),
-                                detalhes['data'], detalhes['comentario'], status, valor_final)
+                                   detalhes['data'], detalhes['comentario'], status, valor_final)
 
     def resetar_tabela_vendas(self):
         tabela = self.query_one("#tabela_vendas", DataTable)
@@ -1249,7 +1262,7 @@ class TelaVendas(Screen):
         _id_encomenda, _produtos, prazo, comentario, status, _valor_total = self.VENDA_ALTERACAO
 
         comentario = str(comentario)
-            
+
         if status == 'Em produção':
             status = 1
         elif status == 'Finalizada':
@@ -1265,6 +1278,41 @@ class TelaVendas(Screen):
         novo_prazo.value = prazo
         novo_status.value = status
         novo_comentario.text = comentario
+
+    def cadastrar_venda(self):
+        status = self.query_one(
+            '#select_status_venda', Select).value
+        data = self.query_one("#data_venda", MaskedInput).value
+        comentario = self.query_one("#text_comentario", TextArea).text
+        dar_baixa = self.query_one("#switch_baixa", Switch)
+
+        produtos = self.PRODUTOS_QUANTIDADE
+
+        valor_final = sum(self.VALOR_TOTAL_VENDA)
+
+        if produtos == {}:
+            self.notify("Adicione pelo menos um produto!")
+        elif len(data) < 10:
+            self.notify("Preencha o prazo no formato DD/MM/AAAA")
+        else:
+            controller.insert_venda(
+                data=data, valor_final=valor_final, status=status, comentario=comentario, produtos=produtos)
+
+            for produto in produtos.items():
+                if produto[0] in self.PRODUTOS_BAIXA:
+                    controller.select_produto_id(id_produto=produto[0])
+                    ########################################
+# FAZER AQUI PARA PEGAR O ID DO PRODUTO E SUBTRAIR DA QUANTIDADE TOTAL EM ESTOQUE.
+
+                    controller.update_produto(id_produto=produto[0], quantidade=produto[1])
+
+            self.notify('Venda cadastrada com sucesso!')
+            self.PRODUTOS_QUANTIDADE.clear()
+            self.PRODUTOS_BAIXA.clear()
+            dar_baixa.value = False
+            self.limpar_inputs()
+            self.atualizar_tabela_vendas()
+            self.resetar_tabela_vendas()
 
     def update_venda(self):
         id_venda = self.VENDA_ALTERACAO[0]
@@ -1284,7 +1332,7 @@ class TelaVendas(Screen):
 
     @on(Checkbox.Changed)
     async def on_checkbox_change(self, event: Checkbox.Changed):
-        if len(self.checkbox_list) >0:
+        if len(self.checkbox_list) > 0:
             self.checkbox_list.clear()
 
         self.resetar_tabela_vendas()
@@ -1334,33 +1382,13 @@ class TelaVendas(Screen):
 
                 self.adicionar_dicionario_venda()
                 self.atualizar_static_venda()
+                # self.notify(f"{self.PRODUTOS_QUANTIDADE}")
 
             case 'bt_voltar':
                 self.app.switch_screen('tela_inicial')
 
             case 'bt_cadastrar':
-                status = self.query_one(
-                    '#select_status_venda', Select).value
-                data = self.query_one("#data_venda", MaskedInput).value
-                comentario = self.query_one("#text_comentario", TextArea).text
-
-                produtos = self.PRODUTOS_QUANTIDADE
-
-                valor_final = sum(self.VALOR_TOTAL_VENDA)
-
-                if produtos == {}:
-                    self.notify("Adicione pelo menos um produto!")
-                elif len(data) < 10:
-                    self.notify("Preencha o prazo no formato DD/MM/AAAA")
-                else:
-                    controller.insert_venda(
-                        data=data, valor_final=valor_final, status=status, comentario=comentario, produtos=produtos)
-
-                    self.notify('Venda cadastrada com sucesso!')
-                    self.PRODUTOS_QUANTIDADE.clear()
-                    self.limpar_inputs()
-                    self.atualizar_tabela_vendas()
-                    self.resetar_tabela_vendas()
+                self.cadastrar_venda()
 
             case 'bt_preencher_dados':
                 try:

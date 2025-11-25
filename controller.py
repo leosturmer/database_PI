@@ -41,7 +41,8 @@ def select_produto_id(id_produto: int):
     return model.select_produto_id(model.Produto(id_produto))
 
 
-def update_produto(id_produto, nome, valor_unitario, quantidade, imagem, aceita_encomenda, descricao, valor_custo):
+def update_produto(id_produto, nome=None, valor_unitario=None,
+                            quantidade=None, imagem=None, aceita_encomenda=None, descricao=None, valor_custo=None):
     produto = model.Produto(id_produto, nome, valor_unitario,
                             quantidade, imagem, aceita_encomenda, descricao, valor_custo)
 
