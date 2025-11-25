@@ -70,7 +70,7 @@ class TelaLogin(Screen):
 
             yield Button("Sair", id="bt_sair")
 
-        yield Footer()
+        yield Footer(show_command_palette=False)
 
     def verificar_login(self):
         import hashlib
@@ -145,7 +145,7 @@ class TelaCadastro(Screen):
             yield Button("Cadastrar", id="bt_cadastrar")
             yield Button("Voltar", id="bt_voltar")
 
-        yield Footer()
+        yield Footer(show_command_palette=False)
 
     def limpar_campos(self):
         self.query_one("#input_login", Input).clear()
@@ -220,7 +220,7 @@ class TelaInicial(Screen):
             yield Button("Pesquisa", id="bt_pesquisa", classes="botoes_inicial", variant='error')
             yield Button("Sair", id="bt_sair", classes="botoes_inicial")
 
-        yield Footer()
+        yield Footer(show_command_palette=False)
 
     def on_button_pressed(self, event: Button.Pressed):
         match event.button.id:
@@ -332,7 +332,7 @@ class TelaProdutos(Screen):
                 yield Button('Deletar', id='bt_deletar', disabled=True)
                 yield Button('Voltar', id='bt_voltar')
 
-            yield Footer()
+            yield Footer(show_command_palette=False)
 
     def pegar_inputs_produtos(self):
         nome = self.query_one("#input_nome", Input)
@@ -661,7 +661,7 @@ class TelaEncomendas(Screen):
                     yield Button('Deletar', id='bt_deletar', disabled=True)
                     yield Button('Voltar', id='bt_voltar')
 
-        yield Footer()
+        yield Footer(show_command_palette=False)
 
     def atualizar_select_produtos(self):
         self.LISTA_DE_PRODUTOS = controller.listar_produtos()
@@ -1079,7 +1079,7 @@ class TelaVendas(Screen):
                     yield Button('Deletar', id='bt_deletar', disabled=True)
                     yield Button('Voltar', id='bt_voltar')
 
-        yield Footer()
+        yield Footer(show_command_palette=False)
 
     def atualizar_select_produtos(self):
         self.LISTA_DE_PRODUTOS = controller.listar_produtos()
@@ -1417,7 +1417,7 @@ class TelaPesquisa(Screen):
 
         yield Button('Voltar', id='bt_voltar')
 
-        yield Footer()
+        yield Footer(show_command_palette=False)
 
     @on(Button.Pressed)
     async def on_button(self, event: Button.Pressed):
