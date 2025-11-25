@@ -611,6 +611,12 @@ class TelaEncomendas(Screen):
 
             with TabPane('Atualizar encomenda', id='tab_atualizar_encomenda'):
                 with Collapsible(title='Expandir tabela de encomendas', id="coll_encomendas"):
+                    with HorizontalGroup():
+                        yield Checkbox("Em produção", True, id="cbox_producao")
+                        yield Checkbox("Finalizada", True, id='cbox_finalizada')
+                        yield Checkbox("Vendida", True, id="cbox_vendida")
+                        yield Checkbox("Cancelada", True, id="cbox_cancelada")
+
                     with VerticalScroll():
                         yield DataTable(id='tabela_encomendas')
 
@@ -735,8 +741,15 @@ class TelaEncomendas(Screen):
 
     def atualizar_tabela_encomendas(self):
         tabela = self.query_one("#tabela_encomendas", DataTable)
+        producao = self.query_one("cbox_producao", Checkbox).value
+        finalizada = self.query_one("cbox_finalizada", Checkbox).value
+        vendida = self.query_one("cbox_vendida", Checkbox).value
+        cancelada = self.query_one("cbox_cancelada", Checkbox).value
 
         dados_encomendas = controller.listar_encomendas()
+
+        # match status:
+        #     if True:
 
         for id_encomenda, detalhes in dados_encomendas.items():
             nome_produtos = [''.join([f'{nome}, ({quantidade}) | '])
@@ -821,6 +834,11 @@ class TelaEncomendas(Screen):
 
             case 'select_id_encomenda':
                 self.atualizar_static_alteracao()
+
+    @on(Checkbox.Changed)
+    async def on_checkbox_change(self, event: Checkbox.Changed):
+        pass
+
 
     @on(Input.Changed)
     async def on_input(self, event: Input.Changed):
