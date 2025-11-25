@@ -237,60 +237,6 @@ class TelaInicial(Screen):
                 self.app.exit()
 
 
-class ContainerProdutos(ScrollableContainer):
-    def compose(self):
-        with HorizontalGroup():
-            yield Label("Nome do produto[red]*[/red]")
-            yield Input(
-                placeholder='Nome do produto*',
-                type='text',
-                max_length=50,
-                id='input_nome',
-
-            )
-            yield Label("Quantidade[red]*[/red]")
-            yield Input(
-                placeholder='Quantidade*',
-                type='integer',
-                max_length=4,
-                id='input_quantidade'
-            )
-
-        with HorizontalGroup():
-            yield Label("Valor unitário[red]*[/red]")
-            yield Input(
-                placeholder='Valor unitário*',
-                type='number',
-                max_length=7,
-                id='input_valor_unitario'
-            )
-
-            yield Label("Valor de custo")
-            yield Input(
-                placeholder='Valor de custo',
-                type='number',
-                max_length=7,
-                id='input_valor_custo'
-            )
-
-        with HorizontalGroup():
-            yield Label('Imagem')
-            yield Input(
-                placeholder='Imagem',
-                type='text',
-                id='input_imagem'
-            )
-            yield Label('Aceita encomendas?')
-            yield Switch(value=False, id='select_encomenda')
-
-        with HorizontalGroup():
-
-            yield Label("Descrição do produto")
-            yield TextArea(
-                placeholder='Descrição',
-                id='text_descricao')
-
-
 class TelaProdutos(Screen):
 
     TITLE = 'Produtos'
@@ -326,7 +272,58 @@ class TelaProdutos(Screen):
         """, id='stt_info_produto')
                 yield Button('Preencher campos', variant='primary', id='bt_preencher_campos')
 
-            yield ContainerProdutos(id='inputs_cadastro')
+            with ScrollableContainer(id='inputs_cadastro'):
+                with HorizontalGroup():
+                
+                    yield Label("Nome do produto[red]*[/red]")
+                    yield Input(
+                        placeholder='Nome do produto*',
+                        type='text',
+                        max_length=50,
+                        id='input_nome',
+
+                    )
+                    yield Label("Quantidade[red]*[/red]")
+                    yield Input(
+                        placeholder='Quantidade*',
+                        type='integer',
+                        max_length=4,
+                        id='input_quantidade'
+                    )
+
+                with HorizontalGroup():
+                    yield Label("Valor unitário[red]*[/red]")
+                    yield Input(
+                        placeholder='Valor unitário*',
+                        type='number',
+                        max_length=7,
+                        id='input_valor_unitario'
+                    )
+
+                    yield Label("Valor de custo")
+                    yield Input(
+                        placeholder='Valor de custo',
+                        type='number',
+                        max_length=7,
+                        id='input_valor_custo'
+                    )
+
+                with HorizontalGroup():
+                    yield Label('Imagem')
+                    yield Input(
+                        placeholder='Imagem',
+                        type='text',
+                        id='input_imagem'
+                    )
+                    yield Label('Aceita encomendas?')
+                    yield Switch(value=False, id='select_encomenda')
+
+                with HorizontalGroup():
+
+                    yield Label("Descrição do produto")
+                    yield TextArea(
+                        placeholder='Descrição',
+                        id='text_descricao')
 
             with HorizontalGroup(id='bt_tela_produtos'):
                 yield Button('Cadastrar',  id='bt_cadastrar', disabled=True)
@@ -549,6 +546,7 @@ class TelaEncomendas(Screen):
 
     def on_screen_resume(self):
         self.atualizar_select_produtos()
+        self.atualizar_tabela_encomendas()
 
     def on_mount(self):
         tabela = self.query_one("#tabela_encomendas", DataTable)
@@ -750,26 +748,23 @@ class TelaEncomendas(Screen):
             self.texto_static_encomenda)
         self.query_one("#bt_alterar", Button).disabled = True
 
-
     def pegar_checkbox(self):
         producao = self.query_one("#cbox_producao", Checkbox).value
         finalizada = self.query_one("#cbox_finalizada", Checkbox).value
         vendida = self.query_one("#cbox_vendida", Checkbox).value
         cancelada = self.query_one("#cbox_cancelada", Checkbox).value
 
-
         if producao:
             self.checkbox_list.append(1)
-
+            
         if finalizada:
             self.checkbox_list.append(2)
-            
+
         if vendida:
             self.checkbox_list.append(3)
 
         if cancelada:
             self.checkbox_list.append(4)
-
 
 
     def atualizar_tabela_encomendas(self):
@@ -800,6 +795,7 @@ class TelaEncomendas(Screen):
                 if id_encomenda not in tabela.rows:
                     tabela.add_row(id_encomenda, ''.join(nome_produtos),
                                 detalhes['prazo'], detalhes['comentario'], status)
+                    
 
     def resetar_tabela_encomendas(self):
         tabela = self.query_one("#tabela_encomendas", DataTable)
@@ -850,11 +846,10 @@ class TelaEncomendas(Screen):
 
     @on(Checkbox.Changed)
     async def on_checkbox_change(self, event: Checkbox.Changed):
-        self.checkbox_list.clear()
+        if len(self.checkbox_list) >0:
+            self.checkbox_list.clear()
 
-        self.pegar_checkbox()
         self.resetar_tabela_encomendas()
-        self.atualizar_tabela_encomendas()
 
 
     @on(DataTable.RowSelected)
@@ -874,9 +869,6 @@ class TelaEncomendas(Screen):
 
             case 'select_id_encomenda':
                 self.atualizar_static_alteracao()
-
-
-
 
     @on(Input.Changed)
     async def on_input(self, event: Input.Changed):
