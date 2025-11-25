@@ -4,7 +4,7 @@ from textual import on
 
 from textual.app import (App, ComposeResult)
 from textual.widgets import (Button, Input, TextArea, Footer, Header,
-                             Label, Static, MaskedInput, OptionList, Select, SelectionList, TabbedContent, TabPane, DataTable, 
+                             Label, Static, MaskedInput, OptionList, Select, SelectionList, TabbedContent, TabPane, DataTable,
                              Collapsible, Switch, Placeholder, Checkbox, Rule)
 from textual.screen import (Screen, ModalScreen)
 from textual.containers import (
@@ -23,9 +23,10 @@ from sqlite3 import IntegrityError
 
 # @@@@@@@@ TELAS DO SISTEMA
 
+
 class SidebarMenu(Container):
     def compose(self):
-    
+
         with VerticalGroup(id="grupo_botoes_inicial"):
             yield Button("Produtos", id="bt_produtos", classes="botoes_inicial", variant="primary")
             yield Button("Encomendas", id="bt_encomendas", classes="botoes_inicial", variant="success")
@@ -33,7 +34,6 @@ class SidebarMenu(Container):
             yield Button("Pesquisa", id="bt_pesquisa", classes="botoes_inicial", variant='error')
 
         return super().compose()
-
 
     def on_button_pressed(self, event: Button.Pressed):
         match event.button.id:
@@ -45,6 +45,7 @@ class SidebarMenu(Container):
                 self.app.switch_screen("tela_vendas")
             case "bt_pesquisa":
                 self.app.switch_screen("tela_pesquisa")
+
 
 class TelaLogin(Screen):
 
@@ -274,7 +275,7 @@ class TelaProdutos(Screen):
 
             with ScrollableContainer(id='inputs_cadastro'):
                 with HorizontalGroup():
-                
+
                     yield Label("Nome do produto[red]*[/red]")
                     yield Input(
                         placeholder='Nome do produto*',
@@ -428,7 +429,6 @@ class TelaProdutos(Screen):
         if descricao == None:
             descricao = ""
 
-
         input_nome.value = str(nome)
         input_quantidade.value = str(quantidade)
         input_valor_unitario.value = str(valor_unitario)
@@ -543,10 +543,8 @@ class TelaEncomendas(Screen):
         self.ENCOMENDA_ALTERACAO = []
         self.checkbox_list = []
 
-
     def on_screen_resume(self):
         self.atualizar_select_produtos()
-        self.atualizar_tabela_encomendas()
 
     def on_mount(self):
         tabela = self.query_one("#tabela_encomendas", DataTable)
@@ -756,7 +754,7 @@ class TelaEncomendas(Screen):
 
         if producao:
             self.checkbox_list.append(1)
-            
+
         if finalizada:
             self.checkbox_list.append(2)
 
@@ -766,10 +764,9 @@ class TelaEncomendas(Screen):
         if cancelada:
             self.checkbox_list.append(4)
 
-
     def atualizar_tabela_encomendas(self):
         tabela = self.query_one("#tabela_encomendas", DataTable)
-        
+
         dados_encomendas = controller.listar_encomendas()
 
         self.pegar_checkbox()
@@ -790,12 +787,10 @@ class TelaEncomendas(Screen):
                     status = 'Vendida'
                 elif detalhes['status'] == 4:
                     status = 'Cancelada'
-                
 
                 if id_encomenda not in tabela.rows:
                     tabela.add_row(id_encomenda, ''.join(nome_produtos),
-                                detalhes['prazo'], detalhes['comentario'], status)
-                    
+                                   detalhes['prazo'], detalhes['comentario'], status)
 
     def resetar_tabela_encomendas(self):
         tabela = self.query_one("#tabela_encomendas", DataTable)
@@ -846,11 +841,10 @@ class TelaEncomendas(Screen):
 
     @on(Checkbox.Changed)
     async def on_checkbox_change(self, event: Checkbox.Changed):
-        if len(self.checkbox_list) >0:
+        if len(self.checkbox_list) > 0:
             self.checkbox_list.clear()
 
         self.resetar_tabela_encomendas()
-
 
     @on(DataTable.RowSelected)
     async def on_row_selected(self, event: DataTable.RowSelected):
@@ -931,7 +925,7 @@ class TelaEncomendas(Screen):
 
             case 'bt_alterar':
                 prazo = self.query_one("#prazo_alterado", Input).value
-                
+
                 if len(prazo) < 10:
                     self.notify("Preencha o prazo no formato DD/MM/AAAA")
                 else:
@@ -961,6 +955,7 @@ class TelaVendas(Screen):
         self.texto_static_alteracao = 'Selecione uma venda para ver as informações'
         self.VENDA_ALTERACAO = []
         self.VALOR_TOTAL_VENDA = []
+        self.checkbox_list = []
 
     def on_screen_resume(self):
         self.atualizar_select_produtos()
@@ -997,7 +992,7 @@ class TelaVendas(Screen):
                                                  )
 
                                 yield Static(self.texto_static_produto, id='static_produto')
-                                
+
                                 with HorizontalGroup():
                                     yield Label("Dar baixa no estoque?")
                                     yield Switch(disabled=False, id="switch_baixa")
@@ -1012,8 +1007,6 @@ class TelaVendas(Screen):
                                     yield Button('Adicionar',
                                                  disabled=True,
                                                  id='bt_adicionar_quantidade')
-                                    
-
 
                     with VerticalGroup():
                         yield Static(self.texto_static_venda, id="static_venda")
@@ -1044,6 +1037,12 @@ class TelaVendas(Screen):
 
             with TabPane('Atualizar venda', id='tab_atualizar_venda'):
                 with Collapsible(title='Expandir tabela de venda', id="coll_vendas"):
+                    with HorizontalGroup():
+                        yield Checkbox("Em andamento", True, id="cbox_andamento")
+                        yield Checkbox("Aguardando pagamento", True, id='cbox_pagamento')
+                        yield Checkbox("Finalizada", True, id="cbox_finalizada")
+                        yield Checkbox("Cancelada", True, id="cbox_cancelada")
+
                     with VerticalScroll():
                         yield DataTable(id='tabela_vendas')
 
@@ -1152,18 +1151,19 @@ class TelaVendas(Screen):
         id_produto = self.query_one("#select_produtos_venda", Select).selection
         quantidade_vendida = self.query_one(
             "#quantidade_venda", Input).value
-        
+
         dados_produtos = controller.select_produto_id(id_produto)
-        
+
         dar_baixa = self.query_one("#switch_baixa", Switch).value
-        
+
         if quantidade_vendida == "" or int(quantidade_vendida) == 0:
             self.notify("Quantidade inválida!", severity="error")
             return
-        
+
         if dar_baixa == True:
             if int(quantidade_vendida) >= int(dados_produtos[2]):
-                self.notify("Quantidade maior do que a disponível no estoque", severity="error")
+                self.notify(
+                    "Quantidade maior do que a disponível no estoque", severity="error")
             self.PRODUTOS_QUANTIDADE[id_produto] = quantidade_vendida
         else:
             self.PRODUTOS_QUANTIDADE[id_produto] = quantidade_vendida
@@ -1187,10 +1187,30 @@ class TelaVendas(Screen):
             self.texto_static_venda)
         self.query_one("#bt_alterar", Button).disabled = True
 
+    def pegar_checkbox_venda(self):
+        andamento  = self.query_one("#cbox_andamento", Checkbox).value
+        pagamento = self.query_one("#cbox_pagamento", Checkbox).value
+        finalizada = self.query_one("#cbox_finalizada", Checkbox).value
+        cancelada = self.query_one("#cbox_cancelada", Checkbox).value
+
+        if andamento:
+            self.checkbox_list.append(1)
+
+        if pagamento:
+            self.checkbox_list.append(2)
+
+        if finalizada:
+            self.checkbox_list.append(3)
+
+        if cancelada:
+            self.checkbox_list.append(4)
+
     def atualizar_tabela_vendas(self):
         tabela = self.query_one("#tabela_vendas", DataTable)
 
         dados_vendas = controller.listar_vendas()
+
+        self.pegar_checkbox_venda()
 
         for id_encomenda, detalhes in dados_vendas.items():
             nome_produtos = [''.join([f'{nome}, ({quantidade}), R${valor_unitario} | '])
@@ -1199,18 +1219,20 @@ class TelaVendas(Screen):
             status = detalhes['status']
             valor_final = detalhes['valor_final']
 
-            if detalhes['status'] == 1:
-                status = 'Em produção'
-            elif detalhes['status'] == 2:
-                status = 'Finalizada'
-            elif detalhes['status'] == 3:
-                status = 'Vendida'
-            elif detalhes['status'] == 4:
-                status = 'Cancelada'
+            if status in self.checkbox_list:
 
-            if id_encomenda not in tabela.rows:
-                tabela.add_row(id_encomenda, ''.join(nome_produtos),
-                               detalhes['data'], detalhes['comentario'], status, valor_final)
+                if detalhes['status'] == 1:
+                    status = 'Em produção'
+                elif detalhes['status'] == 2:
+                    status = 'Finalizada'
+                elif detalhes['status'] == 3:
+                    status = 'Finalizada'
+                elif detalhes['status'] == 4:
+                    status = 'Cancelada'
+
+                if id_encomenda not in tabela.rows:
+                    tabela.add_row(id_encomenda, ''.join(nome_produtos),
+                                detalhes['data'], detalhes['comentario'], status, valor_final)
 
     def resetar_tabela_vendas(self):
         tabela = self.query_one("#tabela_vendas", DataTable)
@@ -1225,14 +1247,14 @@ class TelaVendas(Screen):
         novo_comentario = self.query_one("#text_comentario_alterado", TextArea)
 
         _id_encomenda, _produtos, prazo, comentario, status, _valor_total = self.VENDA_ALTERACAO
-        
-        comentario = str(comentario)
 
+        comentario = str(comentario)
+            
         if status == 'Em produção':
             status = 1
         elif status == 'Finalizada':
             status = 2
-        elif status == 'Vendida':
+        elif status == 'Finalizada':
             status = 3
         elif status == 'Cancelada':
             status = 4
@@ -1259,6 +1281,13 @@ class TelaVendas(Screen):
         controller.delete_venda(id_venda)
         self.notify(
             f'Venda deletada com sucesso!', severity='error')
+
+    @on(Checkbox.Changed)
+    async def on_checkbox_change(self, event: Checkbox.Changed):
+        if len(self.checkbox_list) >0:
+            self.checkbox_list.clear()
+
+        self.resetar_tabela_vendas()
 
     @on(DataTable.RowSelected)
     async def on_row_selected(self, event: DataTable.RowSelected):
@@ -1333,7 +1362,7 @@ class TelaVendas(Screen):
                     self.atualizar_tabela_vendas()
                     self.resetar_tabela_vendas()
 
-            case 'bt_preencher_dados':                         
+            case 'bt_preencher_dados':
                 try:
                     self.preencher_alteracoes_venda()
                 except:
@@ -1355,12 +1384,13 @@ class TelaVendas(Screen):
 class TelaPesquisa(Screen):
     TITLE = 'Pesquisa'
 
-    def __init__(self, name = None, id = None, classes = None):
+    def __init__(self, name=None, id=None, classes=None):
         super().__init__(name, id, classes)
         self.LISTA_DE_PRODUTOS = controller.listar_produtos()
 
     def on_mount(self):
-        self.query_one("#seletor_produtos", SelectionList).border_title = "Selecione a opção desejada"
+        self.query_one("#seletor_produtos",
+                       SelectionList).border_title = "Selecione a opção desejada"
     #     tabela_estoque = self.query_one("#tabela_estoque", DataTable)
     #     tabela_estoque.border_title = "Produtos"
     #     tabela_estoque.cursor_type = 'row'
@@ -1400,7 +1430,6 @@ class TelaPesquisa(Screen):
 
                 with VerticalScroll():
                     yield DataTable(id='tabela_produtos')
-                    
 
                 with HorizontalGroup():
                     yield Select(prompt='Filtrar por:', options=[('nome', 1), ("quantidade", 2), ('valor unitário', 3), ('valor de custo', 4), ('aceita encomenda', 5), ('descrição', 6)])
@@ -1427,7 +1456,8 @@ class TelaPesquisa(Screen):
 
     @on(SelectionList.SelectedChanged)
     async def on_selected(self, event: SelectionList.SelectedChanged):
-        selecionados = self.query_one("#seletor_produtos", SelectionList).selected
+        selecionados = self.query_one(
+            "#seletor_produtos", SelectionList).selected
         self.notify(f"{selecionados}")
 
     # def atualizar_tabela_estoque(self):
