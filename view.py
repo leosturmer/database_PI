@@ -42,7 +42,7 @@ class SidebarMenu(Container):
             case "bt_encomendas":
                 self.app.switch_screen("tela_encomendas")
             case "bt_vendas":
-                self.app.switch_screen("tela_vendas")
+                self.app.switch_screen("tela_vendas")            
             case "bt_pesquisa":
                 self.app.switch_screen("tela_pesquisa")
 
@@ -1155,32 +1155,46 @@ class TelaVendas(Screen):
 
     def adicionar_dicionario_venda(self):
         id_produto = self.query_one("#select_produtos_venda", Select).selection
-        quantidade_vendida = self.query_one(
-            "#quantidade_venda", Input).value
-
+        
+        if id_produto == None:
+            self.notify("Selecione um produto!", severity="error")
+            return 
+        
         dados_produtos = controller.select_produto_id(id_produto)
 
         dar_baixa = self.query_one("#switch_baixa", Switch).value
 
-        if quantidade_vendida == "" or int(quantidade_vendida) == 0:
-            self.notify("Quantidade inválida!", severity="error")
+        quantidade_vendida = self.query_one(
+            "#quantidade_venda", Input).value
+        quantidade_estoque = dados_produtos[2]
+        
+        if quantidade_vendida == "" or quantidade_vendida.startswith("0"):
+            self.notify("Insira uma quantidade válida!", severity="error")
             return
 
-        if dar_baixa == True:
-            if int(quantidade_vendida) >= int(dados_produtos[2]):
-                self.notify(
+        if dar_baixa == True and int(quantidade_vendida) > int(quantidade_estoque):
+            self.notify(
                     "Quantidade maior do que a disponível no estoque", severity="error")
+            return
+        
+        if dar_baixa == True and id_produto not in self.PRODUTOS_BAIXA:
             self.PRODUTOS_QUANTIDADE[id_produto] = quantidade_vendida
+            self.PRODUTOS_BAIXA.append(id_produto)
+            self.atualizar_static_venda()
+            return
 
-            if id_produto not in self.PRODUTOS_BAIXA:
-                self.PRODUTOS_BAIXA.append(id_produto)
-            
-        else:
-            self.PRODUTOS_QUANTIDADE[id_produto] = quantidade_vendida
-    
+        # else:
+        if dar_baixa == False :
             if id_produto in self.PRODUTOS_BAIXA:
                 self.PRODUTOS_BAIXA.remove(id_produto)
+                self.PRODUTOS_QUANTIDADE[id_produto] = quantidade_vendida
+                self.atualizar_static_venda()
 
+            else:
+                self.PRODUTOS_QUANTIDADE[id_produto] = quantidade_vendida
+                self.atualizar_static_venda()
+            return
+        
     def limpar_inputs(self):
         self.query_one("#data_venda", Input).clear()
         self.query_one("#select_status_venda", Select).value = 1
@@ -1300,11 +1314,10 @@ class TelaVendas(Screen):
 
             for produto in produtos.items():
                 if produto[0] in self.PRODUTOS_BAIXA:
-                    controller.select_produto_id(id_produto=produto[0])
-                    ########################################
-# FAZER AQUI PARA PEGAR O ID DO PRODUTO E SUBTRAIR DA QUANTIDADE TOTAL EM ESTOQUE.
+                    quantidade_estoque = controller.select_produto_id(id_produto=produto[0])[2]
 
-                    controller.update_produto(id_produto=produto[0], quantidade=produto[1])
+                    quantidade_atualizada = int(quantidade_estoque) - int(produto[1])
+                    controller.update_produto(id_produto=produto[0], quantidade=quantidade_atualizada)
 
             self.notify('Venda cadastrada com sucesso!')
             self.PRODUTOS_QUANTIDADE.clear()
@@ -1379,10 +1392,7 @@ class TelaVendas(Screen):
     async def on_button(self, event: Button.Pressed):
         match event.button.id:
             case 'bt_adicionar_quantidade':
-
                 self.adicionar_dicionario_venda()
-                self.atualizar_static_venda()
-                # self.notify(f"{self.PRODUTOS_QUANTIDADE}")
 
             case 'bt_voltar':
                 self.app.switch_screen('tela_inicial')
