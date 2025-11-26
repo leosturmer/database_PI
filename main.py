@@ -25,8 +25,8 @@ from textual.theme import Theme
 #     variables={}
 # )
 
-
 class NizeApp(App):
+    'Classe App que inicializa o programa.'
 
     AUTO_FOCUS = None
 
@@ -47,7 +47,6 @@ class NizeApp(App):
         self.push_screen('tela_inicial')
         # self.register_theme(meu_tema)
         # self.theme = 'meu-tema'
-
 
 if __name__ == "__main__":
     app = NizeApp()

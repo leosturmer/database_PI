@@ -25,6 +25,7 @@ from sqlite3 import IntegrityError
 
 
 class SidebarMenu(Container):
+    'Menu lateral vertical do sistema.'
     def compose(self):
 
         with VerticalGroup(id="grupo_botoes_inicial"):
@@ -36,6 +37,7 @@ class SidebarMenu(Container):
         return super().compose()
 
     def on_button_pressed(self, event: Button.Pressed):
+        'Eventos que ocorrem ao apertar os botões.'
         match event.button.id:
             case "bt_produtos":
                 self.app.switch_screen("tela_produtos")
@@ -45,11 +47,13 @@ class SidebarMenu(Container):
                 self.app.switch_screen("tela_vendas")            
             case "bt_pesquisa":
                 self.app.switch_screen("tela_pesquisa")
-
+    
 
 class TelaLogin(Screen):
+    'Tela de login do sistema.'
 
     def compose(self):
+        'Composição da tela.'
         yield Header()
 
         with CenterMiddle(id="container_login"):
@@ -74,6 +78,7 @@ class TelaLogin(Screen):
         yield Footer(show_command_palette=False)
 
     def verificar_login(self):
+        'Função de validação do login. Ele faz a criptografia para validar a senha.'
         import hashlib
         from hashlib import sha256
 
@@ -99,6 +104,7 @@ class TelaLogin(Screen):
 
     @on(Switch.Changed)
     async def on_switch(self, event: Switch.Changed):
+        'Ações que ocorrem ao clicar no Switch da tela.'
         mostrar_senha = self.query_one("#switch_senha", Switch).value
         input_senha = self.query_one("#input_senha", Input)
 
@@ -109,6 +115,7 @@ class TelaLogin(Screen):
 
     @on(Button.Pressed)
     async def on_button(self, event: Button.Pressed):
+        'Ações que ocorrem ao clicar nos botões da tela.'
         match event.button.id:
             case 'bt_login':
                 self.verificar_login()
@@ -121,6 +128,7 @@ class TelaLogin(Screen):
 
 
 class TelaCadastro(Screen):
+    'Tela de cadastro de usuário do sistema.'
     def compose(self):
         with HorizontalGroup():
             yield Label("Nome[red]*[/red]")
@@ -149,12 +157,14 @@ class TelaCadastro(Screen):
         yield Footer(show_command_palette=False)
 
     def limpar_campos(self):
+        'Reseta os campos preenchidos da TelaCadastro.'
         self.query_one("#input_login", Input).clear()
         self.query_one("#input_senha", Input).clear()
         self.query_one("#input_nome", Input).clear()
         self.query_one("#input_nome_loja", Input).clear()
 
     def pegar_dados_vendedor(self):
+        'Pega as informações inseridas nos campos de cadastro de usuário.'
         login = self.query_one("#input_login", Input).value.strip()
         senha = self.query_one("#input_senha", Input).value.strip()
         nome = self.query_one("#input_nome", Input).value.strip()
@@ -163,6 +173,7 @@ class TelaCadastro(Screen):
         return login, senha, nome, nome_loja
 
     def insert_vendedor(self):
+        'Insere os dados de novo usuário no banco de dados do sistema.'
         from hashlib import sha256
 
         login, senha, nome, nome_loja = self.pegar_dados_vendedor()
@@ -181,6 +192,8 @@ class TelaCadastro(Screen):
 
     @on(Switch.Changed)
     async def on_switch(self, event: Switch.Changed):
+        'Ações que ocorrem ao clicar no Switch da tela.'
+
         mostrar_senha = self.query_one("#switch_senha", Switch).value
         input_senha = self.query_one("#input_senha", Input)
 
@@ -191,6 +204,7 @@ class TelaCadastro(Screen):
 
     @on(Button.Pressed)
     async def on_button(self, event: Button.Pressed):
+        'Ações que ocorrem ao clicar nos botões da tela.'
         match event.button.id:
             case 'bt_voltar':
                 self.app.switch_screen('tela_login')
@@ -210,6 +224,7 @@ class TelaCadastro(Screen):
 
 
 class TelaInicial(Screen):
+    'Tela Inicial do sistema.'
 
     def compose(self):
         yield Header()
@@ -223,7 +238,10 @@ class TelaInicial(Screen):
 
         yield Footer(show_command_palette=False)
 
-    def on_button_pressed(self, event: Button.Pressed):
+    @on(Button.Pressed)
+    async def on_button(self, event: Button.Pressed):
+        'Ações que ocorrem ao clicar nos botões da tela.'
+
         match event.button.id:
             case "bt_produtos":
                 self.app.switch_screen("tela_produtos")
@@ -239,6 +257,7 @@ class TelaInicial(Screen):
 
 
 class TelaProdutos(Screen):
+    'Tela de cadastro, alteração e remoção de produtos do sistema.'
 
     TITLE = 'Produtos'
 
@@ -335,7 +354,13 @@ class TelaProdutos(Screen):
 
             yield Footer(show_command_palette=False)
 
+    def on_screen_resume(self):
+        'Ações que ocorrem ao voltar para a TelaProdutos.'
+        self.limpar_texto_static()
+        self.atualizar_select_produtos()
+
     def pegar_inputs_produtos(self):
+        'Pega os campos da TelaProdutos.'
         nome = self.query_one("#input_nome", Input)
         quantidade = self.query_one("#input_quantidade", Input)
         valor_unitario = self.query_one("#input_valor_unitario", Input)
@@ -347,6 +372,7 @@ class TelaProdutos(Screen):
         return nome, quantidade, valor_unitario, valor_custo, imagem, aceita_encomenda, descricao
 
     def pegar_valores_inputs(self):
+        'Pega os valores inseridos nos campos da TelaProdutos.'
         nome, quantidade, valor_unitario, valor_custo, imagem, aceita_encomenda, descricao = self.pegar_inputs_produtos()
 
         nome = nome.value.strip()
@@ -360,6 +386,7 @@ class TelaProdutos(Screen):
         return nome, quantidade, valor_unitario, valor_custo, imagem, aceita_encomenda, descricao
 
     def limpar_inputs_produtos(self):
+        'Reseta os valores dos campos da TelaProdutos.'
         nome, quantidade, valor_unitario, valor_custo, imagem, aceita_encomenda, descricao = self.pegar_inputs_produtos()
         nome.clear()
         quantidade.clear()
@@ -375,6 +402,7 @@ class TelaProdutos(Screen):
         self.query_one("#select_produtos", Select).value = Select.BLANK
 
     def atualizar_texto_static(self):
+        'Atualiza as informações do produto selecionado na TelaProdutos.'
         id_produto = self.query_one("#select_produtos", Select).value
 
         texto_static = self.query_one("#stt_info_produto", Static)
@@ -398,15 +426,13 @@ class TelaProdutos(Screen):
         Descrição: {descricao}''')
 
     def limpar_texto_static(self):
+        'Reseta as informações do produto selecionado na TelaProdutos.'
         texto_static = self.query_one("#stt_info_produto", Static)
-        texto_static.update(
-            f"""Informações do produto:
-                                 
-        Selecione o produto para visualizar
-                                    
-        """)
+        texto_static.update(f"""Informações do produto:\n\n                               
+        Selecione o produto para visualizar\n\n""")
 
     def atualizar_select_produtos(self):
+        'Atualiza o Select de produtos.'
         self.LISTA_DE_PRODUTOS = controller.listar_produtos()
 
         self.query_one(Select).set_options(self.LISTA_DE_PRODUTOS)
@@ -414,6 +440,7 @@ class TelaProdutos(Screen):
         return self.LISTA_DE_PRODUTOS
 
     def preencher_campos(self):
+        'Preenche os campos da TelaProdutos com as informações do produto selecionado.'
         id_produto = self.query_one(
             "#select_produtos", Select).value
 
@@ -439,15 +466,19 @@ class TelaProdutos(Screen):
 
     @on(Input.Changed)
     async def on_input(self, event: Input.Changed):
-        if event.input.value == '':
-            self.query_one("#bt_cadastrar", Button).disabled = True
-            self.query_one("#bt_limpar", Button).disabled = True
-        else:
-            self.query_one("#bt_cadastrar", Button).disabled = False
-            self.query_one("#bt_limpar", Button).disabled = False
+        'Ações que ocorrem ao preencher o Input.'
+        match event.input.value:
+
+            case '':
+                self.query_one("#bt_cadastrar", Button).disabled = True
+                self.query_one("#bt_limpar", Button).disabled = True
+            case str():
+                self.query_one("#bt_cadastrar", Button).disabled = False
+                self.query_one("#bt_limpar", Button).disabled = False               
 
     @on(Select.Changed)
     async def on_select(self, event: Select.Changed):
+        'Ações que ocorrem ao trocar o item selecioando no Select.'
         self.ID_PRODUTO = event.select.value
         if event.select.value == Select.BLANK:
             pass
@@ -456,6 +487,8 @@ class TelaProdutos(Screen):
 
     @on(Button.Pressed)
     async def on_button(self, event: Button.Pressed):
+        'Ações que ocorrem ao clicar nos botões da tela.'
+
         match event.button.id:
             case 'bt_cadastrar':
                 nome, quantidade, valor_unitario, valor_custo, imagem, aceita_encomenda, descricao = self.pegar_valores_inputs()
@@ -528,6 +561,7 @@ class TelaProdutos(Screen):
 
 
 class TelaEncomendas(Screen):
+    'Tela de cadastro, alteração e remoção de encomendas do sistema.'
 
     TITLE = 'Encomendas'
 
@@ -544,7 +578,14 @@ class TelaEncomendas(Screen):
         self.checkbox_list = []
 
     def on_screen_resume(self):
+        'Ações que ocorrem ao voltar para a TelaProdutos.'
+
         self.atualizar_select_produtos()
+        self.limpar_inputs()
+        self.limpar_inputs_alteracao()
+
+    def resetar_textos(self):
+        pass        # self.texto_static_encomenda = 'Aqui vão as informações da encomenda'
 
     def on_mount(self):
         tabela = self.query_one("#tabela_encomendas", DataTable)
@@ -662,6 +703,7 @@ class TelaEncomendas(Screen):
         yield Footer(show_command_palette=False)
 
     def atualizar_select_produtos(self):
+        'Atualiza o select de produtos quando um novo produto é cadastrado na TelaProdutos.'
         self.LISTA_DE_PRODUTOS = controller.listar_produtos()
 
         self.query_one("#select_produtos", Select).set_options(
@@ -670,6 +712,7 @@ class TelaEncomendas(Screen):
         return self.LISTA_DE_PRODUTOS
 
     def atualizar_static_produto(self):
+        'Atualiza as informações referente ao produto selecionado.'
         try:
             id_produto = self.query_one("#select_produtos", Select).value
 
@@ -684,10 +727,12 @@ class TelaEncomendas(Screen):
                 '''
 
             static.update(novo_texto)
-        except:
+        except Exception as e:
             pass
 
     def atualizar_static_encomenda(self):
+        'Atualiza as informações referente a encomenda selecionada na tela de Cadastro de Encomenda.'
+
         static_lista_encomenda = ["Encomenda:"]
 
         static = self.query_one('#static_encomenda', Static)
@@ -702,11 +747,10 @@ class TelaEncomendas(Screen):
 
         static.update('\n'.join(static_lista_encomenda))
 
-
-
     def atualizar_static_alteracao(self):
+        'Atualiza as informações referente a encomenda selecionada na tela de Atualização de Encomenda.'
         static = self.query_one('#static_alteracao_encomenda', Static)
-        novo_texto = f''''''
+        novo_texto = f""
 
         _id_encomenda, produtos, prazo, comentario, status = self.ENCOMENDA_ALTERACAO
 
@@ -718,6 +762,7 @@ class TelaEncomendas(Screen):
         static.update(novo_texto)
 
     def adicionar_dicionario_encomenda(self):
+        'Adiciona os produtos selecionados de uma encomenda para um dict().'
         id_produto = self.query_one("#select_produtos", Select).selection
         quantidade_encomendada = self.query_one(
             "#quantidade_encomenda", Input).value
@@ -725,6 +770,7 @@ class TelaEncomendas(Screen):
         self.PRODUTOS_QUANTIDADE[id_produto] = quantidade_encomendada
 
     def limpar_inputs(self):
+        'Reseta os valores inseridos nos campos da tela de Cadastro de Encomendas.'
         self.query_one("#prazo_encomenda", Input).clear()
         self.query_one("#select_status_cadastro", Select).value = 1
         self.query_one("#text_comentario", TextArea).clear()
@@ -736,6 +782,7 @@ class TelaEncomendas(Screen):
             self.texto_static_encomenda)
 
     def limpar_inputs_alteracao(self):
+        'Reseta os valores inseridos nos campos da tela de Atualização de Encomendas.'
         self.query_one("#prazo_alterado", MaskedInput).clear()
         self.query_one("#select_status_alterado", Select).value = 1
         self.query_one("#text_comentario_alterado", TextArea).clear()
@@ -744,6 +791,7 @@ class TelaEncomendas(Screen):
         self.query_one("#bt_alterar", Button).disabled = True
 
     def pegar_checkbox(self):
+        'Pega os valores preenchidos nos campos Checkbox para atualizar a tabela.'
         producao = self.query_one("#cbox_producao", Checkbox).value
         finalizada = self.query_one("#cbox_finalizada", Checkbox).value
         vendida = self.query_one("#cbox_vendida", Checkbox).value
@@ -762,6 +810,7 @@ class TelaEncomendas(Screen):
             self.checkbox_list.append(4)
 
     def atualizar_tabela_encomendas(self):
+        'Atualiza os valores a serem preenchidos na tabela de encomendas.'
         tabela = self.query_one("#tabela_encomendas", DataTable)
 
         dados_encomendas = controller.listar_encomendas()
@@ -790,6 +839,7 @@ class TelaEncomendas(Screen):
                                    detalhes['prazo'], detalhes['comentario'], status)
 
     def resetar_tabela_encomendas(self):
+        'Reseta e atualiza a tela de encomendas.'
         tabela = self.query_one("#tabela_encomendas", DataTable)
 
         tabela.clear()
@@ -797,6 +847,7 @@ class TelaEncomendas(Screen):
         self.atualizar_tabela_encomendas()
 
     def preencher_alteracoes_encomenda(self):
+        'Preenche os campos com as informações da encomenda a ser alterada.'
         novo_prazo = self.query_one("#prazo_alterado", MaskedInput)
         novo_status = self.query_one("#select_status_alterado", Select)
         novo_comentario = self.query_one("#text_comentario_alterado", TextArea)
@@ -821,6 +872,7 @@ class TelaEncomendas(Screen):
         novo_comentario.text = comentario
 
     def update_encomenda(self):
+        'Envia ao banco de dados as alterações da encomenda.'
         id_encomenda = self.ENCOMENDA_ALTERACAO[0]
 
         prazo = self.query_one("#prazo_alterado", MaskedInput).value
@@ -831,13 +883,38 @@ class TelaEncomendas(Screen):
             id_encomenda=id_encomenda, prazo=prazo, comentario=comentario, status=status)
 
     def deletar_encomenda(self):
+        'Deleta do banco de dados a encomenda.'
         id_encomenda = self.ENCOMENDA_ALTERACAO[0]
         controller.delete_encomenda(id_encomenda)
         self.notify(
             f'Encomenda deletada com sucesso!', severity='error')
 
+    def cadastrar_encomenda(self):
+        'Cadastra a encomenda no banco de dados.'
+        status = self.query_one(
+            '#select_status_cadastro', Select).value
+        prazo = self.query_one("#prazo_encomenda", Input).value
+        comentario = self.query_one("#text_comentario", TextArea).text
+
+        produtos = self.PRODUTOS_QUANTIDADE
+
+        if produtos == []:
+            self.notify("Adicione pelo menos um produto!")
+        elif len(prazo) < 10:
+            self.notify("Preencha o prazo no formato DD/MM/AAAA")
+        else:
+            controller.insert_encomenda(
+                status=status, prazo=prazo, comentario=comentario, produtos=produtos)
+
+            self.notify('Encomenda cadastrada com sucesso!')
+            self.PRODUTOS_QUANTIDADE.clear()
+            self.limpar_inputs()
+            self.atualizar_tabela_encomendas()
+            self.resetar_tabela_encomendas()
+
     @on(Checkbox.Changed)
     async def on_checkbox_change(self, event: Checkbox.Changed):
+        'Ações que ocorrem ao selecionar um Checkbox.'
         if len(self.checkbox_list) > 0:
             self.checkbox_list.clear()
 
@@ -845,6 +922,7 @@ class TelaEncomendas(Screen):
 
     @on(DataTable.RowSelected)
     async def on_row_selected(self, event: DataTable.RowSelected):
+        'Ações que ocorrem ao selecionar uma linha da tabela.'
         encomenda = self.query_one('#tabela_encomendas', DataTable)
         self.ENCOMENDA_ALTERACAO = encomenda.get_row(event.row_key)
         self.atualizar_static_alteracao()
@@ -853,6 +931,7 @@ class TelaEncomendas(Screen):
 
     @on(Select.Changed)
     async def on_select(self, event: Select.Changed):
+        'Ações que ocorrem ao selecionar um item no Select.'
         match event.select.id:
             case 'select_produtos':
                 self.ID_PRODUTO = event.select.value
@@ -863,6 +942,7 @@ class TelaEncomendas(Screen):
 
     @on(Input.Changed)
     async def on_input(self, event: Input.Changed):
+        'Ações que ocorrem ao alterar um Input.'
         match event.input.id:
             case 'quantidade_encomenda':
                 self.query_one("#bt_adicionar_quantidade",
@@ -878,11 +958,13 @@ class TelaEncomendas(Screen):
 
     @on(TextArea.Changed)
     async def on_textarea(self, event: TextArea.Changed):
+        'Ações que ocorrem ao alterar um campo TextArea.'
         if event.text_area.id == 'text_comentario':
             self.query_one("#bt_limpar", Button).disabled = False
 
     @on(Button.Pressed)
     async def on_button(self, event: Button.Pressed):
+        'Ações que ocorrem ao pressionar botões da TelaEncomendas.'
         match event.button.id:
             case 'bt_adicionar_quantidade':
 
@@ -893,26 +975,7 @@ class TelaEncomendas(Screen):
                 self.app.switch_screen('tela_inicial')
 
             case 'bt_cadastrar':
-                status = self.query_one(
-                    '#select_status_cadastro', Select).value
-                prazo = self.query_one("#prazo_encomenda", Input).value
-                comentario = self.query_one("#text_comentario", TextArea).text
-
-                produtos = self.PRODUTOS_QUANTIDADE
-
-                if produtos == []:
-                    self.notify("Adicione pelo menos um produto!")
-                elif len(prazo) < 10:
-                    self.notify("Preencha o prazo no formato DD/MM/AAAA")
-                else:
-                    controller.insert_encomenda(
-                        status=status, prazo=prazo, comentario=comentario, produtos=produtos)
-
-                    self.notify('Encomenda cadastrada com sucesso!')
-                    self.PRODUTOS_QUANTIDADE.clear()
-                    self.limpar_inputs()
-                    self.atualizar_tabela_encomendas()
-                    self.resetar_tabela_encomendas()
+                self.cadastrar_encomenda()
 
             case 'bt_preencher_dados':
                 try:
@@ -939,6 +1002,7 @@ class TelaEncomendas(Screen):
 
 
 class TelaVendas(Screen):
+    'Tela de vendas do sistema'
     TITLE = 'Vendas'
 
     def __init__(self, name=None, id=None, classes=None):
@@ -956,9 +1020,13 @@ class TelaVendas(Screen):
         self.checkbox_list = []
 
     def on_screen_resume(self):
+        'Ações que ocorrem ao voltar para a TelaVendas.'
         self.atualizar_select_produtos()
+        self.limpar_inputs()
+        self.limpar_inputs_alteracao()
 
     def on_mount(self):
+        'Ações que ocorrem ao montar a TelaVendas.'
         tabela = self.query_one("#tabela_vendas", DataTable)
         tabela.border_title = "Vendas"
         tabela.cursor_type = 'row'
@@ -1079,6 +1147,7 @@ class TelaVendas(Screen):
         yield Footer(show_command_palette=False)
 
     def atualizar_select_produtos(self):
+        'Atualiza o select de produtos com os novos produtos inseridos na TelaProdutos.'
         self.LISTA_DE_PRODUTOS = controller.listar_produtos()
 
         self.query_one("#select_produtos_venda", Select).set_options(
@@ -1087,6 +1156,7 @@ class TelaVendas(Screen):
         return self.LISTA_DE_PRODUTOS
 
     def atualizar_static_produto(self):
+        'Atualiza as informações do produto selecionado na TelaVendas.'
         try:
             id_produto = self.query_one("#select_produtos_venda", Select).value
 
@@ -1106,22 +1176,8 @@ class TelaVendas(Screen):
             pass
 
     def atualizar_static_venda(self):
-        # static_lista_encomenda = ["Encomenda:"]
-
-        # static = self.query_one('#static_encomenda', Static)
-
-        # for item in self.PRODUTOS_QUANTIDADE.items():
-        #     id_produto, quantidade = item
-
-        #     _id_produto, nome, _quantidade, _valor_unitario, _valor_custo, _aceita_encomenda, _descricao, _imagem = controller.select_produto_id(
-        #         id_produto)
-
-        #     static_lista_encomenda.append(f'→ Produto: {nome}, Quantidade: {quantidade}\n')
-
-        # static.update('\n'.join(static_lista_encomenda))
-
+        'Atualiza as informações dos produtos inseridos em uma venda na TelaVendas.'
         static_lista_produtos = ["Venda:"]
-
         # try:
         self.VALOR_TOTAL_VENDA.clear()
         static = self.query_one('#static_venda', Static)
@@ -1151,8 +1207,8 @@ class TelaVendas(Screen):
         static.update(
             f'{''.join(static_lista_produtos)} \n ------------------- Total da venda: {valor_total:.2f}')
 
-
     def atualizar_static_alteracao(self):
+        'Atualiza as informações da tela de alteração de venda.'
         static = self.query_one('#static_alteracao_venda', Static)
         novo_texto = ''
 
@@ -1166,6 +1222,7 @@ class TelaVendas(Screen):
         static.update(novo_texto)
 
     def adicionar_dicionario_venda(self):
+        'Adiciona produtos de uma venda em um dict().'
         id_produto = self.query_one("#select_produtos_venda", Select).selection
         quantidade_vendida = self.query_one(
             "#quantidade_venda", Input).value
@@ -1178,45 +1235,46 @@ class TelaVendas(Screen):
         dar_baixa = self.query_one("#switch_baixa", Switch).value
         quantidade_estoque = dados_produtos[2]
         
-        if dar_baixa == True and int(quantidade_vendida) > int(quantidade_estoque):
-            pass
+        # if dar_baixa == True and int(quantidade_vendida) > int(quantidade_estoque):
+        #     pass
             # self.notify(
                     # "Quantidade maior do que a disponível no estoque", severity="error")
         
-        if  dar_baixa == True and id_produto in self.PRODUTOS_BAIXA and self.PRODUTOS_QUANTIDADE[id_produto] != quantidade_vendida:
-            self.PRODUTOS_BAIXA.remove(id_produto)
+        # if  dar_baixa == True and id_produto in self.PRODUTOS_BAIXA and self.PRODUTOS_QUANTIDADE[id_produto] != quantidade_vendida:
+        #     self.PRODUTOS_BAIXA.remove(id_produto)
             # self.PRODUTOS_QUANTIDADE[id_produto] = 
             # self.notify(f"Produto removido da venda!", severity="warning")
 
         # self.notify(f"{self.PRODUTOS_QUANTIDADE} //// {self.PRODUTOS_BAIXA}")
         
     
-        if dar_baixa == True and id_produto not in self.PRODUTOS_BAIXA:
-            self.PRODUTOS_QUANTIDADE[id_produto] = quantidade_vendida
-            self.PRODUTOS_BAIXA.append(id_produto)
+        # if dar_baixa == True and id_produto not in self.PRODUTOS_BAIXA:
+        #     self.PRODUTOS_QUANTIDADE[id_produto] = quantidade_vendida
+        #     self.PRODUTOS_BAIXA.append(id_produto)
             # self.notify(f"{self.PRODUTOS_QUANTIDADE} //// {self.PRODUTOS_BAIXA}")
 
-            self.atualizar_static_venda()
+            # self.atualizar_static_venda()
 
-            return
+            # return
 
         # else:
-        if dar_baixa == False :
-            if id_produto in self.PRODUTOS_BAIXA:
-                self.PRODUTOS_BAIXA.remove(id_produto)
-                self.PRODUTOS_QUANTIDADE[id_produto] = quantidade_vendida
-                self.atualizar_static_venda()
+        # if dar_baixa == False :
+        #     if id_produto in self.PRODUTOS_BAIXA:
+        #         self.PRODUTOS_BAIXA.remove(id_produto)
+        #         self.PRODUTOS_QUANTIDADE[id_produto] = quantidade_vendida
+        #         self.atualizar_static_venda()
 
-            else:
-                self.PRODUTOS_QUANTIDADE[id_produto] = quantidade_vendida
-                self.atualizar_static_venda()
-            return
+        #     else:
+        #         self.PRODUTOS_QUANTIDADE[id_produto] = quantidade_vendida
+        #         self.atualizar_static_venda()
+        #     return
         # except TypeError:
         #     self.notify("Selecione um produto!", severity="error")
 
 
 
     def limpar_inputs(self):
+        'Reseta os campos e informações da TelaVendas.'
         self.query_one("#data_venda", Input).clear()
         self.query_one("#select_status_venda", Select).value = 1
         self.query_one("#text_comentario", TextArea).clear()
@@ -1228,6 +1286,7 @@ class TelaVendas(Screen):
             self.texto_static_venda)
 
     def limpar_inputs_alteracao(self):
+        'Reseta os campos e informações de alterações da TelaVendas.'
         self.query_one("#data_alterada", MaskedInput).clear()
         self.query_one("#select_status_venda_alterada", Select).value = 1
         self.query_one("#text_comentario_alterado", TextArea).clear()
@@ -1236,6 +1295,7 @@ class TelaVendas(Screen):
         self.query_one("#bt_alterar", Button).disabled = True
 
     def pegar_checkbox_venda(self):
+        'Pega os valores dos Checkboxes da TelaVendas.'
         andamento = self.query_one("#cbox_andamento", Checkbox).value
         pagamento = self.query_one("#cbox_pagamento", Checkbox).value
         finalizada = self.query_one("#cbox_finalizada", Checkbox).value
@@ -1254,6 +1314,7 @@ class TelaVendas(Screen):
             self.checkbox_list.append(4)
 
     def atualizar_tabela_vendas(self):
+        'Atualiza os valores a serem preenchidos na tabela da TelaVendas.'
         tabela = self.query_one("#tabela_vendas", DataTable)
 
         dados_vendas = controller.listar_vendas()
@@ -1283,6 +1344,7 @@ class TelaVendas(Screen):
                                    detalhes['data'], detalhes['comentario'], status, valor_final)
 
     def resetar_tabela_vendas(self):
+        'Reseta e preenche a tabela da TelaVendas.'
         tabela = self.query_one("#tabela_vendas", DataTable)
 
         tabela.clear()
@@ -1290,6 +1352,7 @@ class TelaVendas(Screen):
         self.atualizar_tabela_vendas()
 
     def preencher_alteracoes_venda(self):
+        'Preenche os valores de uma venda na parte de Atualização de Venda na TelaVendas.'
         novo_prazo = self.query_one("#data_alterada", MaskedInput)
         novo_status = self.query_one("#select_status_venda_alterada", Select)
         novo_comentario = self.query_one("#text_comentario_alterado", TextArea)
@@ -1315,6 +1378,7 @@ class TelaVendas(Screen):
         novo_comentario.text = comentario
 
     def cadastrar_venda(self):
+        'Insere uma venda no banco de dados.'
         status = self.query_one(
             '#select_status_venda', Select).value
         data = self.query_one("#data_venda", MaskedInput).value
@@ -1349,6 +1413,7 @@ class TelaVendas(Screen):
             self.resetar_tabela_vendas()
 
     def update_venda(self):
+        'Atualiza uma venda no banco de dados.'
         id_venda = self.VENDA_ALTERACAO[0]
 
         status = self.query_one('#select_status_venda_alterada', Select).value
@@ -1359,6 +1424,7 @@ class TelaVendas(Screen):
             id_venda=id_venda, data=data, status=status,  comentario=comentario)
 
     def delete_venda(self):
+        'Deleta uma venda do banco de dados.'
         id_venda = self.VENDA_ALTERACAO[0]
         controller.delete_venda(id_venda)
         self.notify(
@@ -1366,6 +1432,7 @@ class TelaVendas(Screen):
 
     @on(Checkbox.Changed)
     async def on_checkbox_change(self, event: Checkbox.Changed):
+        'Ações que ocorrem ao selecionar um Checkbox.'
         if len(self.checkbox_list) > 0:
             self.checkbox_list.clear()
 
@@ -1373,6 +1440,7 @@ class TelaVendas(Screen):
 
     @on(DataTable.RowSelected)
     async def on_row_selected(self, event: DataTable.RowSelected):
+        'Ações que ocorrem ao selecionar as linhas de uma tabela.'
         encomenda = self.query_one('#tabela_vendas', DataTable)
         self.VENDA_ALTERACAO = encomenda.get_row(event.row_key)
         self.atualizar_static_alteracao()
@@ -1381,6 +1449,7 @@ class TelaVendas(Screen):
 
     @on(Select.Changed)
     async def on_select(self, event: Select.Changed):
+        'Ações que ocorrem ao selecionar um item do Select.'
         match event.select.id:
             case 'select_produtos_venda':
                 self.ID_PRODUTO = event.select.value
@@ -1391,6 +1460,7 @@ class TelaVendas(Screen):
 
     @on(Input.Changed)
     async def on_input(self, event: Input.Changed):
+        'Ações que ocorrem ao preencher um Input.'
         match event.input.id:
             case 'quantidade_venda':
                 self.query_one("#bt_adicionar_quantidade",
@@ -1406,11 +1476,13 @@ class TelaVendas(Screen):
 
     @on(TextArea.Changed)
     async def on_textarea(self, event: TextArea.Changed):
+        'Ações que ocorrem ao preencher uma TextArea.'
         if event.text_area.id == 'text_comentario':
             self.query_one("#bt_limpar", Button).disabled = False
 
     @on(Button.Pressed)
     async def on_button(self, event: Button.Pressed):
+        'Ações que ocorrem ao pressionar um botão na TelaVendas.'
         match event.button.id:
             case 'bt_adicionar_quantidade':
                 self.adicionar_dicionario_venda()
