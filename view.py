@@ -1011,13 +1011,14 @@ class TelaVendas(Screen):
         self.LISTA_DE_PRODUTOS = controller.listar_produtos()
         self.ID_PRODUTO = int()
         self.PRODUTOS_QUANTIDADE = dict()
-        self.PRODUTOS_BAIXA = []
+        self.PRODUTOS_BAIXA = list()
+        self.PRODUTOS_NAO_BAIXA = list()
         self.texto_static_produto = '\nInformações do produto:\n'
         self.texto_static_venda = 'Aqui vão as informações da venda'
         self.texto_static_alteracao = 'Selecione uma venda para ver as informações'
-        self.VENDA_ALTERACAO = []
-        self.VALOR_TOTAL_VENDA = []
-        self.checkbox_list = []
+        self.VENDA_ALTERACAO = list()
+        self.VALOR_TOTAL_VENDA = list()
+        self.checkbox_list = list()
 
     def on_screen_resume(self):
         'Ações que ocorrem ao voltar para a TelaVendas.'
@@ -1177,17 +1178,16 @@ class TelaVendas(Screen):
 
     def atualizar_static_venda(self):
         'Atualiza as informações dos produtos inseridos em uma venda na TelaVendas.'
-        static_lista_produtos = ["Venda:"]
-        # try:
         self.VALOR_TOTAL_VENDA.clear()
-        static = self.query_one('#static_venda', Static)
+        static = self.query_one('#static_venda', Static)       
+        static_lista_produtos = ["Venda:"]
 
         for item in self.PRODUTOS_QUANTIDADE.items():
             id_produto, quantidade = item
             
             if id_produto in self.PRODUTOS_BAIXA:
                 dar_baixa = "Sim"
-            else:
+            else: # id_produto in self.PRODUTOS_NAO_BAIXA:
                 dar_baixa = "Não"
 
             _id_produto, nome, _quantidade, valor_unitario, _valor_custo, _aceita_encomenda, _descricao, _imagem = controller.select_produto_id(
@@ -1202,7 +1202,6 @@ class TelaVendas(Screen):
             self.VALOR_TOTAL_VENDA.append(valor_produtos)
 
         valor_total = sum(self.VALOR_TOTAL_VENDA)
-        self.notify(f"{static_lista_produtos}")
 
         static.update(
             f'{''.join(static_lista_produtos)} \n ------------------- Total da venda: {valor_total:.2f}')
@@ -1223,55 +1222,54 @@ class TelaVendas(Screen):
 
     def adicionar_dicionario_venda(self):
         'Adiciona produtos de uma venda em um dict().'
-        id_produto = self.query_one("#select_produtos_venda", Select).selection
-        quantidade_vendida = self.query_one(
-            "#quantidade_venda", Input).value
+        try:
+            id_produto = self.query_one("#select_produtos_venda", Select).selection
+            quantidade_vendida = self.query_one(
+                "#quantidade_venda", Input).value
 
-        if quantidade_vendida == "" or quantidade_vendida.startswith("0"):
-            self.notify("Insira uma quantidade válida!", severity="error")
-            return
-        
-        dados_produtos = controller.select_produto_id(id_produto)
-        dar_baixa = self.query_one("#switch_baixa", Switch).value
-        quantidade_estoque = dados_produtos[2]
-        
-        # if dar_baixa == True and int(quantidade_vendida) > int(quantidade_estoque):
-        #     pass
-            # self.notify(
-                    # "Quantidade maior do que a disponível no estoque", severity="error")
-        
-        # if  dar_baixa == True and id_produto in self.PRODUTOS_BAIXA and self.PRODUTOS_QUANTIDADE[id_produto] != quantidade_vendida:
-        #     self.PRODUTOS_BAIXA.remove(id_produto)
-            # self.PRODUTOS_QUANTIDADE[id_produto] = 
-            # self.notify(f"Produto removido da venda!", severity="warning")
+            if quantidade_vendida == "" or quantidade_vendida.startswith("0"):
+                self.notify("Insira uma quantidade válida!", severity="error")
+                return
+            
+            dar_baixa = self.query_one("#switch_baixa", Switch).value    
 
-        # self.notify(f"{self.PRODUTOS_QUANTIDADE} //// {self.PRODUTOS_BAIXA}")
-        
-    
-        # if dar_baixa == True and id_produto not in self.PRODUTOS_BAIXA:
-        #     self.PRODUTOS_QUANTIDADE[id_produto] = quantidade_vendida
-        #     self.PRODUTOS_BAIXA.append(id_produto)
-            # self.notify(f"{self.PRODUTOS_QUANTIDADE} //// {self.PRODUTOS_BAIXA}")
+            quantidade_estoque = controller.select_produto_id(id_produto)[2]
 
-            # self.atualizar_static_venda()
+            match dar_baixa:
+                case True:
+                    if int(quantidade_vendida) > int(quantidade_estoque):
+                        self.notify("Quantidade maior do que a disponível no estoque!", severity="warning")
+                        
+                        if id_produto in self.PRODUTOS_NAO_BAIXA:
+                            self.PRODUTOS_NAO_BAIXA.remove(id_produto)
+                            self.PRODUTOS_QUANTIDADE.pop(id_produto)
+                            self.atualizar_static_venda()
+                        return
+                    
+                    elif int(quantidade_vendida) <= int(quantidade_estoque):
+                        if id_produto not in self.PRODUTOS_BAIXA:
+                            self.PRODUTOS_QUANTIDADE[id_produto] = quantidade_vendida
+                            self.PRODUTOS_BAIXA.append(id_produto)
+                            self.atualizar_static_venda()
+                        return
+                    return
 
-            # return
-
-        # else:
-        # if dar_baixa == False :
-        #     if id_produto in self.PRODUTOS_BAIXA:
-        #         self.PRODUTOS_BAIXA.remove(id_produto)
-        #         self.PRODUTOS_QUANTIDADE[id_produto] = quantidade_vendida
-        #         self.atualizar_static_venda()
-
-        #     else:
-        #         self.PRODUTOS_QUANTIDADE[id_produto] = quantidade_vendida
-        #         self.atualizar_static_venda()
-        #     return
-        # except TypeError:
-        #     self.notify("Selecione um produto!", severity="error")
-
-
+                case False:         
+                    if len(self.PRODUTOS_BAIXA) == 0 and len(self.PRODUTOS_NAO_BAIXA) == 0:
+                        pass
+                    elif id_produto in self.PRODUTOS_BAIXA:
+                        self.PRODUTOS_BAIXA.remove(id_produto)
+                        self.PRODUTOS_NAO_BAIXA.append(id_produto)
+                        self.PRODUTOS_QUANTIDADE[id_produto] = quantidade_vendida
+                        self.atualizar_static_venda()
+                    elif id_produto in self.PRODUTOS_NAO_BAIXA:
+                        self.PRODUTOS_NAO_BAIXA.remove(id_produto)
+                        self.PRODUTOS_NAO_BAIXA.append(id_produto)
+                        self.PRODUTOS_QUANTIDADE[id_produto] = quantidade_vendida
+                        self.atualizar_static_venda() 
+                    return
+        except TypeError:
+            self.notify(f"Selecione um produto!", severity="warning")
 
     def limpar_inputs(self):
         'Reseta os campos e informações da TelaVendas.'
@@ -1486,6 +1484,9 @@ class TelaVendas(Screen):
         match event.button.id:
             case 'bt_adicionar_quantidade':
                 self.adicionar_dicionario_venda()
+                self.notify(f"{self.PRODUTOS_BAIXA}")
+                self.notify(f"{self.PRODUTOS_NAO_BAIXA}", severity="error")
+
 
             case 'bt_voltar':
                 self.app.switch_screen('tela_inicial')
@@ -1496,7 +1497,7 @@ class TelaVendas(Screen):
             case 'bt_preencher_dados':
                 try:
                     self.preencher_alteracoes_venda()
-                except:
+                except ValueError:
                     self.notify("Ops! Você precisa selecionar uma venda")
 
             case 'bt_alterar':
