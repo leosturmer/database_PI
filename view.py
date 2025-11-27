@@ -34,6 +34,7 @@ class SidebarMenu(Container):
             yield Button("Encomendas", id="bt_encomendas", classes="botoes_inicial", variant="success")
             yield Button("Vendas", id="bt_vendas", classes="botoes_inicial", variant="warning")
             yield Button("Pesquisa", id="bt_pesquisa", classes="botoes_inicial", variant='error')
+            yield Button("Tela inicial", id="bt_inicial", classes="botoes_inicial")
 
         return super().compose()
 
@@ -48,6 +49,8 @@ class SidebarMenu(Container):
                 self.app.switch_screen("tela_vendas")
             case "bt_pesquisa":
                 self.app.switch_screen("tela_pesquisa")
+            case "bt_inicial":
+                self.app.switch_screen("tela_inicial")
 
 
 class TelaLogin(Screen):
@@ -771,7 +774,7 @@ class TelaEncomendas(Screen):
         static = self.query_one("#stt_alteracao_produto", Static)
         produtos = self.ENCOMENDA_ALTERACAO[1]
 
-        novo_texto = f"[b]Encomenda selecionada:[/b] \nProdutos e quantidades: {produtos}"
+        novo_texto = f"[b]Encomenda selecionada:[/b] \n [b]Produtos e quantidades:[/b] {produtos}"
         static.update(novo_texto)
         
 
@@ -971,6 +974,11 @@ class TelaEncomendas(Screen):
             self.limpar_inputs()
             self.atualizar_tabela_encomendas()
             self.resetar_tabela_encomendas()
+
+    def tranformar_em_venda(self):
+        _id_encomenda, _produtos, prazo, comentario, status = self.ENCOMENDA_ALTERACAO
+        pass
+
 
     @on(Checkbox.Changed)
     async def on_checkbox_change(self, event: Checkbox.Changed):
@@ -1317,7 +1325,7 @@ class TelaVendas(Screen):
         static = self.query_one("#stt_alteracao_produto", Static)
         _id_venda, produtos, data, comentario, status, valor_final = self.VENDA_ALTERACAO
 
-        novo_texto = f"[b]Venda selecionada:[/b]\n\n[b]Produtos e quantidades:[/b] {produtos}\n [b]Valor final:[/b] R$ {valor_final}"
+        novo_texto = f"[b]Venda selecionada:[/b]\n\n [b]Produtos e quantidades:[/b] {produtos}\n [b]Valor final:[/b] R$ {valor_final}"
         static.update(novo_texto)
 
     def atualizar_tabela_cadastro_venda(self):
