@@ -20,6 +20,25 @@ Header HeaderIcon {
 #tabela_encomendas, #tabela_vendas {
     width: 90%;
     margin-top: 1;
+    margin-bottom: 1;
+}
+
+#tabela_cadastro_encomenda {
+    width: 50%;
+    margin: 1;
+    align: left top;
+}
+#bt_remover {    
+    align: center middle;
+    content-align: center middle;
+    margin-left: 1;
+    margin-top: 1;
+}
+
+#bt_adicionar_quantidade {
+    align: center middle;
+    margin-left: 1;
+
 }
 
 #tela_produtos {
@@ -31,6 +50,7 @@ Header HeaderIcon {
 #grupo_botoes_inicial{
     margin-top: 2;
     align: center middle;
+    content-align: center middle;
 }
 
 #container_login {
@@ -45,19 +65,13 @@ Header HeaderIcon {
     align: center middle;
 }
 
-#stt_produtos {
-
-}
-
-
-
 SelectProduto {
     margin: 0;
     height: auto;
 }
 
-Horizontal {
-    margin: 1;
+TabbedContent {
+    margin-top: 1;
 }
 
 #class_select_produtos {
@@ -66,24 +80,32 @@ Horizontal {
     margin-top: 1;
 }
 
-#select_produtos {
-}
 
 #select_status_tabela, #select_status_cadastro, #select_status_alterado, #select_status_venda {
     width: 40;
 }
 
-#collapsible_encomendas {
-    width: 100;
+#coll_encomendas, #collapsible_produtos {
+    width: 92%;
+    margin-top: 1;
+    height: auto;
 }
 
-#static_encomenda, #static_alteracao_encomenda, #static_produto, #static_venda, #static_alteracao_venda {
+#static_alteracao_encomenda, #static_venda, #static_alteracao_venda {
     text-align: center;
     content-align: center middle;
-    border: white;
+    border: grey;
     width: 50;
     padding: 1;
-    # height: ;
+}
+
+#static_produto {
+    text-align: left;
+    content-align: left middle;
+    border: grey;
+    width: 50;
+    padding: 1;
+    width: 50%;
 }
 
 
@@ -100,11 +122,25 @@ Static {
     margin: 1;
 }
 
+#  Inputs quantidades
+#quantidade_encomenda, #prazo_encomenda {
+    width: 25;
+}
 
 Input {
     width: 35;
     margin-top: 1;
+    margin-bottom: 1;
+    text-align: center;
+    # align: center middle;
+    height: auto;
 }
+
+Switch {
+    margin-top: 1;
+    margin-bottom: 1;
+}
+
 
 Grid {
     grid-size: 5;
@@ -115,13 +151,15 @@ Grid {
 Label {
     width: 25;
     text-align: center;
-    padding: 1;
+    align: center middle;
+    padding: 2;
     height: auto;
-    border: white;
+    # border: white;
     margin-bottom: 1;
 }
 
 Select {
+    margin-top: 1;
     width: 78;
 }
 
@@ -143,9 +181,10 @@ Button {
 
 #stt_info_produto {
     border: grey;
-    padding-left: 1;
+    padding: 1;
     margin-right: 1;
-    width: 102;
+    width: 82;
+    content-align: left middle;
 }
 
 #bt_preencher_campos {
@@ -153,5 +192,5 @@ Button {
 }
 
 VerticalScroll {
-    height: 15; 
+    height: auto; 
 }
