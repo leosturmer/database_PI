@@ -769,7 +769,6 @@ class TelaEncomendas(Screen):
         'Atualiza as informações de produtos na tela de alteração de encomendas.'
 
         static = self.query_one("#stt_alteracao_produto", Static)
-        self.notify(f"{self.ENCOMENDA_ALTERACAO}")
         produtos = self.ENCOMENDA_ALTERACAO[1]
 
         novo_texto = f"[b]Encomenda selecionada:[/b] \nProdutos e quantidades: {produtos}"
@@ -1092,8 +1091,9 @@ class TelaVendas(Screen):
         self.ID_PRODUTO = int()
         self.PRODUTOS_QUANTIDADE = dict()
         self.PRODUTOS_BAIXA = dict()
+        self.PRODUTO_SELECIONADO = dict()
         self.texto_static_produto = '\nInformações do produto:\n'
-        self.texto_static_venda = 'Aqui vão as informações da venda'
+        self.texto_static_venda = 'Adicione produtos para ver o valor total da venda'
         self.texto_static_alteracao = 'Selecione uma venda para ver as informações'
         self.VENDA_ALTERACAO = list()
         self.VALOR_TOTAL_VENDA = list()
@@ -1109,6 +1109,14 @@ class TelaVendas(Screen):
 
     def on_mount(self):
         'Ações que ocorrem ao montar a TelaVendas.'
+        tabela_cadastro_venda = self.query_one(
+            "#tabela_cadastro_venda", DataTable)
+        tabela_cadastro_venda.border_title = "Cadastro de venda"
+        tabela_cadastro_venda.cursor_type = 'row'
+        tabela_cadastro_venda.zebra_stripes = True
+        tabela_cadastro_venda.add_columns("ID", "Produto", "Quantidade vendida", "Dar baixa", "Valor unitário", "Valor total")
+
+
         tabela = self.query_one("#tabela_vendas", DataTable)
         tabela.border_title = "Vendas"
         tabela.cursor_type = 'row'
@@ -1127,37 +1135,40 @@ class TelaVendas(Screen):
 
             with TabPane('Cadastrar venda', id='tab_cadastrar_venda'):
                 with ScrollableContainer():
-                    with HorizontalGroup(id='cnt_select_produtos'):
-                        yield Label('Selecione um produto:')
-                        with HorizontalGroup():
-                            with VerticalGroup():
-                                with HorizontalGroup():
-                                    yield Select(self.LISTA_DE_PRODUTOS,
-                                                 type_to_search=True,
-                                                 id='select_produtos_venda',
-                                                 allow_blank=True,
-                                                 prompt='Selecione o produto para adicionar à venda'
-                                                 )
+                    with HorizontalGroup(id='cnt_select_produtos'):                       
+                        with VerticalGroup():
+                            with HorizontalGroup():
+                                yield Label('Selecione um produto:')
+                                yield Select(self.LISTA_DE_PRODUTOS,
+                                        type_to_search=True,
+                                        id='select_produtos_venda',
+                                        allow_blank=True,
+                                        prompt='Selecione o produto para adicionar à venda'
+                                        )
 
+                            with HorizontalGroup():
                                 yield Static(self.texto_static_produto, id='static_produto')
-
-                                with HorizontalGroup():
-                                    yield Label("Dar baixa no estoque?")
-                                    yield Switch(disabled=False, id="switch_baixa")
-
-                                with HorizontalGroup():
-                                    yield Input(placeholder='Quantidade vendida...',
-                                                id='quantidade_venda',
-                                                max_length=3,
-                                                type="integer"
-                                                )
-
-                                    yield Button('Adicionar',
-                                                 disabled=True,
-                                                 id='bt_adicionar_quantidade')
+                                with VerticalGroup():
+                                    with HorizontalGroup():
+                                        yield Input(placeholder='Quantidade vendida...',
+                                                    id='quantidade_venda',
+                                                    max_length=3,
+                                                    type="integer"
+                                                    )
+                                        yield Button('Adicionar',
+                                                        disabled=True,
+                                                        id='bt_adicionar_quantidade')
+                                        
+                                    with HorizontalGroup():
+                                        yield Label("Dar baixa no estoque?")
+                                        yield Switch(disabled=False, id="switch_baixa")
 
                     with VerticalGroup():
-                        yield Static(self.texto_static_venda, id="static_venda")
+                        yield DataTable(id="tabela_cadastro_venda")
+                        with HorizontalGroup():
+                            yield Static(self.texto_static_venda, id="static_venda")
+                            yield Button("Remover", id="bt_remover", disabled=True)
+
                         with HorizontalGroup():
                             yield Label('Data da venda[red]*[/red]')
                             yield MaskedInput(template='00/00/0000', placeholder='DD/MM/AAAA', id="data_venda")
@@ -1194,13 +1205,16 @@ class TelaVendas(Screen):
                     with VerticalScroll():
                         yield DataTable(id='tabela_vendas')
 
+                    with HorizontalGroup():
+                        yield Static(self.texto_static_alteracao, id="static_alteracao_venda")
+                        yield Button('Preencher dados', id='bt_preencher_dados')
+
                 yield Rule(orientation='horizontal', line_style='solid')
 
-                with HorizontalGroup():
-                    yield Static(self.texto_static_alteracao, id="static_alteracao_venda")
-                    yield Button('Preencher dados', id='bt_preencher_dados')
+
 
                 with VerticalGroup():
+                    yield Static("[b]Informações da venda selecionada:[/b]", id="stt_alteracao_produto")
                     with HorizontalGroup():
                         yield Label('Data da venda')
                         yield MaskedInput(template='00/00/0000', placeholder='DD/MM/AAAA', id="data_alterada")
@@ -1261,7 +1275,6 @@ class TelaVendas(Screen):
         'Atualiza as informações dos produtos inseridos em uma venda na TelaVendas.'
         self.VALOR_TOTAL_VENDA.clear()
         static = self.query_one('#static_venda', Static)
-        static_lista_produtos = ["Venda:\n"]
 
         for item in self.PRODUTOS_QUANTIDADE.items():
             id_produto, quantidade = item
@@ -1278,16 +1291,12 @@ class TelaVendas(Screen):
 
             valor_produtos = (valor_unitario * int(quantidade))
 
-            novo_texto = f'→ Produto: {nome} | Quantidade: {quantidade} | Dar baixa: {dar_baixa}\nValor unitário: R$ {valor_unitario:.2f} | Valor total: R$ {valor_produtos:.2f}\n'
-
-            static_lista_produtos.append(novo_texto)
-
             self.VALOR_TOTAL_VENDA.append(valor_produtos)
 
         valor_total = sum(self.VALOR_TOTAL_VENDA)
 
         static.update(
-            f'{''.join(static_lista_produtos)} \n ------------------- Total da venda: {valor_total:.2f}')
+            f'------------------- Total da venda: R$ {valor_total:.2f}')
 
     def atualizar_static_alteracao(self):
         'Atualiza as informações da tela de alteração de venda.'
@@ -1302,8 +1311,50 @@ class TelaVendas(Screen):
         novo_texto = f'''Venda:\n\nProdutos: {produtos}\nPrazo: {prazo}\nStatus: {status}\nComentários: {comentario}\nValor total: R$ {valor_final:.2f}'''
         static.update(novo_texto)
 
+    def atualizar_static_alteracao_produto(self):
+        'Atualiza as informações de produtos na tela de alteração de produto.'
+
+        static = self.query_one("#stt_alteracao_produto", Static)
+        _id_venda, produtos, data, comentario, status, valor_final = self.VENDA_ALTERACAO
+
+        novo_texto = f"[b]Venda selecionada:[/b]\n\n[b]Produtos e quantidades:[/b] {produtos}\n [b]Valor final:[/b] R$ {valor_final}"
+        static.update(novo_texto)
+
+    def atualizar_tabela_cadastro_venda(self):
+        'Atualiza os valores a serem preenchidos na tabela de cadastro da venda.'
+        
+        tabela = self.query_one("#tabela_cadastro_venda", DataTable)
+
+        for item in self.PRODUTOS_QUANTIDADE.items():
+            id_produto, quantidade = item
+
+            if id_produto in self.PRODUTOS_BAIXA.keys():
+                match self.PRODUTOS_BAIXA[id_produto]:
+                    case True:
+                        dar_baixa = "Sim"
+                    case False:
+                        dar_baixa = "Não"
+
+            _id_produto, nome, _quantidade, valor_unitario, _valor_custo, _aceita_encomenda, _descricao, _imagem = controller.select_produto_id(
+                id_produto)
+
+            valor_produtos = (valor_unitario * int(quantidade))
+
+            tabela.add_row(_id_produto, nome, quantidade, dar_baixa, f"R$ {valor_unitario}", f"R$ {valor_produtos}")
+
+    def resetar_tabela_cadastro_venda(self):
+        'Reseta e atualiza a tabela de cadastro da venda.'
+
+        tabela = self.query_one("#tabela_cadastro_venda", DataTable)
+        tabela.clear()
+        self.atualizar_tabela_cadastro_venda()
+        self.query_one("#bt_remover", Button).disabled = True
+        self.query_one('#quantidade_venda', Input).clear()
+
+
     def adicionar_dicionario_venda(self):
         'Adiciona produtos de uma venda em um dict().'
+       
         try:
             id_produto = self.query_one(
                 "#select_produtos_venda", Select).selection
@@ -1327,35 +1378,54 @@ class TelaVendas(Screen):
                     if int(quantidade_vendida) > int(quantidade_estoque) and id_produto in self.PRODUTOS_BAIXA.keys():
                         self.PRODUTOS_BAIXA.pop(id_produto)
                         self.PRODUTOS_QUANTIDADE.pop(id_produto)
+                        self.resetar_tabela_cadastro_venda()
                         self.atualizar_static_venda()
 
                     if int(quantidade_vendida) <= int(quantidade_estoque):
                         if id_produto not in self.PRODUTOS_BAIXA.keys():
                             self.PRODUTOS_BAIXA[id_produto] = True
                             self.PRODUTOS_QUANTIDADE[id_produto] = quantidade_vendida
+                            self.resetar_tabela_cadastro_venda()
                             self.atualizar_static_venda()
+
 
                         if id_produto in self.PRODUTOS_BAIXA.keys():
                             self.PRODUTOS_BAIXA[id_produto] = True
                             self.PRODUTOS_QUANTIDADE[id_produto] = quantidade_vendida
+                            self.resetar_tabela_cadastro_venda()
                             self.atualizar_static_venda()
 
                 case False:
                     if id_produto not in self.PRODUTOS_BAIXA.keys():
                         self.PRODUTOS_BAIXA[id_produto] = False
                         self.PRODUTOS_QUANTIDADE[id_produto] = quantidade_vendida
+                        self.resetar_tabela_cadastro_venda()
                         self.atualizar_static_venda()
 
                     if id_produto in self.PRODUTOS_BAIXA.keys():
                         self.PRODUTOS_BAIXA[id_produto] = False
                         self.PRODUTOS_QUANTIDADE[id_produto] = quantidade_vendida
+                        self.resetar_tabela_cadastro_venda()
                         self.atualizar_static_venda()
 
         except TypeError as e:
-            self.notify(f"Selecione um produto! {e}", severity="warning")
+            self.notify(f"Selecione um produto!", severity="warning")
+
+    def remover_produto_venda(self):
+        'Remove um produto adicionado em uma venda.'
+
+        id_produto = self.PRODUTO_SELECIONADO[0]
+        self.PRODUTOS_QUANTIDADE.pop(id_produto)
+        self.PRODUTOS_BAIXA.pop(id_produto)
+        self.atualizar_static_venda()
+        self.resetar_tabela_cadastro_venda()
 
     def limpar_inputs(self):
         'Reseta os campos e informações da TelaVendas.'
+        self.VALOR_TOTAL_VENDA.clear()
+        self.PRODUTOS_QUANTIDADE.clear()
+        self.PRODUTOS_BAIXA.clear()
+
         self.query_one("#data_venda", Input).clear()
         self.query_one("#select_status_venda", Select).value = 1
         self.query_one("#text_comentario", TextArea).clear()
@@ -1366,6 +1436,8 @@ class TelaVendas(Screen):
             self.texto_static_produto)
         self.query_one('#static_venda', Static).update(
             self.texto_static_venda)
+        self.query_one("#tabela_cadastro_venda", DataTable).clear()
+        
 
     def limpar_inputs_alteracao(self):
         'Reseta os campos e informações de alterações da TelaVendas.'
@@ -1394,6 +1466,7 @@ class TelaVendas(Screen):
 
         if cancelada:
             self.checkbox_list.append(4)
+    
 
     def atualizar_tabela_vendas(self):
         'Atualiza os valores a serem preenchidos na tabela da TelaVendas.'
@@ -1458,6 +1531,9 @@ class TelaVendas(Screen):
         novo_prazo.value = prazo
         novo_status.value = status
         novo_comentario.text = comentario
+
+        self.query_one("#coll_vendas", Collapsible).collapsed = True
+        self.atualizar_static_alteracao_produto()
 
     def cadastrar_venda(self):
         'Insere uma venda no banco de dados.'
@@ -1526,11 +1602,19 @@ class TelaVendas(Screen):
     @on(DataTable.RowSelected)
     async def on_row_selected(self, event: DataTable.RowSelected):
         'Ações que ocorrem ao selecionar as linhas de uma tabela.'
-        encomenda = self.query_one('#tabela_vendas', DataTable)
-        self.VENDA_ALTERACAO = encomenda.get_row(event.row_key)
-        self.atualizar_static_alteracao()
-        self.query_one("#bt_alterar", Button).disabled = False
-        self.query_one("#bt_deletar", Button).disabled = False
+        match event.data_table.id:
+            case "tabela_vendas":
+
+                encomenda = self.query_one('#tabela_vendas', DataTable)
+                self.VENDA_ALTERACAO = encomenda.get_row(event.row_key)
+                self.atualizar_static_alteracao()
+                self.query_one("#bt_alterar", Button).disabled = False
+                self.query_one("#bt_deletar", Button).disabled = False
+
+            case "tabela_cadastro_venda":
+                self.query_one("#bt_remover", Button).disabled = False 
+                encomenda = self.query_one('#tabela_cadastro_venda', DataTable)
+                self.PRODUTO_SELECIONADO = encomenda.get_row(event.row_key)
 
     @on(Select.Changed)
     async def on_select(self, event: Select.Changed):
@@ -1571,8 +1655,10 @@ class TelaVendas(Screen):
         match event.button.id:
             case 'bt_adicionar_quantidade':
                 self.adicionar_dicionario_venda()
-                # self.notify(f"Baixa: {self.PRODUTOS_BAIXA}")
-                # self.notify(f"Quantidade: {self.PRODUTOS_QUANTIDADE}", severity="warning")
+
+
+            case 'bt_remover':
+                self.remover_produto_venda()
 
             case 'bt_voltar':
                 self.app.switch_screen('tela_inicial')

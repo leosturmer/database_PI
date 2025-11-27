@@ -28,6 +28,14 @@ Header HeaderIcon {
     margin: 1;
     align: left top;
 }
+
+#tabela_cadastro_venda {
+    width: 82%;
+    margin: 1;
+    align: left top;
+}
+
+
 #bt_remover {    
     align: center middle;
     content-align: center middle;
@@ -81,7 +89,7 @@ TabbedContent {
 }
 
 
-#select_status_tabela, #select_status_cadastro, #select_status_alterado, #select_status_venda {
+#select_status_tabela, #select_status_cadastro, #select_status_alterado, #select_status_venda, #select_status_venda_alterada {
     width: 40;
 }
 
@@ -123,7 +131,7 @@ Static {
 }
 
 #  Inputs quantidades
-#quantidade_encomenda, #prazo_encomenda {
+#quantidade_encomenda, #prazo_encomenda, #quantidade_venda, #data_venda {
     width: 25;
 }
 
