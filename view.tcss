@@ -39,11 +39,16 @@ SidebarMenu {
 }
 
 #bt_transformar_venda {
-    align: center middle;
-    content-align: center middle;
-    margin-left: 1;
-    margin-top: 1;  
+    margin: 1;
 }
+
+#tranformar_venda {
+    width: auto;
+    height: 10;
+    background: grey 10%;
+    margin-left: 10;
+}
+
 
 #bt_remover {    
     align: center middle;
@@ -63,7 +68,7 @@ SidebarMenu {
 #bt_adicionar_quantidade {
     align: center middle;
     margin-left: 1;
-
+    margin-top: 1;
 }
 
 #tela_produtos {
@@ -104,6 +109,7 @@ TabbedContent {
     text-align: center;
     margin-top: 1;
 }
+
 #select_produtos_pesquisa {
     width: 30;
 }

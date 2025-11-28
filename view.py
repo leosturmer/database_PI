@@ -451,7 +451,7 @@ class TelaProdutos(Screen):
                 self.limpar_inputs_produtos()
                 self.limpar_texto_static()
             except IntegrityError:
-                self.notify(f"Nome de produto já cadastrado!", severity="error")
+                self.notify("Nome de produto já cadastrado!", severity="error")
 
     def atualizar_select_produtos(self):
         'Atualiza o Select de produtos.'
@@ -511,7 +511,7 @@ class TelaProdutos(Screen):
 
         if id_produto > 0:
             controller.delete_produto(id_produto)
-            self.notify(f"Produto excluído!", severity='error')
+            self.notify("Produto excluído!", severity='error')
 
             self.atualizar_select_produtos()
             self.limpar_inputs_produtos()
@@ -692,12 +692,13 @@ class TelaEncomendas(Screen):
 
                             with HorizontalGroup(id="horizontal_alteracao_encomenda"):
                                 yield Static(self.texto_static_alteracao, id="static_alteracao_encomenda")
-                                yield Button('Preencher dados', id='bt_preencher_dados')
+                                
+                                yield Button('Preencher dados', id='bt_preencher_dados', disabled=True)
 
-                                with VerticalGroup():
-                                    yield Label('Adicionar às vendas?\nIsso não dá baixa no estoque!')
-                                    yield Button('Adicionar', id='bt_transformar_venda')
-                
+                                with Center(id="tranformar_venda"):
+                                    yield Button('Transformar em venda', id='bt_transformar_venda', disabled=True)
+                                    yield Label('[blue]Isso não dá baixa no estoque![blue]', id="lbl_transformar_venda")
+            
                 yield Rule(orientation='horizontal', line_style='solid')
 
                 with VerticalGroup():
@@ -861,6 +862,14 @@ class TelaEncomendas(Screen):
         else:
             self.PRODUTOS_QUANTIDADE[id_produto] = quantidade_encomendada
 
+    def limpar_statics(self):
+        'Limpa os textos dos statics.'
+        static = self.query_one("#stt_alteracao_produto", Static)
+        produtos = self.ENCOMENDA_ALTERACAO[1]
+
+        novo_texto = f"[b]Encomenda selecionada:[/b] \n [b]Produtos e quantidades:[/b] {produtos}"
+        static.update(novo_texto)
+
     def limpar_inputs(self):
         'Reseta os valores inseridos nos campos da tela de Cadastro de Encomendas.'
         self.query_one("#prazo_encomenda", Input).clear()
@@ -880,6 +889,8 @@ class TelaEncomendas(Screen):
         self.query_one("#text_comentario_alterado", TextArea).clear()
         self.query_one("#static_alteracao_encomenda", Static).update(
             self.texto_static_encomenda)
+        self.query_one("#stt_alteracao_produto", Static).update("[b]Informações da encomenda selecionada:[/b]")
+        
         self.query_one("#bt_alterar", Button).disabled = True
 
     def pegar_checkbox(self):
@@ -1020,7 +1031,6 @@ class TelaEncomendas(Screen):
             valor_unitario = controller.select_produto_nome(nome=produto)[3] 
             id_produto = controller.select_produto_nome(nome=produto)[0]
             venda_produto_quantidade[id_produto] = quantidade
-            self.notify(f"{venda_produto_quantidade} ")
             valor_total_venda.append(int(quantidade)*int(valor_unitario))
 
 
@@ -1044,17 +1054,22 @@ class TelaEncomendas(Screen):
         'Ações que ocorrem ao selecionar uma linha da tabela.'
 
         match event.data_table.id:
+            case "tabela_cadastro_encomenda":
+                self.query_one("#bt_remover", Button).disabled = False 
+                encomenda = self.query_one('#tabela_cadastro_encomenda', DataTable)
+                self.PRODUTO_SELECIONADO = encomenda.get_row(event.row_key)
+        
             case "tabela_encomendas":
                 encomenda = self.query_one('#tabela_encomendas', DataTable)
                 self.ENCOMENDA_ALTERACAO = encomenda.get_row(event.row_key)
                 self.atualizar_static_alteracao()
                 self.query_one("#bt_alterar", Button).disabled = False
                 self.query_one("#bt_deletar", Button).disabled = False
+                self.query_one("#bt_preencher_dados", Button).disabled = False
+                self.query_one("#bt_transformar_venda", Button).disabled = False
 
-            case "tabela_cadastro_encomenda":
-                self.query_one("#bt_remover", Button).disabled = False 
-                encomenda = self.query_one('#tabela_cadastro_encomenda', DataTable)
-                self.PRODUTO_SELECIONADO = encomenda.get_row(event.row_key)
+
+
 
     @on(Select.Changed)
     async def on_select(self, event: Select.Changed):
@@ -1102,8 +1117,7 @@ class TelaEncomendas(Screen):
                 self.resetar_tabela_cadastro_encomenda()
                 self.query_one('#static_produto', Static).update(self.texto_static_produto)
                 self.query_one("#bt_adicionar_quantidade", Button).disabled = True
-
-                
+            
             case 'bt_remover':
                 self.remover_produto_encomenda()
 
@@ -1129,7 +1143,6 @@ class TelaEncomendas(Screen):
                     self.notify("Preencha o prazo no formato DD/MM/AAAA")
                 else:
                     self.update_encomenda()
-
 
             case 'bt_deletar':
                 self.deletar_encomenda()
@@ -1310,7 +1323,6 @@ class TelaVendas(Screen):
         except ValueError:
             return False
         
-
     def cadastrar_venda(self):
         'Insere uma venda no banco de dados.'
         status = self.query_one(
@@ -1371,7 +1383,6 @@ class TelaVendas(Screen):
             self.resetar_tabela_vendas()
             self.limpar_inputs_alteracao()
 
-
     def delete_venda(self):
         'Deleta uma venda do banco de dados.'
         id_venda = self.VENDA_ALTERACAO[0]
@@ -1379,7 +1390,6 @@ class TelaVendas(Screen):
         self.notify(
             f'Venda deletada com sucesso!', severity='error')
 
-  
     def atualizar_select_produtos(self):
         'Atualiza o select de produtos com os novos produtos inseridos na TelaProdutos.'
         self.LISTA_DE_PRODUTOS = controller.listar_produtos()
@@ -1546,7 +1556,7 @@ class TelaVendas(Screen):
                         self.atualizar_static_venda()
 
         except TypeError as e:
-            self.notify(f"Selecione um produto!", severity="warning")
+            self.notify("Selecione um produto!", severity="warning")
 
     def remover_produto_venda(self):
         'Remove um produto adicionado em uma venda.'
@@ -1582,6 +1592,7 @@ class TelaVendas(Screen):
         self.query_one("#text_comentario_alterado", TextArea).clear()
         self.query_one("#static_alteracao_venda", Static).update(
             self.texto_static_venda)
+        self.query_one("#stt_alteracao_produto", Static).update("[b]Informações da venda selecionada:[/b]")
         self.query_one("#bt_alterar", Button).disabled = True
 
     def pegar_checkbox_venda(self):
@@ -1769,6 +1780,9 @@ class TelaPesquisa(Screen):
         super().__init__(name, id, classes)
         self.LISTA_DE_PRODUTOS = controller.listar_produtos()
 
+    def on_mount(self):
+        tabela_produtos_pesquisa
+
     def compose(self):
         yield Header(show_clock=True)
 
@@ -1783,13 +1797,14 @@ class TelaPesquisa(Screen):
                         yield Checkbox("Fora de estoque", True, id="cbox_fora_estoque")
                         yield Checkbox("Aceita encomenda", True, id="cbox_encomenda")
 
-                with VerticalScroll():
-                    yield DataTable(id='tabela_produtos_pesquisa')
-
                 with HorizontalGroup():
                     yield Select(prompt='Filtrar por:', options=[('nome', 1), ("quantidade", 2), ('valor unitário', 3), ('valor de custo', 4), ('descrição', 5)], id="select_produtos_pesquisa")
                     yield Input()
                     yield Button("Pesquisar", disabled=True)
+
+                with VerticalScroll():
+                    yield DataTable(id='tabela_produtos_pesquisa')
+
 
             with TabPane('Encomendas', id='tab_encomendas'):
                 with VerticalScroll():
