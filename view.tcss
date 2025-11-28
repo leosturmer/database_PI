@@ -8,10 +8,9 @@ Header HeaderIcon {
 SidebarMenu {
     dock: left;
     width: 12%;
-    height: 50;
-    # margin: 1 1 1 1;
-    margin-right: 2;
-    align: right middle;
+    height: 100%;
+    margin: 2 2 2 2;
+    align: center middle;
     border-right: wide #e6e9ef;
 }
 
