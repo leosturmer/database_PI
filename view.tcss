@@ -1,26 +1,30 @@
 Screen {
-
 }
 
 Header HeaderIcon {
     display: None;
 }
 
-#sidebar {
+SidebarMenu {
     dock: left;
-    width: 15;
-    height: auto;
-    margin: 5 5 5 5;
+    width: 12%;
+    height: 50;
+    # margin: 1 1 1 1;
+    margin-right: 2;
+    align: right middle;
+    border-right: wide #e6e9ef;
 }
 
 #coll_encomendas, #coll_vendas{
     width: 80%;
+    height: auto;
 }
 
 #tabela_encomendas, #tabela_vendas {
     width: 90%;
     margin-top: 1;
     margin-bottom: 1;
+    height: 12;
 }
 
 #tabela_cadastro_encomenda {
@@ -42,6 +46,14 @@ Header HeaderIcon {
     margin-left: 1;
     margin-top: 1;
 }
+
+#bt_preencher_dados {
+    align: center middle;
+    content-align: center middle;
+    margin-left: 1;
+    margin-top: 1;
+}
+
 
 #bt_adicionar_quantidade {
     align: center middle;

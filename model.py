@@ -731,24 +731,25 @@ def delete_venda(id_venda):
 #     #     WHERE venda_produto.id_venda = ?;   
 #     # '''
 
-# def select_produto_nome(nome_do_produto):
-#     sql = '''
-#     SELECT id_produto, nome, quantidade, valor_unitario, valor_custo, aceita_encomenda, descricao, imagem
-#     FROM view_produtos
-#     WHERE nome LIKE ?;
-#     '''
+def select_produto_nome(nome_do_produto):
+    'Seleciona um produto pelo nome.'
+    sql = '''
+    SELECT id_produto, nome, quantidade, valor_unitario, valor_custo, aceita_encomenda, descricao, imagem
+    FROM view_produtos
+    WHERE nome LIKE ?;
+    '''
 
-#     with sqlite3.connect('nize_database.db') as conexao:
-#         cursor = conexao.execute(sql, (f'%{nome_do_produto}%',))
-#         select_all = cursor.fetchall()
+    with sqlite3.connect('nize_database.db') as conexao:
+        cursor = conexao.execute(sql, (f'%{nome_do_produto}%',))
+        select_all = cursor.fetchall()
 
-#         for id_produto, nome, quantidade, valor_unitario, valor_custo, aceita_encomenda, descricao, imagem in select_all:
-#             print(f'''
-#             Produto ID: {id_produto}
-#             Nome: {nome} | Quantidade: {quantidade}
-#             Valor unitário: {valor_unitario} | Valor custo: {valor_custo}
-#             Aceita encomenda: {aceita_encomenda} | Descrição: {descricao}
-#             ''')
+        for id_produto, nome, quantidade, valor_unitario, valor_custo, aceita_encomenda, descricao, imagem in select_all:
+            print(f'''
+            Produto ID: {id_produto}
+            Nome: {nome} | Quantidade: {quantidade}
+            Valor unitário: {valor_unitario} | Valor custo: {valor_custo}
+            Aceita encomenda: {aceita_encomenda} | Descrição: {descricao}
+            ''')
 
 
 # def select_produto_valor(valor_produto):  
