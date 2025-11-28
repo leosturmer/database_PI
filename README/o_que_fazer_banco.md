@@ -3,9 +3,26 @@
 
     - Ver os NOTIFY e deixar bonitos.
 
-    - Tela de Relatórios / fazer filtros
+    - Tela de Pesquisa:
+        - Produtos:
+            - Colocar os filtros do checkbox
+            - Fazer as pesquisas no banco de dados pelo input
 
-    - Ver casos de uso (?????????)
+        - Encomendas:
+            - Colocar a tabela
+            - Colocar checkboxes
+            - Colocar input
+            - Colocar botão
+            - Colocar os filtros do checkbox
+            - Fazer as pesquisas no banco de dados pelo input
+
+        - Vendas:
+            - Colocar a tabela
+            - Colocar checkboxes
+            - Colocar input
+            - Colocar botão
+            - Colocar os filtros do checkbox
+            - Fazer as pesquisas no banco de dados pelo input
 
 ##### OUTROS COMENTÁRIOS
 

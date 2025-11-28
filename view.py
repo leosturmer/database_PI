@@ -21,9 +21,6 @@ from textual.events import Mount
 
 from sqlite3 import IntegrityError
 
-# @@@@@@@@ TELAS DO SISTEMA
-
-
 class SidebarMenu(Container):
     'Menu lateral vertical do sistema.'
 
@@ -232,16 +229,12 @@ class TelaInicial(Screen):
     'Tela Inicial do sistema.'
 
     def compose(self):
-        # yield Header()
-
         with VerticalGroup(id="grupo_botoes_inicial"):
             yield Button("Produtos", id="bt_produtos", classes="botoes_inicial", variant="primary")
             yield Button("Encomendas", id="bt_encomendas", classes="botoes_inicial", variant="success")
             yield Button("Vendas", id="bt_vendas", classes="botoes_inicial", variant="warning")
             yield Button("Pesquisa", id="bt_pesquisa", classes="botoes_inicial", variant='error')
             yield Button("Sair", id="bt_sair", classes="botoes_inicial")
-
-        # yield Footer(show_command_palette=False)
 
     @on(Button.Pressed)
     async def on_button(self, event: Button.Pressed):
@@ -588,7 +581,7 @@ class TelaEncomendas(Screen):
         self.LISTA_DE_PRODUTOS = controller.listar_produtos()
         self.ID_PRODUTO = int()
         self.PRODUTOS_QUANTIDADE = dict()
-        self.texto_static_produto = '\nSelecione um produto para visualizar as informações\n'
+        self.texto_static_produto = 'Selecione um produto para visualizar as informações'
         self.texto_static_encomenda = 'Aqui vão as informações da encomenda'
         self.texto_static_alteracao = 'Selecione uma encomenda para ver as informações'
         self.ENCOMENDA_ALTERACAO = list()
@@ -617,7 +610,7 @@ class TelaEncomendas(Screen):
         tabela.zebra_stripes = True
 
         tabela.add_columns('ID encomenda', 'Produtos',
-                           'Prazo', 'Comentario', 'Status')
+                           'Prazo', 'Comentário', 'Status')
         self.atualizar_tabela_encomendas()
 
     def compose(self) -> ComposeResult:
@@ -815,10 +808,7 @@ class TelaEncomendas(Screen):
             id_produto, nome, quantidade, valor_unitario, valor_custo, aceita_encomenda, descricao, imagem = controller.select_produto_id(
                 id_produto)
 
-            novo_texto = f'''
-            Informações do produto:
-            Produto selecionado: {nome}   |   Quantidade em estoque: {quantidade} 
-                '''
+            novo_texto = f'[b]Informações do produto:[/b]\n\n[b] Produto selecionado:[/b] {nome}\n[b] Quantidade em estoque: [/b]{quantidade}'
 
             static.update(novo_texto)
         except Exception as e:
@@ -832,9 +822,9 @@ class TelaEncomendas(Screen):
         _id_encomenda, produtos, prazo, comentario, status = self.ENCOMENDA_ALTERACAO
 
         if comentario == None:
-            comentario = ''
+            comentario = '--'
 
-        novo_texto = f'''Encomenda: \n\nProdutos: {produtos}\nPrazo: {prazo}\nStatus: {status}\nComentários: {comentario}'''
+        novo_texto = f'''[b]Encomenda:[/b] \n\n[b]Produtos:[/b] {produtos}\n[b]Prazo:[/b] {prazo}\n[b]Status:[/b] {status}\n[b]Comentários:[/b] {comentario}'''
 
         static.update(novo_texto)
 
@@ -925,6 +915,7 @@ class TelaEncomendas(Screen):
                              for nome, quantidade in detalhes['produtos']]
 
             status = detalhes['status']
+            comentario = detalhes['comentario']
 
             if status in self.checkbox_list:
 
@@ -939,7 +930,7 @@ class TelaEncomendas(Screen):
 
                 if id_encomenda not in tabela.rows:
                     tabela.add_row(id_encomenda, ''.join(nome_produtos),
-                                   detalhes['prazo'], detalhes['comentario'], status)
+                                   detalhes['prazo'], comentario, status)
 
     def resetar_tabela_encomendas(self):
         'Reseta e atualiza a tela de encomendas.'
@@ -1164,7 +1155,7 @@ class TelaVendas(Screen):
         self.PRODUTOS_QUANTIDADE = dict()
         self.PRODUTOS_BAIXA = dict()
         self.PRODUTO_SELECIONADO = dict()
-        self.texto_static_produto = '\nInformações do produto:\n'
+        self.texto_static_produto = 'Selecione um produto para visualizar as informações'
         self.texto_static_venda = 'Adicione produtos para ver o valor total da venda'
         self.texto_static_alteracao = 'Selecione uma venda para ver as informações'
         self.VENDA_ALTERACAO = list()
@@ -1197,7 +1188,7 @@ class TelaVendas(Screen):
         tabela.zebra_stripes = True
 
         tabela.add_columns('ID venda', 'Produtos',
-                           'Data', 'Comentario', 'Status', 'Valor final')  # ATUALIZAR ESSES AQUIIIII
+                           'Data', 'Comentário', 'Status', 'Valor final')
         self.atualizar_tabela_vendas()
 
     def compose(self) -> ComposeResult:
@@ -1409,11 +1400,7 @@ class TelaVendas(Screen):
             id_produto, nome, quantidade, valor_unitario, valor_custo, aceita_encomenda, descricao, imagem = controller.select_produto_id(
                 id_produto)
 
-            novo_texto = f'''
-            Informações do produto: 
-            Produto selecionado: {nome}   |   Quantidade em estoque: {quantidade} 
-            Valor unitário: R$ {valor_unitario}
-                '''
+            novo_texto = f'[b]Informações do produto:[/b]\n\n[b] Produto selecionado:[/b] {nome}\n[b] Quantidade em estoque: [/b]{quantidade}'
 
             static.update(novo_texto)
         except:
@@ -1623,8 +1610,8 @@ class TelaVendas(Screen):
         self.pegar_checkbox_venda()
 
         for id_encomenda, detalhes in dados_vendas.items():
-            nome_produtos = [''.join([f'{nome}, ({quantidade}), R$ {valor_unitario} |\n '])
-                             for nome, quantidade, valor_unitario in detalhes['produtos']]
+            nome_produtos = [''.join([f'{nome}, ({quantidade}) | \n '])
+                             for nome, quantidade, _valor_unitario in detalhes['produtos']]
 
             status = detalhes['status']
             valor_final = detalhes['valor_final']
@@ -1642,7 +1629,7 @@ class TelaVendas(Screen):
 
                 if id_encomenda not in tabela.rows:
                     tabela.add_row(id_encomenda, ''.join(nome_produtos),
-                                   detalhes['data'], detalhes['comentario'], status, valor_final)
+                                   detalhes['data'], detalhes['comentario'], status, f"R$ {valor_final}")
 
     def resetar_tabela_vendas(self):
         'Reseta e preenche a tabela da TelaVendas.'
@@ -1780,8 +1767,19 @@ class TelaPesquisa(Screen):
         super().__init__(name, id, classes)
         self.LISTA_DE_PRODUTOS = controller.listar_produtos()
 
+
     def on_mount(self):
-        tabela_produtos_pesquisa
+        tabela = self.query_one("#tabela_produtos_pesquisa", DataTable)
+        tabela.border_title = "Vendas"
+        tabela.cursor_type = 'row'
+        tabela.zebra_stripes = True
+
+        tabela.add_columns("Nome", "Quantidade", "Valor unitário", "Valor custo", "Aceita encomenda", "Descrição") 
+        self.resetar_tabela_produtos()
+
+    def on_screen_resume(self):
+        self.resetar_tabela_produtos()
+        
 
     def compose(self):
         yield Header(show_clock=True)
@@ -1800,7 +1798,7 @@ class TelaPesquisa(Screen):
                 with HorizontalGroup():
                     yield Select(prompt='Filtrar por:', options=[('nome', 1), ("quantidade", 2), ('valor unitário', 3), ('valor de custo', 4), ('descrição', 5)], id="select_produtos_pesquisa")
                     yield Input()
-                    yield Button("Pesquisar", disabled=True)
+                    yield Button("Pesquisar", id="bt_pesquisar_produto")
 
                 with VerticalScroll():
                     yield DataTable(id='tabela_produtos_pesquisa')
@@ -1832,8 +1830,43 @@ class TelaPesquisa(Screen):
 
         yield Footer(show_command_palette=False)
 
+
+    def atualizar_tabela_produtos(self):
+        'Atualiza as informações para a tabela de produtos da TelaPesquisa.'
+
+        tabela = self.query_one("#tabela_produtos_pesquisa", DataTable)
+        self.LISTA_DE_PRODUTOS = controller.listar_produtos()
+        
+        for produto in self.LISTA_DE_PRODUTOS:
+            id_produto = produto[1]
+            _id_produto, nome, quantidade, valor_unitario, valor_custo, aceita_encomenda, descricao, _imagem = controller.select_produto_id(id_produto)
+
+            if str(valor_custo) == 'None':
+                valor_custo = '--'
+            else:
+                valor_custo = f"R$ {valor_custo}"
+            if str(descricao) == 'None':
+                descricao = '--'
+            if aceita_encomenda == False:
+                aceita_encomenda = 'Não'
+            else:
+                aceita_encomenda = 'Sim'
+
+            tabela.add_row(nome, quantidade, f"R$ {valor_unitario}", valor_custo, aceita_encomenda, descricao)
+    
+    def resetar_tabela_produtos(self):
+        'Reseta e preenche a tabela de produtos da TelaPesquisa.'
+        tabela = self.query_one("#tabela_produtos_pesquisa", DataTable)
+
+        tabela.clear()
+
+        self.atualizar_tabela_produtos()
+
     @on(Button.Pressed)
     async def on_button(self, event: Button.Pressed):
         match event.button.id:
+            case 'bt_pesquisar_produto':
+                self.atualizar_tabela_produtos()
+
             case 'bt_voltar':
                 self.app.switch_screen('tela_inicial')

@@ -19,12 +19,13 @@ SidebarMenu {
     height: auto;
 }
 
-#tabela_encomendas, #tabela_vendas {
+#tabela_encomendas, #tabela_vendas, #tabela_produtos_pesquisa {
     width: 90%;
     margin-top: 1;
     margin-bottom: 1;
     height: 12;
 }
+
 
 #tabela_cadastro_encomenda {
     width: 50%;
@@ -117,6 +118,7 @@ TabbedContent {
  #select_status_tabela, #select_status_cadastro, #select_status_alterado, #select_status_venda, #select_status_venda_alterada {
     width: 40;
 }
+
 
 #coll_encomendas, #collapsible_produtos {
     width: 92%;
