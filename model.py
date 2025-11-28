@@ -19,7 +19,7 @@ sql_table_vendedor = '''
 sql_table_produtos = '''
     CREATE TABLE IF NOT EXISTS produtos (
             id_produto INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-            nome TEXT NOT NULL,
+            nome TEXT NOT NULL UNIQUE,
             valor_unitario REAL NOT NULL,
 
             quantidade INTEGER NULL,
