@@ -1769,36 +1769,6 @@ class TelaPesquisa(Screen):
         super().__init__(name, id, classes)
         self.LISTA_DE_PRODUTOS = controller.listar_produtos()
 
-    def on_mount(self):
-        self.query_one("#seletor_produtos",
-                       SelectionList).border_title = "Selecione a opção desejada"
-    #     tabela_estoque = self.query_one("#tabela_estoque", DataTable)
-    #     tabela_estoque.border_title = "Produtos"
-    #     tabela_estoque.cursor_type = 'row'
-    #     tabela_estoque.zebra_stripes = True
-
-    #     tabela_estoque.add_columns('ID produto', 'Produto',
-    #                        'Valor unitario', 'Valor de custo', 'Quantidade disponível', 'Aceita encomenda', 'Descrição')
-    #     self.atualizar_tabela_estoque()
-
-    #     tabela_encomendas = self.query_one("#tabela_encomendas", DataTable)
-    #     tabela_encomendas.border_title = "Encomendas"
-    #     tabela_encomendas.cursor_type = 'row'
-    #     tabela_encomendas.zebra_stripes = True
-
-    #     tabela_encomendas.add_columns('ID encomenda', 'Produtos',
-    #                        'Prazo', 'Comentario', 'Status')
-    #     self.atualizar_tabela_encomendas()
-
-    #     tabela_vendas = self.query_one("#tabela_vendas", DataTable)
-    #     tabela_vendas.border_title = "Vendas"
-    #     tabela_vendas.cursor_type = 'row'
-    #     tabela_vendas.zebra_stripes = True
-
-    #     tabela_vendas.add_columns('ID venda', 'Produtos',
-    #                        'Data', 'Comentario', 'Status', 'Valor final')  # ATUALIZAR ESSES AQUIIIII
-    #     self.atualizar_tabela_vendas()
-
     def compose(self):
         yield Header(show_clock=True)
 
@@ -1807,23 +1777,41 @@ class TelaPesquisa(Screen):
         with TabbedContent(initial='tab_produtos', id='tabbed_pesquisa'):
             with TabPane('Produtos', id='tab_produtos'):
                 with VerticalScroll():
-                    yield SelectionList[int](('Todos os produtos', 1), ('Em estoque', 2), ("Fora de estoque", 3), id="seletor_produtos")
+
+                    with HorizontalGroup():
+                        yield Checkbox("Em estoque", True, id="cbox_estoque")
+                        yield Checkbox("Fora de estoque", True, id="cbox_fora_estoque")
+                        yield Checkbox("Aceita encomenda", True, id="cbox_encomenda")
 
                 with VerticalScroll():
-                    yield DataTable(id='tabela_produtos')
+                    yield DataTable(id='tabela_produtos_pesquisa')
 
                 with HorizontalGroup():
-                    yield Select(prompt='Filtrar por:', options=[('nome', 1), ("quantidade", 2), ('valor unitário', 3), ('valor de custo', 4), ('aceita encomenda', 5), ('descrição', 6)])
+                    yield Select(prompt='Filtrar por:', options=[('nome', 1), ("quantidade", 2), ('valor unitário', 3), ('valor de custo', 4), ('descrição', 5)], id="select_produtos_pesquisa")
                     yield Input()
                     yield Button("Pesquisar", disabled=True)
 
             with TabPane('Encomendas', id='tab_encomendas'):
                 with VerticalScroll():
-                    yield DataTable(id='tabela_encomendas')
+
+                    with HorizontalGroup():
+                        yield Checkbox("Em produção", True, id="cbox_producao")
+                        yield Checkbox("Finalizada", True, id='cbox_finalizada')
+                        yield Checkbox("Vendida", True, id="cbox_vendida")
+                        yield Checkbox("Cancelada", True, id="cbox_cancelada")
+            
+                    yield DataTable(id='tabela_encomendas_pesquisa')
 
             with TabPane('Vendas', id='tab_vendas'):
                 with VerticalScroll():
-                    yield DataTable(id='tabela_vendas')
+
+                    with HorizontalGroup():
+                        yield Checkbox("Em produção", True, id="cbox_producao")
+                        yield Checkbox("Finalizada", True, id='cbox_finalizada')
+                        yield Checkbox("Vendida", True, id="cbox_vendida")
+                        yield Checkbox("Cancelada", True, id="cbox_cancelada")
+            
+                    yield DataTable(id='tabela_vendas_pesquisa')
 
         yield Button('Voltar', id='bt_voltar')
 
@@ -1834,66 +1822,3 @@ class TelaPesquisa(Screen):
         match event.button.id:
             case 'bt_voltar':
                 self.app.switch_screen('tela_inicial')
-
-    @on(SelectionList.SelectedChanged)
-    async def on_selected(self, event: SelectionList.SelectedChanged):
-        selecionados = self.query_one(
-            "#seletor_produtos", SelectionList).selected
-        self.notify(f"{selecionados}")
-
-    # def atualizar_tabela_estoque(self):
-    #     tabela = self.query_one("#tabela_estoque", DataTable)
-
-    #     id_produto, nome, valor_unitario, quantidade, imagem, aceita_encomenda, descricao, valor_custo = controller.listar_produtos()
-
-    #     if id_produto not in tabela.rows:
-    #             tabela.add_row(id_produto, nome, valor_unitario, valor_custo, quantidade, aceita_encomenda, descricao)
-
-    # def atualizar_tabela_encomendas(self):
-    #     tabela = self.query_one("#tabela_encomendas", DataTable)
-
-    #     dados_encomendas = controller.listar_encomendas()
-
-    #     for id_encomenda, detalhes in dados_encomendas.items():
-    #         nome_produtos = [''.join([f'{nome}, ({quantidade}) | '])
-    #                          for nome, quantidade in detalhes['produtos']]
-
-    #         status = detalhes['status']
-
-    #         if detalhes['status'] == 1:
-    #             status = 'Em produção'
-    #         elif detalhes['status'] == 2:
-    #             status = 'Finalizada'
-    #         elif detalhes['status'] == 3:
-    #             status = 'Vendida'
-    #         elif detalhes['status'] == 4:
-    #             status = 'Cancelada'
-
-    #         if id_encomenda not in tabela.rows:
-    #             tabela.add_row(id_encomenda, ''.join(nome_produtos),
-    #                            detalhes['prazo'], detalhes['comentario'], status)
-
-    # def atualizar_tabela_vendas(self):
-    #     tabela = self.query_one("#tabela_vendas", DataTable)
-
-    #     dados_vendas = controller.listar_vendas()
-
-    #     for id_encomenda, detalhes in dados_vendas.items():
-    #         nome_produtos = [''.join([f'{nome}, ({quantidade}), R${valor_unitario} | '])
-    #                          for nome, quantidade, valor_unitario in detalhes['produtos']]
-
-    #         status = detalhes['status']
-    #         valor_final = detalhes['valor_final']
-
-    #         if detalhes['status'] == 1:
-    #             status = 'Em produção'
-    #         elif detalhes['status'] == 2:
-    #             status = 'Finalizada'
-    #         elif detalhes['status'] == 3:
-    #             status = 'Vendida'
-    #         elif detalhes['status'] == 4:
-    #             status = 'Cancelada'
-
-    #         if id_encomenda not in tabela.rows:
-    #             tabela.add_row(id_encomenda, ''.join(nome_produtos),
-    #                            detalhes['data'], detalhes['comentario'], status, valor_final)

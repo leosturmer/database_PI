@@ -104,9 +104,11 @@ TabbedContent {
     text-align: center;
     margin-top: 1;
 }
+#select_produtos_pesquisa {
+    width: 30;
+}
 
-
-#select_status_tabela, #select_status_cadastro, #select_status_alterado, #select_status_venda, #select_status_venda_alterada {
+ #select_status_tabela, #select_status_cadastro, #select_status_alterado, #select_status_venda, #select_status_venda_alterada {
     width: 40;
 }
 
