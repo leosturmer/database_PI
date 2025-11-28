@@ -39,6 +39,12 @@ SidebarMenu {
     align: left top;
 }
 
+#bt_transformar_venda {
+    align: center middle;
+    content-align: center middle;
+    margin-left: 1;
+    margin-top: 1;  
+}
 
 #bt_remover {    
     align: center middle;

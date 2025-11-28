@@ -590,7 +590,6 @@ class TelaEncomendas(Screen):
         self.texto_static_alteracao = 'Selecione uma encomenda para ver as informações'
         self.ENCOMENDA_ALTERACAO = list()
         self.PRODUTO_SELECIONADO = dict()
-        self.VALOR_TOTAL_VENDA = list()
         self.checkbox_list = list()
 
     def on_screen_resume(self):
@@ -691,7 +690,10 @@ class TelaEncomendas(Screen):
                             with HorizontalGroup(id="horizontal_alteracao_encomenda"):
                                 yield Static(self.texto_static_alteracao, id="static_alteracao_encomenda")
                                 yield Button('Preencher dados', id='bt_preencher_dados')
-                                yield Button('Adicionar às vendas', id='bt_transformar_venda')
+
+                                with VerticalGroup():
+                                    yield Label('Adicionar às vendas?\nIsso não dá baixa no estoque!')
+                                    yield Button('Adicionar', id='bt_transformar_venda')
                 
                 yield Rule(orientation='horizontal', line_style='solid')
 
@@ -973,67 +975,38 @@ class TelaEncomendas(Screen):
     def tranformar_em_venda(self):
         'Transforma uma encomenda em venda.'
         _id_encomenda, produtos, prazo, comentario, status = self.ENCOMENDA_ALTERACAO
+        valor_total_venda = list()
+        produtos_quantidade = dict()
+        venda_produto_quantidade = dict()
 
-        self.notify(f"{_id_encomenda, produtos, prazo, comentario, status}")
+        if status == 'Em produção':
+            status = 1
+        elif status == 'Finalizada':
+            status = 2
+        elif status == 'Vendida':
+            status = 3
+        elif status == 'Cancelada':
+            status = 4
 
-
-        ####### pegar nome produtos e quantidades
-
-        controller.select_produto_nome(nome=nome)
-
-        valor_produtos = (valor_unitario * int(quantidade))
-
-        self.VALOR_TOTAL_VENDA.append(valor_produtos)
-
-
-        produtos = self.PRODUTOS_QUANTIDADE
-        valor_final = sum(self.VALOR_TOTAL_VENDA)
-
-        controller.insert_venda(data=prazo, valor_final=None, status=status, produtos=produtos, comentario=comentario)
-
-
-        #     controller.insert_venda(
-        #         data=data, valor_final=valor_final, status=status, comentario=comentario, produtos=produtos)
-
-        #     for produto in produtos.items():
-        #         if produto[0] in self.PRODUTOS_BAIXA:
-        #             quantidade_estoque = controller.select_produto_id(
-        #                 id_produto=produto[0])[2]
-
-        #             quantidade_atualizada = int(
-        #                 quantidade_estoque) - int(produto[1])
-        #             controller.update_produto(
-        #                 id_produto=produto[0], quantidade=quantidade_atualizada
+        nomes_produtos = produtos.strip(" |").split(" | ") 
+        for item in nomes_produtos:
+            produto, quantidade = item.split(", ")
+            produtos_quantidade[produto] = int(quantidade.strip("()"))
+        
+        for produto, quantidade in produtos_quantidade.items():
+            valor_unitario = controller.select_produto_nome(nome=produto)[3] 
+            id_produto = controller.select_produto_nome(nome=produto)[0]
+            venda_produto_quantidade[id_produto] = quantidade
+            self.notify(f"{venda_produto_quantidade} ")
+            valor_total_venda.append(int(quantidade)*int(valor_unitario))
 
 
+        valor_final = sum(valor_total_venda)
 
-# (2, 'produto4, (20) | produto2, (5) | ', '05/01/2024', 'Encomenda vendida para Fulano de Tal.', 'Finalizada')
-   
-    # def cadastrar_venda(self):
-        # 'Insere uma venda no banco de dados.'
-        # status = self.query_one(
-            #     '#select_status_venda', Select).value
-            # data = self.query_one("#data_venda", MaskedInput).value
-            # comentario = self.query_one("#text_comentario", TextArea).text
-            # dar_baixa = self.query_one("#switch_baixa", Switch)
+        controller.insert_venda(data=prazo, valor_final=valor_final, status=status, produtos=venda_produto_quantidade, comentario=comentario)
 
-        # produtos = self.PRODUTOS_QUANTIDADE
-
-        # valor_final = sum(self.VALOR_TOTAL_VENDA)
-
-        # if produtos == {}:
-        #     self.notify("Adicione pelo menos um produto!")
-        # elif len(data) < 10:
-        #     self.notify("Preencha o prazo no formato DD/MM/AAAA")
-        # else:
-        #     self.notify('Venda cadastrada com sucesso!')
-        #     self.PRODUTOS_QUANTIDADE.clear()
-        #     self.PRODUTOS_BAIXA.clear()
-        #     dar_baixa.value = False
-        #     self.limpar_inputs()
-        #     self.atualizar_tabela_vendas()
-        #     self.resetar_tabela_vendas()
-
+        produtos_quantidade.clear()
+        valor_total_venda.clear()
 
     @on(Checkbox.Changed)
     async def on_checkbox_change(self, event: Checkbox.Changed):
@@ -1168,6 +1141,8 @@ class TelaVendas(Screen):
         self.atualizar_select_produtos()
         self.limpar_inputs()
         self.limpar_inputs_alteracao()
+        self.resetar_tabela_cadastro_venda()
+        self.resetar_tabela_vendas()
         self.PRODUTOS_BAIXA.clear()
         self.PRODUTOS_QUANTIDADE.clear()
 
@@ -1549,7 +1524,7 @@ class TelaVendas(Screen):
                 elif detalhes['status'] == 2:
                     status = 'Finalizada'
                 elif detalhes['status'] == 3:
-                    status = 'Finalizada'
+                    status = 'Aguardando pagamento'
                 elif detalhes['status'] == 4:
                     status = 'Cancelada'
 
