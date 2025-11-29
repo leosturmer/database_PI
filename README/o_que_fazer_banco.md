@@ -3,6 +3,8 @@
 
     - Ver os NOTIFY e deixar bonitos.
 
+    PRODUTOS ---- ao cadastrar, fazer um FETCH pra ver se já tem aquele nome cadastrado.
+
     - Tela de Pesquisa:
         - Produtos:
             - Colocar os filtros do checkbox

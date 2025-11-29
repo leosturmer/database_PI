@@ -432,7 +432,10 @@ class TelaProdutos(Screen):
             self.notify(
                 title="Ops!", message="Você precisa inserir os dados obrigatórios!", severity='warning')
         else:
-            try:
+            validacao_nome = controller.select_produto_nome(nome=nome)            
+            if validacao_nome != None:
+                self.notify("Nome de produto já cadastrado!", severity="error")
+            else:
                 id_produto = None
                 controller.insert_produto(
                     id_produto, nome, valor_unitario, quantidade, imagem, aceita_encomenda, descricao, valor_custo)
@@ -442,8 +445,6 @@ class TelaProdutos(Screen):
                 self.atualizar_select_produtos()
                 self.limpar_inputs_produtos()
                 self.limpar_texto_static()
-            except IntegrityError:
-                self.notify("Nome de produto já cadastrado!", severity="error")
 
     def atualizar_select_produtos(self):
         'Atualiza o Select de produtos.'
@@ -517,7 +518,8 @@ class TelaProdutos(Screen):
     @on(Input.Changed)
     async def on_input(self, event: Input.Changed):
         'Ações que ocorrem ao preencher o Input.'
-        match event.input.value:            
+        match event.input.value:
+
             case '':
                 self.query_one("#bt_cadastrar", Button).disabled = True
                 self.query_one("#bt_limpar", Button).disabled = True
