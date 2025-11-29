@@ -263,7 +263,6 @@ class TelaProdutos(Screen):
         super().__init__(name, id, classes)
 
         self.LISTA_DE_PRODUTOS = controller.listar_produtos()
-
         self.ID_PRODUTO = int()
 
     def on_screen_resume(self):
@@ -459,7 +458,7 @@ class TelaProdutos(Screen):
         id_produto = self.query_one(
             "#select_produtos", Select).value
 
-        self.id_produto = id_produto
+        self.ID_PRODUTO = id_produto
 
         _, nome, quantidade, valor_unitario, valor_custo, aceita_encomenda, descricao, imagem = controller.select_produto_id(
             id_produto)
@@ -481,6 +480,8 @@ class TelaProdutos(Screen):
         input_descricao.text = str(descricao)
 
         self.query_one("#collapsible_produtos", Collapsible).collapsed = True
+        self.query_one("#bt_alterar", Button).disabled = False
+        self.query_one("#bt_deletar", Button).disabled = False
 
     def alterar_produto(self):
         id_produto = self.query_one("#select_produtos", Select).value
@@ -516,8 +517,7 @@ class TelaProdutos(Screen):
     @on(Input.Changed)
     async def on_input(self, event: Input.Changed):
         'Ações que ocorrem ao preencher o Input.'
-        match event.input.value:
-
+        match event.input.value:            
             case '':
                 self.query_one("#bt_cadastrar", Button).disabled = True
                 self.query_one("#bt_limpar", Button).disabled = True
@@ -552,13 +552,8 @@ class TelaProdutos(Screen):
                 self.limpar_texto_static()
 
             case 'bt_preencher_campos':
-
                 try:
                     self.preencher_campos()
-
-                    self.query_one("#bt_alterar", Button).disabled = False
-                    self.query_one("#bt_deletar", Button).disabled = False
-
                 except:
                     self.notify(
                         title="Ops!", message="Nenhum produto selecionado!", severity='warning')
@@ -732,7 +727,7 @@ class TelaEncomendas(Screen):
             datetime.strptime(data_inserida, formato)
             return True
         except ValueError:
-            return False
+            return self.notify("Insira uma data válida!")
         
     def cadastrar_encomenda(self):
         'Cadastra a encomenda no banco de dados.'
@@ -748,9 +743,7 @@ class TelaEncomendas(Screen):
             self.notify("Adicione pelo menos um produto!")
         elif len(prazo) < 10:
             self.notify("Preencha o prazo no formato DD/MM/AAAA")
-        elif validacao_data == False:
-            self.notify("Insira uma data válida!")
-        else:
+        elif validacao_data == True:
             controller.insert_encomenda(
                 status=status, prazo=prazo, comentario=comentario, produtos=produtos)
 
@@ -770,9 +763,7 @@ class TelaEncomendas(Screen):
 
         validacao_data = self.verificar_data(data_inserida=prazo)
 
-        if validacao_data == False:
-            self.notify("Insira uma data válida!")
-        else:
+        if validacao_data == True:
             controller.update_encomendas(
                 id_encomenda=id_encomenda, prazo=prazo, comentario=comentario, status=status)
             
@@ -997,7 +988,7 @@ class TelaEncomendas(Screen):
         self.query_one("#coll_encomendas", Collapsible).collapsed = True
         self.atualizar_static_alteracao_produto()
 
-    def tranformar_em_venda(self):
+    def transformar_em_venda(self):
         'Transforma uma encomenda em venda.'
         _id_encomenda, produtos, prazo, comentario, status = self.ENCOMENDA_ALTERACAO
         valor_total_venda = list()
@@ -1029,6 +1020,8 @@ class TelaEncomendas(Screen):
 
         controller.insert_venda(data=prazo, valor_final=valor_final, status=status, produtos=venda_produto_quantidade, comentario=comentario)
 
+        self.notify("Feito! Encomenda registrada nas vendas")
+
         produtos_quantidade.clear()
         valor_total_venda.clear()
 
@@ -1058,9 +1051,6 @@ class TelaEncomendas(Screen):
                 self.query_one("#bt_deletar", Button).disabled = False
                 self.query_one("#bt_preencher_dados", Button).disabled = False
                 self.query_one("#bt_transformar_venda", Button).disabled = False
-
-
-
 
     @on(Select.Changed)
     async def on_select(self, event: Select.Changed):
@@ -1125,7 +1115,7 @@ class TelaEncomendas(Screen):
                     self.notify("Ops! Você precisa selecionar uma encomenda")
 
             case 'bt_transformar_venda':
-                self.tranformar_em_venda()
+                self.transformar_em_venda()
 
             case 'bt_alterar':
                 prazo = self.query_one("#prazo_alterado", Input).value
@@ -1214,6 +1204,10 @@ class TelaVendas(Screen):
                             yield Static(self.texto_static_produto, id='static_produto')
                             with VerticalGroup():
                                 with HorizontalGroup():
+                                    yield Label("Dar baixa no estoque?")
+                                    yield Switch(disabled=False, id="switch_baixa")
+                            
+                                with HorizontalGroup():
                                     yield Input(placeholder='Quantidade vendida...',
                                                 id='quantidade_venda',
                                                 max_length=3,
@@ -1223,9 +1217,7 @@ class TelaVendas(Screen):
                                                     disabled=True,
                                                     id='bt_adicionar_quantidade')
                                     
-                                with HorizontalGroup():
-                                    yield Label("Dar baixa no estoque?")
-                                    yield Switch(disabled=False, id="switch_baixa")
+
 
                 with VerticalGroup():
                     yield DataTable(id="tabela_cadastro_venda")
@@ -1279,10 +1271,10 @@ class TelaVendas(Screen):
                 with VerticalGroup():
                     yield Static("[b]Informações da venda selecionada:[/b]", id="stt_alteracao_produto")
                     with HorizontalGroup():
-                        yield Label('Data da venda')
+                        yield Label('Data da venda[red]*[/red]')
                         yield MaskedInput(template='00/00/0000', placeholder='DD/MM/AAAA', id="data_alterada")
 
-                        yield Label('Status da venda')
+                        yield Label('Status da venda[red]*[/red]')
                         yield Select([('Em andamento', 1),
                                       ('Aguardando pagamento', 2),
                                       ('Finalizada', 3),
@@ -1312,7 +1304,7 @@ class TelaVendas(Screen):
             datetime.strptime(data_inserida, formato)
             return True
         except ValueError:
-            return False
+            return self.notify("Insira uma data válida!")
         
     def cadastrar_venda(self):
         'Insere uma venda no banco de dados.'
@@ -1331,9 +1323,7 @@ class TelaVendas(Screen):
             self.notify("Adicione pelo menos um produto!")
         elif len(data) < 10:
             self.notify("Preencha o prazo no formato DD/MM/AAAA")
-        elif verificacao_data == False:
-            self.notify("Insira uma data válida!")
-        else:
+        elif verificacao_data == True:
             controller.insert_venda(
                 data=data, valor_final=valor_final, status=status, comentario=comentario, produtos=produtos)
 
@@ -1359,20 +1349,35 @@ class TelaVendas(Screen):
         'Atualiza uma venda no banco de dados.'
         id_venda = self.VENDA_ALTERACAO[0]
 
-        status = self.query_one('#select_status_venda_alterada', Select).value
+
         data = self.query_one('#data_alterada', Input).value
-        comentario = self.query_one('#text_comentario_alterado', TextArea).text
+        status = self.query_one('#select_status_venda_alterada', Select).value
+        novo_comentario = self.query_one('#text_comentario_alterado', TextArea).text
         
         verificacao_data = self.verificar_data(data_inserida=data)
 
-        if verificacao_data == False:
-            self.notify("Insira uma data válida!")
-        else:
+        if verificacao_data == True:
             controller.update_venda(
-            id_venda=id_venda, data=data, status=status,  comentario=comentario)
+            id_venda=id_venda, data=data, status=status, comentario=novo_comentario)
         
             self.resetar_tabela_vendas()
             self.limpar_inputs_alteracao()
+
+
+
+        # prazo = self.query_one("#prazo_alterado", MaskedInput).value
+        # status = self.query_one("#select_status_alterado", Select).value
+        # comentario = self.query_one("#text_comentario_alterado", TextArea).text
+
+        # validacao_data = self.verificar_data(data_inserida=prazo)
+
+        # if validacao_data == True:
+        #     controller.update_encomendas(
+        #         id_encomenda=id_encomenda, prazo=prazo, comentario=comentario, status=status)
+            
+        #     self.notify("Encomenda alterada com sucesso!")
+        #     self.limpar_inputs_alteracao()
+        #     self.resetar_tabela_encomendas()
 
     def delete_venda(self):
         'Deleta uma venda do banco de dados.'
@@ -1431,20 +1436,18 @@ class TelaVendas(Screen):
         valor_total = sum(self.VALOR_TOTAL_VENDA)
 
         static.update(
-            f'------------------- Total da venda: R$ {valor_total:.2f}')
+            f'[b]Total da venda:[/b] R$ {valor_total:.2f}')
 
     def atualizar_static_alteracao(self):
         'Atualiza as informações da tela de alteração de venda.'
         static = self.query_one('#static_alteracao_venda', Static)
-        novo_texto = ''
 
-        id_venda, produtos, prazo, comentario, status, valor_final = self.VENDA_ALTERACAO
+        _id_venda, produtos, prazo, comentario, status, valor_final = self.VENDA_ALTERACAO
 
         if comentario == None:
             comentario = ''
 
-        novo_texto = f'''Venda:\n\nProdutos: {produtos}\nPrazo: {prazo}\nStatus: {status}\nComentários: {comentario}\nValor total: R$ {valor_final:.2f}'''
-        static.update(novo_texto)
+        static.update(f'Venda:\n\nProdutos: {produtos}\nPrazo: {prazo}\nStatus: {status}\nComentários: {comentario}\nValor total: R$ {valor_final}')
 
     def atualizar_static_alteracao_produto(self):
         'Atualiza as informações de produtos na tela de alteração de produto.'
@@ -1651,7 +1654,7 @@ class TelaVendas(Screen):
 
         if status == 'Em produção':
             status = 1
-        elif status == 'Finalizada':
+        elif status == 'Aguardando pagamento':
             status = 2
         elif status == 'Finalizada':
             status = 3
@@ -1732,7 +1735,6 @@ class TelaVendas(Screen):
         match event.button.id:
             case 'bt_adicionar_quantidade':
                 self.adicionar_dicionario_venda()
-
 
             case 'bt_remover':
                 self.remover_produto_venda()
