@@ -19,13 +19,19 @@ SidebarMenu {
     height: auto;
 }
 
-#tabela_encomendas, #tabela_vendas, #tabela_produtos_pesquisa {
+#tabela_encomendas, #tabela_vendas, {
     width: 90%;
     margin-top: 1;
     margin-bottom: 1;
     height: 12;
 }
 
+#tabela_produtos_pesquisa {
+    width: 90%;
+    margin-top: 1;
+    margin-bottom: 1;
+    height: 20;
+}
 
 #tabela_cadastro_encomenda {
     width: 50%;

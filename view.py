@@ -30,7 +30,7 @@ class SidebarMenu(Container):
             yield Button("Produtos", id="bt_produtos", classes="botoes_inicial", variant="primary")
             yield Button("Encomendas", id="bt_encomendas", classes="botoes_inicial", variant="success")
             yield Button("Vendas", id="bt_vendas", classes="botoes_inicial", variant="warning")
-            yield Button("Pesquisa", id="bt_pesquisa", classes="botoes_inicial", variant='error')
+            yield Button("Pesquisa", id="bt_pesquisa", classes="botoes_inicial", variant='error', disabled=True)
             yield Button("Tela inicial", id="bt_inicial", classes="botoes_inicial")
 
         return super().compose()
@@ -87,7 +87,7 @@ class TelaLogin(Screen):
         input_senha = self.query_one("#input_senha", Input).value.strip()
 
         if not input_login or not input_senha:
-            self.notify("Preencha todos os campos!", severity="warning")
+            self.notify(title="Epa!", message="Preencha todos os campos obrigatórios", severity="warning")
             return
 
         try:
@@ -97,11 +97,11 @@ class TelaLogin(Screen):
             senha_hash = hashlib.sha256(input_senha.encode('utf-8')).digest()
 
             if input_login == login and senha_hash == senha:
-                self.notify("Login realizado com sucesso!")
+                self.notify(title="Sucesso!", message="Login realizado")
                 self.app.switch_screen('tela_inicial')
 
         except TypeError:
-            self.notify("Login ou senha incorretos!", severity='error')
+            self.notify(title="Ops!", message="Login ou senha incorretos!", severity='error')
 
     @on(Switch.Changed)
     async def on_switch(self, event: Switch.Changed):
@@ -185,12 +185,12 @@ class TelaCadastro(Screen):
         try:
             controller.insert_vendedor(
                 login, senha_codificada, nome, nome_loja)
-            self.notify("Usuário cadastrado com sucesso!")
+            self.notify(title="Sucesso!", message="Usuário cadastrado")
             self.app.switch_screen('tela_login')
             self.limpar_campos()
 
         except:
-            self.notify("Ops! Algo deu errado", severity="warning")
+            self.notify(title="Ops!", message="Algo deu errado", severity="warning")
 
     @on(Switch.Changed)
     async def on_switch(self, event: Switch.Changed):
@@ -215,12 +215,11 @@ class TelaCadastro(Screen):
                 login, senha, nome, nome_loja = self.pegar_dados_vendedor()
 
                 if not nome or not login or not senha:
-                    self.notify(
-                        "Ops! Insira todos os dados necessários", severity="error")
+                    self.notify(title="Ops!", message="Insira todos os dados necessários", severity="warning")
                 elif "@" not in login or ".com" not in login:
-                    self.notify("Insira um e-mail válido!")
+                    self.notify(title="Ops!", message="Insira um e-mail válido!", severity="warning")
                 elif len(senha) < 6:
-                    self.notify("A senha deve ter no mínimo 6 caracteres!")
+                    self.notify(title="Ops!", message="A senha deve ter no mínimo 6 caracteres!", severity="warning")
                 else:
                     self.insert_vendedor()
 
@@ -233,7 +232,7 @@ class TelaInicial(Screen):
             yield Button("Produtos", id="bt_produtos", classes="botoes_inicial", variant="primary")
             yield Button("Encomendas", id="bt_encomendas", classes="botoes_inicial", variant="success")
             yield Button("Vendas", id="bt_vendas", classes="botoes_inicial", variant="warning")
-            yield Button("Pesquisa", id="bt_pesquisa", classes="botoes_inicial", variant='error')
+            yield Button("Pesquisa", id="bt_pesquisa", classes="botoes_inicial", variant='error', disabled=True)
             yield Button("Sair", id="bt_sair", classes="botoes_inicial")
 
     @on(Button.Pressed)
@@ -264,6 +263,16 @@ class TelaProdutos(Screen):
 
         self.LISTA_DE_PRODUTOS = controller.listar_produtos()
         self.ID_PRODUTO = int()
+        self.checkbox_list_produto = list()
+
+    def on_mount(self):
+        tabela = self.query_one("#tabela_produtos_pesquisa", DataTable)
+        tabela.border_title = "Vendas"
+        tabela.cursor_type = 'row'
+        tabela.zebra_stripes = True
+
+        tabela.add_columns("Nome", "Quantidade", "Valor unitário", "Valor custo", "Aceita encomenda", "Descrição") 
+        self.atualizar_tabela_produtos()
 
     def on_screen_resume(self):
         'Ações que ocorrem ao voltar para a TelaProdutos.'
@@ -277,84 +286,99 @@ class TelaProdutos(Screen):
 
         yield SidebarMenu(id="sidebar")
 
-        with ScrollableContainer(id='tela_produtos'):
-            with Collapsible(title="Expandir para alterar um produto cadastrado", id="collapsible_produtos"):
-                with HorizontalGroup(id='class_select_produtos'):
-                    yield Label('Selecione o produto')
-                    yield Select(self.LISTA_DE_PRODUTOS,
-                                 type_to_search=True,
-                                 id='select_produtos',
-                                 allow_blank=True,
-                                 prompt='Selecione o produto'
-                                 )
+        with TabbedContent(initial='tab_cadastro', id='tabbed_pesquisa'):
+            with TabPane("Cadastro de produtos", id="tab_cadastro"):
+                with ScrollableContainer(id='tela_produtos'):
+                    with Collapsible(title="Expandir para alterar um produto cadastrado", id="collapsible_produtos"):
+                        with HorizontalGroup(id='class_select_produtos'):
+                            yield Label('Selecione o produto')
+                            yield Select(self.LISTA_DE_PRODUTOS,
+                                        type_to_search=True,
+                                        id='select_produtos',
+                                        allow_blank=True,
+                                        prompt='Selecione o produto'
+                                        )
 
-                with HorizontalGroup():
-                    yield Static(f'\n\nSelecione o produto para visualizar as informações', id='stt_info_produto')
-                    yield Button('Preencher campos', variant='primary', id='bt_preencher_campos')
+                        with HorizontalGroup():
+                            yield Static(f'\n\nSelecione o produto para visualizar as informações', id='stt_info_produto')
+                            yield Button('Preencher campos', variant='primary', id='bt_preencher_campos')
 
-            yield Rule(orientation='horizontal', line_style='solid')
+                    yield Rule(orientation='horizontal', line_style='solid')
 
-            with ScrollableContainer(id='inputs_cadastro'):
-                with HorizontalGroup():
+                    with ScrollableContainer(id='inputs_cadastro'):
+                        with HorizontalGroup():
 
-                    yield Label("Nome do produto[red]*[/red]")
-                    yield Input(
-                        placeholder='Nome do produto*',
-                        type='text',
-                        max_length=50,
-                        id='input_nome',
+                            yield Label("Nome do produto[red]*[/red]")
+                            yield Input(
+                                placeholder='Nome do produto*',
+                                type='text',
+                                max_length=50,
+                                id='input_nome',
 
-                    )
-                    yield Label("Quantidade[red]*[/red]")
-                    yield Input(
-                        placeholder='Quantidade*',
-                        type='integer',
-                        max_length=4,
-                        id='input_quantidade'
-                    )
+                            )
+                            yield Label("Quantidade[red]*[/red]")
+                            yield Input(
+                                placeholder='Quantidade*',
+                                type='integer',
+                                max_length=4,
+                                id='input_quantidade'
+                            )
 
-                with HorizontalGroup():
-                    yield Label("Valor unitário[red]*[/red]")
-                    yield Input(
-                        placeholder='Valor unitário*',
-                        type='number',
-                        max_length=7,
-                        id='input_valor_unitario'
-                    )
+                        with HorizontalGroup():
+                            yield Label("Valor unitário[red]*[/red]")
+                            yield Input(
+                                placeholder='Valor unitário*',
+                                type='number',
+                                max_length=7,
+                                id='input_valor_unitario'
+                            )
 
-                    yield Label("Valor de custo")
-                    yield Input(
-                        placeholder='Valor de custo',
-                        type='number',
-                        max_length=7,
-                        id='input_valor_custo'
-                    )
+                            yield Label("Valor de custo")
+                            yield Input(
+                                placeholder='Valor de custo',
+                                type='number',
+                                max_length=7,
+                                id='input_valor_custo'
+                            )
 
-                with HorizontalGroup():
-                    yield Label('Imagem')
-                    yield Input(
-                        placeholder='Imagem',
-                        type='text',
-                        id='input_imagem', disabled=True
-                    )
-                    yield Label('Aceita encomendas?')
-                    yield Switch(value=False, id='select_encomenda')
+                        with HorizontalGroup():
+                            yield Label('Imagem')
+                            yield Input(
+                                placeholder='Imagem',
+                                type='text',
+                                id='input_imagem', disabled=True
+                            )
+                            yield Label('Aceita encomendas?')
+                            yield Switch(value=False, id='select_encomenda')
 
-                with HorizontalGroup():
+                        with HorizontalGroup():
 
-                    yield Label("Descrição do produto")
-                    yield TextArea(
-                        placeholder='Descrição',
-                        id='text_descricao')
+                            yield Label("Descrição do produto")
+                            yield TextArea(
+                                placeholder='Descrição',
+                                id='text_descricao')
 
-            with HorizontalGroup(id='bt_tela_produtos'):
-                yield Button('Cadastrar',  id='bt_cadastrar', disabled=True)
-                yield Button("Alterar", id='bt_alterar', disabled=True)
-                yield Button('Limpar', id='bt_limpar', disabled=True)
-                yield Button('Deletar', id='bt_deletar', disabled=True)
-                yield Button('Voltar', id='bt_voltar')
+                    with HorizontalGroup(id='bt_tela_produtos'):
+                        yield Button('Cadastrar',  id='bt_cadastrar', disabled=True)
+                        yield Button("Alterar", id='bt_alterar', disabled=True)
+                        yield Button('Limpar', id='bt_limpar', disabled=True)
+                        yield Button('Deletar', id='bt_deletar', disabled=True)
+                        yield Button('Voltar', id='bt_voltar')
 
-            yield Footer(show_command_palette=False)
+            with TabPane('Lista de produtos', id='tab_produtos'):
+                with VerticalScroll():
+
+                    with HorizontalGroup():
+                        yield Checkbox("Em estoque", True, id="cbox_estoque", )
+                        yield Checkbox("Fora de estoque", True, id="cbox_fora_estoque")
+                        yield Checkbox("Aceita encomenda", False, id="cbox_encomenda")
+                        yield Checkbox("Não aceita encomenda", False, id="cbox_nao_encomenda")
+
+                with VerticalScroll():
+                    yield DataTable(id='tabela_produtos_pesquisa')
+                    yield Button('Voltar', id='bt_voltar')
+
+        yield Footer(show_command_palette=False)
 
     def pegar_inputs_produtos(self):
         'Pega os campos da TelaProdutos.'
@@ -396,6 +420,7 @@ class TelaProdutos(Screen):
         self.query_one("#bt_cadastrar", Button).disabled = True
         self.query_one("#bt_limpar", Button).disabled = True
         self.query_one("#bt_alterar", Button).disabled = True
+        self.query_one("#bt_deletar", Button).disabled = True
         self.query_one("#select_produtos", Select).value = Select.BLANK
 
     def atualizar_texto_static(self):
@@ -430,11 +455,11 @@ class TelaProdutos(Screen):
 
         if nome == '' or quantidade == '' or valor_unitario == '':
             self.notify(
-                title="Ops!", message="Você precisa inserir os dados obrigatórios!", severity='warning')
+                title="Ops!", message="Insira todos os dados obrigatórios", severity='warning')
         else:
             validacao_nome = controller.select_produto_nome(nome=nome)            
             if validacao_nome != None:
-                self.notify("Nome de produto já cadastrado!", severity="error")
+                self.notify(title="Eita!", message="Nome de produto já cadastrado", severity="error")
             else:
                 id_produto = None
                 controller.insert_produto(
@@ -497,7 +522,7 @@ class TelaProdutos(Screen):
         self.limpar_inputs_produtos()
         self.limpar_texto_static()
 
-        self.notify(f"Produto {nome} alterado com sucesso!")
+        self.notify(title="Feito!", message=f"Produto {nome} alterado com sucesso!")
 
         self.query_one("#collapsible_produtos", Collapsible).expand = False
 
@@ -506,14 +531,101 @@ class TelaProdutos(Screen):
 
         if id_produto > 0:
             controller.delete_produto(id_produto)
-            self.notify("Produto excluído!", severity='error')
+            self.notify(title="Já era!", message="Produto excluído com sucesso")
 
             self.atualizar_select_produtos()
             self.limpar_inputs_produtos()
             self.limpar_texto_static()
+            self.ID_PRODUTO = 0
 
         else:
-            self.notify("Ops! Você precisa selecionar um produto!")
+            self.notify(title="Ops!", message="Você precisa selecionar um produto!", severity='warning')
+
+
+    
+    def pegar_checkbox_produtos(self):
+        'Pega os valores dos Checkboxes da TelaVendas.'
+
+        estoque = self.query_one("#cbox_estoque", Checkbox).value
+        fora_estoque = self.query_one("#cbox_fora_estoque", Checkbox).value
+        encomenda = self.query_one("#cbox_encomenda", Checkbox).value
+        nao_encomenda = self.query_one("#cbox_nao_encomenda", Checkbox).value
+
+        if estoque:
+            self.checkbox_list_produto.append(1)
+
+        if fora_estoque:
+            self.checkbox_list_produto.append(2)
+
+        if encomenda:
+            self.checkbox_list_produto.append(3)   
+        
+        if nao_encomenda:
+            self.checkbox_list_produto.append(4)
+
+    def atualizar_tabela_produtos(self): #### Não filtra se dois checkboxes diferentes são apertados.
+        'Atualiza as informações para a tabela de produtos da TelaPesquisa.'
+
+        tabela = self.query_one("#tabela_produtos_pesquisa", DataTable)
+        self.LISTA_DE_PRODUTOS = controller.listar_produtos()
+
+        self.pegar_checkbox_produtos()
+
+        for produto in self.LISTA_DE_PRODUTOS:
+            id_produto = produto[1]
+            _id_produto, nome, quantidade, valor_unitario, valor_custo, aceita_encomenda, descricao, _imagem = controller.select_produto_id(id_produto)
+
+            adicionar_na_tabela = list()
+
+            if int(quantidade) > 0:
+                adicionar_na_tabela.append(1)
+            else:
+                adicionar_na_tabela.append(2)
+            
+            if aceita_encomenda == True:
+                adicionar_na_tabela.append(3)
+            else:
+                adicionar_na_tabela.append(4)
+                            
+            if any(item in adicionar_na_tabela for item in self.checkbox_list_produto):                
+                if str(valor_custo) == 'None':
+                    valor_custo = ''
+                else:
+                    valor_custo = f"R$ {valor_custo}"
+                if str(descricao) == 'None':
+                    descricao = ''
+                if aceita_encomenda == False:
+                    aceita_encomenda = 'Não'
+                else:
+                    aceita_encomenda = 'Sim'
+
+                tabela.add_row(nome, quantidade, f"R$ {valor_unitario}", valor_custo, aceita_encomenda, descricao)
+
+    def resetar_tabela_produtos(self):
+        'Reseta e preenche a tabela de produtos da TelaPesquisa.'
+        tabela = self.query_one("#tabela_produtos_pesquisa", DataTable)
+
+        tabela.clear()
+
+        self.atualizar_tabela_produtos()
+
+    @on(Checkbox.Changed)
+    async def on_checkbox_change(self, event: Checkbox.Changed):
+        'Ações que ocorrem ao selecionar um Checkbox.'
+        
+        if len(self.checkbox_list_produto) > 0:
+            self.checkbox_list_produto.clear()  
+        self.resetar_tabela_produtos()
+
+    @on(Button.Pressed)
+    async def on_button(self, event: Button.Pressed):
+        match event.button.id:
+            case 'bt_pesquisar_produto':
+                self.resetar_tabela_produtos_pesquisa()
+
+            case 'bt_voltar':
+                self.app.switch_screen('tela_inicial')
+
 
     @on(Input.Changed)
     async def on_input(self, event: Input.Changed):
@@ -729,7 +841,7 @@ class TelaEncomendas(Screen):
             datetime.strptime(data_inserida, formato)
             return True
         except ValueError:
-            return self.notify("Insira uma data válida!")
+            return self.notify(title="Data inválida", message="Preencha com uma data válida", severity='warning')
         
     def cadastrar_encomenda(self):
         'Cadastra a encomenda no banco de dados.'
@@ -741,15 +853,15 @@ class TelaEncomendas(Screen):
         
         validacao_data = self.verificar_data(prazo)
     
-        if produtos == []:
-            self.notify("Adicione pelo menos um produto!")
+        if len(produtos) == 0:
+            self.notify(title="Nenhum produto adicionado", message="Adicione pelo menos um produto!", severity="warning")
         elif len(prazo) < 10:
-            self.notify("Preencha o prazo no formato DD/MM/AAAA")
+            self.notify(title="Data inválida!", message="Preencha o prazo no formato DD/MM/AAAA", severity="warning")
         elif validacao_data == True:
             controller.insert_encomenda(
                 status=status, prazo=prazo, comentario=comentario, produtos=produtos)
 
-            self.notify('Encomenda cadastrada com sucesso!')
+            self.notify(title="Feito!", message='Encomenda cadastrada com sucesso!')
             self.PRODUTOS_QUANTIDADE.clear()
             self.limpar_inputs()
             self.atualizar_tabela_encomendas()
@@ -769,7 +881,7 @@ class TelaEncomendas(Screen):
             controller.update_encomendas(
                 id_encomenda=id_encomenda, prazo=prazo, comentario=comentario, status=status)
             
-            self.notify("Encomenda alterada com sucesso!")
+            self.notify(title="Feito!", message="Encomenda alterada com sucesso!")
             self.limpar_inputs_alteracao()
             self.resetar_tabela_encomendas()
 
@@ -777,8 +889,8 @@ class TelaEncomendas(Screen):
         'Deleta do banco de dados a encomenda.'
         id_encomenda = self.ENCOMENDA_ALTERACAO[0]
         controller.delete_encomenda(id_encomenda)
-        self.notify(
-            f'Encomenda deletada com sucesso!', severity='error')
+        self.notify(title="Feito", message='Encomenda deletada com sucesso!')
+        self.ENCOMENDA_ALTERACAO.clear()
         self.limpar_inputs_alteracao()
         self.atualizar_tabela_encomendas()
     
@@ -838,10 +950,10 @@ class TelaEncomendas(Screen):
 
         
         if id_produto is None:
-            self.notify("Selecione um produto!", severity='warning')
+            self.notify(title="Nenhum produto selecionado", message="Selecione um produto", severity='warning')
 
         elif quantidade_encomendada == 0 or quantidade_encomendada.startswith("0") or quantidade_encomendada.startswith("-") or quantidade_encomendada == "":
-            self.notify("Adicione uma quantidade válida!", severity='warning')
+            self.notify(title="Quantidade inválida", message="Adicione uma quantidade válida!", severity='warning')
         else:
             self.PRODUTOS_QUANTIDADE[id_produto] = quantidade_encomendada
 
@@ -875,6 +987,7 @@ class TelaEncomendas(Screen):
         self.query_one("#stt_alteracao_produto", Static).update("[b]Informações da encomenda selecionada:[/b]")
         
         self.query_one("#bt_alterar", Button).disabled = True
+        self.query_one("#bt_deletar", Button).disabled = True
 
     def pegar_checkbox(self):
         'Pega os valores preenchidos nos campos Checkbox para atualizar a tabela.'
@@ -988,6 +1101,8 @@ class TelaEncomendas(Screen):
         novo_comentario.text = comentario
 
         self.query_one("#coll_encomendas", Collapsible).collapsed = True
+        self.query_one("#bt_alterar", Button).disabled = False
+        self.query_one("#bt_deletar", Button).disabled = False
         self.atualizar_static_alteracao_produto()
 
     def transformar_em_venda(self):
@@ -1022,7 +1137,7 @@ class TelaEncomendas(Screen):
 
         controller.insert_venda(data=prazo, valor_final=valor_final, status=status, produtos=venda_produto_quantidade, comentario=comentario)
 
-        self.notify("Feito! Encomenda registrada nas vendas")
+        self.notify(title="Feito!", message="Encomenda registrada nas vendas")
 
         produtos_quantidade.clear()
         valor_total_venda.clear()
@@ -1049,8 +1164,6 @@ class TelaEncomendas(Screen):
                 encomenda = self.query_one('#tabela_encomendas', DataTable)
                 self.ENCOMENDA_ALTERACAO = encomenda.get_row(event.row_key)
                 self.atualizar_static_alteracao()
-                self.query_one("#bt_alterar", Button).disabled = False
-                self.query_one("#bt_deletar", Button).disabled = False
                 self.query_one("#bt_preencher_dados", Button).disabled = False
                 self.query_one("#bt_transformar_venda", Button).disabled = False
 
@@ -1114,7 +1227,7 @@ class TelaEncomendas(Screen):
                 try:
                     self.preencher_alteracoes_encomenda()
                 except:
-                    self.notify("Ops! Você precisa selecionar uma encomenda")
+                    self.notify(title="Ops!", message="Você precisa selecionar uma encomenda", severity='warning')
 
             case 'bt_transformar_venda':
                 self.transformar_em_venda()
@@ -1123,7 +1236,7 @@ class TelaEncomendas(Screen):
                 prazo = self.query_one("#prazo_alterado", Input).value
 
                 if len(prazo) < 10:
-                    self.notify("Preencha o prazo no formato DD/MM/AAAA")
+                    self.notify(title="Data inválida!", message="Preencha o prazo no formato DD/MM/AAAA", severity="warning")
                 else:
                     self.update_encomenda()
 
@@ -1306,7 +1419,7 @@ class TelaVendas(Screen):
             datetime.strptime(data_inserida, formato)
             return True
         except ValueError:
-            return self.notify("Insira uma data válida!")
+            return self.notify(title="Data inválida", message="Insira uma data válida!", severity="warning")
         
     def cadastrar_venda(self):
         'Insere uma venda no banco de dados.'
@@ -1321,10 +1434,10 @@ class TelaVendas(Screen):
 
         valor_final = sum(self.VALOR_TOTAL_VENDA)
 
-        if produtos == {}:
-            self.notify("Adicione pelo menos um produto!")
+        if len(produtos) == 0:
+            self.notify(title="Nenhum produto selecionado", message="Adicione pelo menos um produto!", severity='warning')
         elif len(data) < 10:
-            self.notify("Preencha o prazo no formato DD/MM/AAAA")
+            self.notify(title="Data inválida!", message="Preencha o prazo no formato DD/MM/AAAA", severity="warning")
         elif verificacao_data == True:
             controller.insert_venda(
                 data=data, valor_final=valor_final, status=status, comentario=comentario, produtos=produtos)
@@ -1339,7 +1452,7 @@ class TelaVendas(Screen):
                     controller.update_produto(
                         id_produto=produto[0], quantidade=quantidade_atualizada)
 
-            self.notify('Venda cadastrada com sucesso!')
+            self.notify(title="Feito!", message='Venda cadastrada com sucesso!')
             self.PRODUTOS_QUANTIDADE.clear()
             self.PRODUTOS_BAIXA.clear()
             dar_baixa.value = False
@@ -1360,16 +1473,16 @@ class TelaVendas(Screen):
         if validacao_data == True:
             controller.update_venda(
             id_venda=id_venda, status=status, data=data, comentario=comentario)
-            self.notify("Venda alterada com sucesso!")
+            self.notify(title="Feito!", message="Venda alterada com sucesso!")
             self.resetar_tabela_vendas()
             self.limpar_inputs_alteracao()
 
-    def delete_venda(self):
+    def     da(self):
         'Deleta uma venda do banco de dados.'
         id_venda = self.VENDA_ALTERACAO[0]
         controller.delete_venda(id_venda)
-        self.notify(
-            f'Venda deletada com sucesso!', severity='error')
+        self.notify(title="Já era!", message='Venda deletada com sucesso!')
+        self.VENDA_ALTERACAO.clear()
 
     def atualizar_select_produtos(self):
         'Atualiza o select de produtos com os novos produtos inseridos na TelaProdutos.'
@@ -1484,7 +1597,7 @@ class TelaVendas(Screen):
                 "#quantidade_venda", Input).value
 
             if quantidade_vendida == "" or quantidade_vendida.startswith("0") or quantidade_vendida.startswith("-"):
-                self.notify("Insira uma quantidade válida!", severity="error")
+                self.notify(title='Quantidade inválida', message="Insira uma quantidade válida!", severity="warning")
                 return
 
             dar_baixa = self.query_one("#switch_baixa", Switch).value
@@ -1531,7 +1644,7 @@ class TelaVendas(Screen):
                         self.atualizar_static_venda()
 
         except TypeError as e:
-            self.notify("Selecione um produto!", severity="warning")
+            self.notify(title="Nenhum produto selecionado", message="Selecione um produto!", severity="warning")
 
     def remover_produto_venda(self):
         'Remove um produto adicionado em uma venda.'
@@ -1569,6 +1682,7 @@ class TelaVendas(Screen):
             self.texto_static_venda)
         self.query_one("#stt_alteracao_produto", Static).update("[b]Informações da venda selecionada:[/b]")
         self.query_one("#bt_alterar", Button).disabled = True
+        self.query_one("#bt_deletar", Button).disabled = True
 
     def pegar_checkbox_venda(self):
         'Pega os valores dos Checkboxes da TelaVendas.'
@@ -1734,7 +1848,7 @@ class TelaVendas(Screen):
                 try:
                     self.preencher_alteracoes_venda()
                 except ValueError:
-                    self.notify("Ops! Você precisa selecionar uma venda")
+                    self.notify(title="Ops!", message= "Você precisa selecionar uma venda", severity='warning')
 
             case 'bt_alterar':
                 self.update_venda()
@@ -1785,8 +1899,14 @@ class TelaPesquisa(Screen):
                         yield Checkbox("Não aceita encomenda", True, id="cbox_nao_encomenda")
 
                 with HorizontalGroup():
-                    yield Select(prompt='Filtrar por:', options=[('nome', 1), ("quantidade", 2), ('valor unitário', 3), ('valor de custo', 4), ('descrição', 5)], id="select_produtos_pesquisa")
-                    yield Input()
+                    yield Select(prompt='Filtrar por:', options=[
+                        ('nome', 1), 
+                        ("quantidade", 2), 
+                        ('valor unitário', 3), 
+                        ('valor de custo', 4), 
+                        ('descrição', 5)
+                        ], id="select_produtos_pesquisa")
+                    yield Input(id="input_produto_pesquisa")
                     yield Button("Pesquisar", id="bt_pesquisar_produto")
 
                 with VerticalScroll():
@@ -1819,7 +1939,6 @@ class TelaPesquisa(Screen):
 
         yield Footer(show_command_palette=False)
 
-    
     def pegar_checkbox_produtos(self):
         'Pega os valores dos Checkboxes da TelaVendas.'
 
@@ -1839,9 +1958,6 @@ class TelaPesquisa(Screen):
         
         if nao_encomenda:
             self.checkbox_list_produto.append(4)
-
-
-
 
     def atualizar_tabela_produtos(self): #### Não filtra se dois checkboxes diferentes são apertados.
         'Atualiza as informações para a tabela de produtos da TelaPesquisa.'
@@ -1889,6 +2005,24 @@ class TelaPesquisa(Screen):
 
         self.atualizar_tabela_produtos()
 
+    def fazer_pesquisa(self):
+        select = self.query_one("#select_produtos_pesquisa", Select).value
+        pesquisa = self.query_one("#input_produto_pesquisa", Input).value
+
+        match select:
+            case 1:
+                return controller.select_produto_nome_all(nome=pesquisa)
+            case 2:
+                pass
+            case 3:
+                pass
+            case 4:
+                pass
+            case 5:
+                pass
+
+        
+        
     @on(Checkbox.Changed)
     async def on_checkbox_change(self, event: Checkbox.Changed):
         'Ações que ocorrem ao selecionar um Checkbox.'
@@ -1903,7 +2037,7 @@ class TelaPesquisa(Screen):
     async def on_button(self, event: Button.Pressed):
         match event.button.id:
             case 'bt_pesquisar_produto':
-                self.atualizar_tabela_produtos()
+                self.resetar_tabela_produtos_pesquisa()
 
             case 'bt_voltar':
                 self.app.switch_screen('tela_inicial')
