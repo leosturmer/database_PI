@@ -115,10 +115,10 @@ def update_encomendas(id_encomenda, status, prazo=None, comentario=None):
 
     return encomenda
 
-def update_venda(id_venda, data=None, status=None, comentario=None):
+def update_venda(id_venda, status, data=None, comentario=None):
     'Encapsula informações para selecionar uma venda pelo ID no banco de dados.'
 
-    venda = model.Venda(data, status, comentario)
+    venda = model.Venda(data=data, status=status, comentario=comentario)
     model.update_venda(id_venda, venda)
 
     return venda

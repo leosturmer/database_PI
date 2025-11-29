@@ -158,10 +158,6 @@ class Encomenda():
 
 class Venda():
     def __init__(self, data, status, valor_final=0, comentario=None, produtos={}):
-        # import datetime
-
-        # data = datetime.date.today()
-
         self.data = data
         self.status = status
         self.valor_final = valor_final

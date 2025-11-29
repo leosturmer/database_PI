@@ -736,7 +736,7 @@ class TelaEncomendas(Screen):
         status = self.query_one(
             '#select_status_cadastro', Select).value
         prazo = self.query_one("#prazo_encomenda", Input).value
-        comentario = self.query_one("#text_comentario", TextArea).text
+        comentario = self.query_one("#text_comentario", TextArea).text.strip()
         produtos = self.PRODUTOS_QUANTIDADE
         
         validacao_data = self.verificar_data(prazo)
@@ -761,7 +761,7 @@ class TelaEncomendas(Screen):
 
         prazo = self.query_one("#prazo_alterado", MaskedInput).value
         status = self.query_one("#select_status_alterado", Select).value
-        comentario = self.query_one("#text_comentario_alterado", TextArea).text
+        comentario = self.query_one("#text_comentario_alterado", TextArea).text.strip()
 
         validacao_data = self.verificar_data(data_inserida=prazo)
 
@@ -1313,7 +1313,7 @@ class TelaVendas(Screen):
         status = self.query_one(
             '#select_status_venda', Select).value
         data = self.query_one("#data_venda", MaskedInput).value
-        comentario = self.query_one("#text_comentario", TextArea).text
+        comentario = self.query_one("#text_comentario", TextArea).text.strip()
         dar_baixa = self.query_one("#switch_baixa", Switch)
         produtos = self.PRODUTOS_QUANTIDADE
 
@@ -1351,35 +1351,18 @@ class TelaVendas(Screen):
         'Atualiza uma venda no banco de dados.'
         id_venda = self.VENDA_ALTERACAO[0]
 
-
-        data = self.query_one('#data_alterada', Input).value
+        data = self.query_one('#data_alterada', MaskedInput).value
         status = self.query_one('#select_status_venda_alterada', Select).value
-        novo_comentario = self.query_one('#text_comentario_alterado', TextArea).text
+        comentario = self.query_one('#text_comentario_alterado', TextArea).text.strip()
         
-        verificacao_data = self.verificar_data(data_inserida=data)
+        validacao_data = self.verificar_data(data_inserida=data)
 
-        if verificacao_data == True:
+        if validacao_data == True:
             controller.update_venda(
-            id_venda=id_venda, data=data, status=status, comentario=novo_comentario)
-        
+            id_venda=id_venda, status=status, data=data, comentario=comentario)
+            self.notify("Venda alterada com sucesso!")
             self.resetar_tabela_vendas()
             self.limpar_inputs_alteracao()
-
-
-
-        # prazo = self.query_one("#prazo_alterado", MaskedInput).value
-        # status = self.query_one("#select_status_alterado", Select).value
-        # comentario = self.query_one("#text_comentario_alterado", TextArea).text
-
-        # validacao_data = self.verificar_data(data_inserida=prazo)
-
-        # if validacao_data == True:
-        #     controller.update_encomendas(
-        #         id_encomenda=id_encomenda, prazo=prazo, comentario=comentario, status=status)
-            
-        #     self.notify("Encomenda alterada com sucesso!")
-        #     self.limpar_inputs_alteracao()
-        #     self.resetar_tabela_encomendas()
 
     def delete_venda(self):
         'Deleta uma venda do banco de dados.'
@@ -1449,7 +1432,7 @@ class TelaVendas(Screen):
         if comentario == None:
             comentario = ''
 
-        static.update(f'Venda:\n\nProdutos: {produtos}\nPrazo: {prazo}\nStatus: {status}\nComentários: {comentario}\nValor total: R$ {valor_final}')
+        static.update(f'[b]Venda:[/b]\n\n [b]Produtos:[/b] {produtos}\n [b]Prazo:[/b] {prazo}\n [b]Status:[/b] {status}\n [b]Comentários:[/b] {comentario}\n [b]Valor total:[/b] R$ {valor_final}')
 
     def atualizar_static_alteracao_produto(self):
         'Atualiza as informações de produtos na tela de alteração de produto.'
@@ -1770,6 +1753,7 @@ class TelaPesquisa(Screen):
     def __init__(self, name=None, id=None, classes=None):
         super().__init__(name, id, classes)
         self.LISTA_DE_PRODUTOS = controller.listar_produtos()
+        self.checkbox_list_produto = list()
 
 
     def on_mount(self):
@@ -1798,6 +1782,7 @@ class TelaPesquisa(Screen):
                         yield Checkbox("Em estoque", True, id="cbox_estoque")
                         yield Checkbox("Fora de estoque", True, id="cbox_fora_estoque")
                         yield Checkbox("Aceita encomenda", True, id="cbox_encomenda")
+                        yield Checkbox("Não aceita encomenda", True, id="cbox_nao_encomenda")
 
                 with HorizontalGroup():
                     yield Select(prompt='Filtrar por:', options=[('nome', 1), ("quantidade", 2), ('valor unitário', 3), ('valor de custo', 4), ('descrição', 5)], id="select_produtos_pesquisa")
@@ -1834,30 +1819,70 @@ class TelaPesquisa(Screen):
 
         yield Footer(show_command_palette=False)
 
+    
+    def pegar_checkbox_produtos(self):
+        'Pega os valores dos Checkboxes da TelaVendas.'
+        estoque = self.query_one("#cbox_estoque", Checkbox).value
+        fora_estoque = self.query_one("#cbox_fora_estoque", Checkbox).value
+        encomenda = self.query_one("#cbox_encomenda", Checkbox).value
+        nao_encomenda = self.query_one("#cbox_nao_encomenda", Checkbox).value
+
+        if estoque:
+            self.checkbox_list_produto.append(1)
+
+        if fora_estoque:
+            self.checkbox_list_produto.append(2)
+
+        if encomenda:
+            self.checkbox_list_produto.append(3)   
+        
+        if nao_encomenda:
+            self.checkbox_list_produto.append(4)   
+
+
+        self.notify(f"{self.checkbox_list_produto}")
+
 
     def atualizar_tabela_produtos(self):
         'Atualiza as informações para a tabela de produtos da TelaPesquisa.'
 
         tabela = self.query_one("#tabela_produtos_pesquisa", DataTable)
         self.LISTA_DE_PRODUTOS = controller.listar_produtos()
+
+        self.pegar_checkbox_produtos()
         
         for produto in self.LISTA_DE_PRODUTOS:
             id_produto = produto[1]
             _id_produto, nome, quantidade, valor_unitario, valor_custo, aceita_encomenda, descricao, _imagem = controller.select_produto_id(id_produto)
 
-            if str(valor_custo) == 'None':
-                valor_custo = '--'
-            else:
-                valor_custo = f"R$ {valor_custo}"
-            if str(descricao) == 'None':
-                descricao = '--'
-            if aceita_encomenda == False:
-                aceita_encomenda = 'Não'
-            else:
-                aceita_encomenda = 'Sim'
+            adicionar_na_tabela = list()
 
-            tabela.add_row(nome, quantidade, f"R$ {valor_unitario}", valor_custo, aceita_encomenda, descricao)
-    
+            if int(quantidade) > 0:
+                adicionar_na_tabela.append(1)
+
+            if int(quantidade) == 0: 
+                adicionar_na_tabela.append(2)
+
+            if aceita_encomenda == True:
+                adicionar_na_tabela.append(3)
+
+            if aceita_encomenda == False:
+                adicionar_na_tabela.append(4)
+            
+            if any(item in self.checkbox_list_produto for item in adicionar_na_tabela):                
+                if str(valor_custo) == 'None':
+                    valor_custo = '--'
+                else:
+                    valor_custo = f"R$ {valor_custo}"
+                if str(descricao) == 'None':
+                    descricao = '--'
+                if aceita_encomenda == False:
+                    aceita_encomenda = 'Não'
+                else:
+                    aceita_encomenda = 'Sim'
+
+                tabela.add_row(nome, quantidade, f"R$ {valor_unitario}", valor_custo, aceita_encomenda, descricao)
+
     def resetar_tabela_produtos(self):
         'Reseta e preenche a tabela de produtos da TelaPesquisa.'
         tabela = self.query_one("#tabela_produtos_pesquisa", DataTable)
@@ -1865,6 +1890,16 @@ class TelaPesquisa(Screen):
         tabela.clear()
 
         self.atualizar_tabela_produtos()
+
+    @on(Checkbox.Changed)
+    async def on_checkbox_change(self, event: Checkbox.Changed):
+        'Ações que ocorrem ao selecionar um Checkbox.'
+
+        if len(self.checkbox_list_produto) > 0:
+            self.checkbox_list_produto.clear()
+        
+        self.resetar_tabela_produtos()
+
 
     @on(Button.Pressed)
     async def on_button(self, event: Button.Pressed):
