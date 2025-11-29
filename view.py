@@ -1822,6 +1822,7 @@ class TelaPesquisa(Screen):
     
     def pegar_checkbox_produtos(self):
         'Pega os valores dos Checkboxes da TelaVendas.'
+
         estoque = self.query_one("#cbox_estoque", Checkbox).value
         fora_estoque = self.query_one("#cbox_fora_estoque", Checkbox).value
         encomenda = self.query_one("#cbox_encomenda", Checkbox).value
@@ -1837,20 +1838,19 @@ class TelaPesquisa(Screen):
             self.checkbox_list_produto.append(3)   
         
         if nao_encomenda:
-            self.checkbox_list_produto.append(4)   
+            self.checkbox_list_produto.append(4)
 
 
-        self.notify(f"{self.checkbox_list_produto}")
 
 
-    def atualizar_tabela_produtos(self):
+    def atualizar_tabela_produtos(self): #### Não filtra se dois checkboxes diferentes são apertados.
         'Atualiza as informações para a tabela de produtos da TelaPesquisa.'
 
         tabela = self.query_one("#tabela_produtos_pesquisa", DataTable)
         self.LISTA_DE_PRODUTOS = controller.listar_produtos()
 
         self.pegar_checkbox_produtos()
-        
+
         for produto in self.LISTA_DE_PRODUTOS:
             id_produto = produto[1]
             _id_produto, nome, quantidade, valor_unitario, valor_custo, aceita_encomenda, descricao, _imagem = controller.select_produto_id(id_produto)
@@ -1859,23 +1859,21 @@ class TelaPesquisa(Screen):
 
             if int(quantidade) > 0:
                 adicionar_na_tabela.append(1)
-
-            if int(quantidade) == 0: 
+            elif int(quantidade) == 0: 
                 adicionar_na_tabela.append(2)
-
+            
             if aceita_encomenda == True:
                 adicionar_na_tabela.append(3)
-
-            if aceita_encomenda == False:
+            elif aceita_encomenda == False:
                 adicionar_na_tabela.append(4)
-            
+                
             if any(item in self.checkbox_list_produto for item in adicionar_na_tabela):                
                 if str(valor_custo) == 'None':
-                    valor_custo = '--'
+                    valor_custo = ''
                 else:
                     valor_custo = f"R$ {valor_custo}"
                 if str(descricao) == 'None':
-                    descricao = '--'
+                    descricao = ''
                 if aceita_encomenda == False:
                     aceita_encomenda = 'Não'
                 else:
