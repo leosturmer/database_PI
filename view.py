@@ -730,56 +730,61 @@ class TelaEncomendas(Screen):
         with TabbedContent(initial='tab_cadastrar_encomeda'):
 
             with TabPane('Cadastrar encomenda', id='tab_cadastrar_encomeda'):
-                with HorizontalGroup(id='cnt_select_produtos'):
-                    yield Label('Selecione um produto:')
-                    yield Select(self.LISTA_DE_PRODUTOS,
-                                    type_to_search=True,
-                                    id='select_produtos',
-                                    allow_blank=True,
-                                    prompt='Selecione o produto para adicionar à encomenda'
-                                    )
-
-                with VerticalGroup():
-                    with HorizontalGroup():
-                        yield Static(self.texto_static_produto, id='static_produto')
-
-                        with HorizontalGroup():
-                            yield Input(placeholder='Quantidade encomendada...',
-                                        id='quantidade_encomenda',
-                                        max_length=3,
-                                        type="integer"
+                with Collapsible(title="Expandir para adicionar produtos à encomenda"):
+                    with HorizontalGroup(id='cnt_select_produtos'):
+                        yield Label('Selecione um produto:')
+                        yield Select(self.LISTA_DE_PRODUTOS,
+                                        type_to_search=True,
+                                        id='select_produtos',
+                                        allow_blank=True,
+                                        prompt='Selecione o produto para adicionar à encomenda'
                                         )
-                            yield Button('Adicionar',
-                                        disabled=True,
-                                        id='bt_adicionar_quantidade')
+
+                    with VerticalGroup():
+                        with HorizontalGroup():
+                            yield Static(self.texto_static_produto, id='static_produto')
+
+                            with HorizontalGroup():
+                                yield Input(placeholder='Quantidade encomendada...',
+                                            id='quantidade_encomenda',
+                                            max_length=3,
+                                            type="integer"
+                                            )
+                                yield Button('Adicionar',
+                                            disabled=True,
+                                            id='bt_adicionar_quantidade')
+                                
+                yield Rule()
+
+                with ScrollableContainer():
                     with HorizontalGroup():
                         yield DataTable(id="tabela_cadastro_encomenda")
                         yield Button("Remover", id="bt_remover", disabled=True)
-                with VerticalGroup():
-                    with HorizontalGroup():
-                        yield Label('Prazo de entrega[red]*[/red]')
-                        yield MaskedInput(template='00/00/0000', placeholder='DD/MM/AAAA', id="prazo_encomenda")
+                    with VerticalGroup():
+                        with HorizontalGroup():
+                            yield Label('Prazo de entrega[red]*[/red]')
+                            yield MaskedInput(template='00/00/0000', placeholder='DD/MM/AAAA', id="prazo_encomenda")
 
-                        yield Label('Status da encomenda[red]*[/red]')
-                        yield Select([('Em produção', 1),
-                                        ('Finalizada', 2),
-                                        ('Vendida', 3),
-                                        ('Cancelada', 4)],
-                                        type_to_search=True,
-                                        id='select_status_cadastro',
-                                        allow_blank=False
-                                        )
+                            yield Label('Status da encomenda[red]*[/red]')
+                            yield Select([('Em produção', 1),
+                                            ('Finalizada', 2),
+                                            ('Vendida', 3),
+                                            ('Cancelada', 4)],
+                                            type_to_search=True,
+                                            id='select_status_cadastro',
+                                            allow_blank=False
+                                            )
 
-                    with HorizontalGroup():
-                        yield Label("Comentários")
-                        yield TextArea(
-                            placeholder='Detalhes da encomenda, dos produtos, da entrega, quem comprou, entre outros',
-                            id='text_comentario')
+                        with HorizontalGroup():
+                            yield Label("Comentários")
+                            yield TextArea(
+                                placeholder='Detalhes da encomenda, dos produtos, da entrega, quem comprou, entre outros',
+                                id='text_comentario')
 
-                with HorizontalGroup(id='bt_tela_encomendas'):
-                    yield Button('Cadastrar',  id='bt_cadastrar', disabled=True)
-                    yield Button('Limpar', id='bt_limpar', disabled=True)
-                    yield Button('Voltar', id='bt_voltar')
+                    with HorizontalGroup(id='bt_tela_encomendas'):
+                        yield Button('Cadastrar',  id='bt_cadastrar', disabled=True)
+                        yield Button('Limpar', id='bt_limpar', disabled=True)
+                        yield Button('Voltar', id='bt_voltar')
 
             with TabPane('Atualizar encomenda', id='tab_atualizar_encomenda'):
                 with Collapsible(title='Expandir tabela de encomendas', id="coll_encomendas"):
@@ -1074,6 +1079,7 @@ class TelaEncomendas(Screen):
         id_produto = self.PRODUTO_SELECIONADO[0]
         self.PRODUTOS_QUANTIDADE.pop(id_produto)
         self.resetar_tabela_cadastro_encomenda()
+        self.notify(title="Removido!", message="Produto removido da encomenda", severity="warning")
 
     def preencher_alteracoes_encomenda(self):
         'Preenche os campos com as informações da encomenda a ser alterada.'
@@ -1304,70 +1310,72 @@ class TelaVendas(Screen):
         with TabbedContent(initial='tab_cadastrar_venda'):
 
             with TabPane('Cadastrar venda', id='tab_cadastrar_venda'):
-                with HorizontalGroup(id='cnt_select_produtos'):                       
-                    with VerticalGroup():
-                        with HorizontalGroup():
-                            yield Label('Selecione um produto:')
-                            yield Select(self.LISTA_DE_PRODUTOS,
-                                    type_to_search=True,
-                                    id='select_produtos_venda',
-                                    allow_blank=True,
-                                    prompt='Selecione o produto para adicionar à venda'
-                                    )
-
-                        with HorizontalGroup():
-                            yield Static(self.texto_static_produto, id='static_produto')
+                with HorizontalGroup(id='cnt_select_produtos'):     
+                    with Collapsible(title="Expandir para adicionar produtos à venda"):
+                        with HorizontalGroup(id='cnt_select_produtos'):                  
                             with VerticalGroup():
                                 with HorizontalGroup():
-                                    yield Label("Dar baixa no estoque?")
-                                    yield Switch(disabled=False, id="switch_baixa")
-                            
+                                    yield Label('Selecione um produto:')
+                                    yield Select(self.LISTA_DE_PRODUTOS,
+                                            type_to_search=True,
+                                            id='select_produtos_venda',
+                                            allow_blank=True,
+                                            prompt='Selecione o produto para adicionar à venda'
+                                            )
+
                                 with HorizontalGroup():
-                                    yield Input(placeholder='Quantidade vendida...',
-                                                id='quantidade_venda',
-                                                max_length=3,
-                                                type="integer"
-                                                )
-                                    yield Button('Adicionar',
-                                                    disabled=True,
-                                                    id='bt_adicionar_quantidade')
+                                    yield Static(self.texto_static_produto, id='static_produto')
+                                    with VerticalGroup():
+                                        with HorizontalGroup():
+                                            yield Label("Dar baixa no estoque?")
+                                            yield Switch(disabled=False, id="switch_baixa")
                                     
+                                        with HorizontalGroup():
+                                            yield Input(placeholder='Quantidade vendida...',
+                                                        id='quantidade_venda',
+                                                        max_length=3,
+                                                        type="integer"
+                                                        )
+                                            yield Button('Adicionar',
+                                                            disabled=True,
+                                                            id='bt_adicionar_quantidade')
+                yield Rule()
 
+                with ScrollableContainer():
+                    with VerticalGroup():
+                        yield DataTable(id="tabela_cadastro_venda")
+                        with HorizontalGroup():
+                            yield Static(self.texto_static_venda, id="static_venda")
+                            yield Button("Remover", id="bt_remover", disabled=True)
 
-                with VerticalGroup():
-                    yield DataTable(id="tabela_cadastro_venda")
-                    with HorizontalGroup():
-                        yield Static(self.texto_static_venda, id="static_venda")
-                        yield Button("Remover", id="bt_remover", disabled=True)
+                        with HorizontalGroup():
+                            yield Label('Data da venda[red]*[/red]')
+                            yield MaskedInput(template='00/00/0000', placeholder='DD/MM/AAAA', id="data_venda")
 
-                    with HorizontalGroup():
-                        yield Label('Data da venda[red]*[/red]')
-                        yield MaskedInput(template='00/00/0000', placeholder='DD/MM/AAAA', id="data_venda")
+                            yield Label('Status da venda[red]*[/red]')
+                            yield Select([('Em andamento', 1),
+                                            ('Aguardando pagamento', 2),
+                                            ('Finalizada', 3),
+                                            ('Cancelada', 4)],
+                                            type_to_search=True,
+                                            id='select_status_venda',
+                                            allow_blank=False
+                                            )
 
-                        yield Label('Status da venda[red]*[/red]')
-                        yield Select([('Em andamento', 1),
-                                        ('Aguardando pagamento', 2),
-                                        ('Finalizada', 3),
-                                        ('Cancelada', 4)],
-                                        type_to_search=True,
-                                        id='select_status_venda',
-                                        allow_blank=False
-                                        )
+                        with HorizontalGroup():
+                            yield Label("Comentários")
+                            yield TextArea(
+                                placeholder='Detalhes da venda, dos produtos, da entrega, quem comprou, entre outros',
+                                id='text_comentario')
 
-                    with HorizontalGroup():
-                        yield Label("Comentários")
-                        yield TextArea(
-                            placeholder='Detalhes da venda, dos produtos, da entrega, quem comprou, entre outros',
-                            id='text_comentario')
-
-                with HorizontalGroup(id='bt_tela_vendas'):
-                    yield Button('Cadastrar',  id='bt_cadastrar', disabled=True)
-                    yield Button('Limpar', id='bt_limpar', disabled=True)
-                    yield Button('Voltar', id='bt_voltar')
+                    with HorizontalGroup(id='bt_tela_vendas'):
+                        yield Button('Cadastrar',  id='bt_cadastrar', disabled=True)
+                        yield Button('Limpar', id='bt_limpar', disabled=True)
+                        yield Button('Voltar', id='bt_voltar')
 
             with TabPane('Atualizar venda', id='tab_atualizar_venda'):
                 with Collapsible(title='Expandir tabela de venda', id="coll_vendas"):
-                    with VerticalScroll():
+                    with ScrollableContainer():
                         with HorizontalGroup():
                             yield Checkbox("Em andamento", True, id="cbox_andamento")
                             yield Checkbox("Aguardando pagamento", True, id='cbox_pagamento')
@@ -1654,6 +1662,8 @@ class TelaVendas(Screen):
         self.PRODUTOS_BAIXA.pop(id_produto)
         self.atualizar_static_venda()
         self.resetar_tabela_cadastro_venda()
+        self.notify(title="Removido!", message="Produto removido da venda", severity="warning")
+
 
     def limpar_inputs(self):
         'Reseta os campos e informações da TelaVendas.'

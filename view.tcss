@@ -14,10 +14,7 @@ SidebarMenu {
     border-right: wide #e6e9ef;
 }
 
-#coll_encomendas, #coll_vendas{
-    width: 80%;
-    height: auto;
-}
+
 
 #tabela_encomendas, #tabela_vendas, {
     width: 90%;
@@ -126,11 +123,12 @@ TabbedContent {
 }
 
 
-#coll_encomendas, #collapsible_produtos {
+Collapsible {
     width: 92%;
     margin-top: 1;
     height: auto;
 }
+
 
 #static_alteracao_encomenda, #static_venda, #static_alteracao_venda {
     text-align: center;
