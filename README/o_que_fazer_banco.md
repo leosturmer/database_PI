@@ -1,12 +1,10 @@
 
 - ##### TELA VENDAS TÁ AUMENTANDO O PREÇO FINAL SEMPRE QUE CLICA EM ADICIONAR
 
-    - Ver os NOTIFY e deixar bonitos.
-
-    PRODUTOS ---- ao cadastrar, fazer um FETCH pra ver se já tem aquele nome cadastrado.
-
     - Tela de Pesquisa:
         - Produtos:
+           não PRODUTOS ---- ao cadastrar, fazer um FETCH pra ver se já tem aquele nome cadastrado.
+
             - Colocar os filtros do checkbox
             - Fazer as pesquisas no banco de dados pelo input
 
@@ -64,4 +62,3 @@
         elif encomenda and nao_encomenda:
             self.checkbox_list_produto.extend([3, 4])
 
-            
